@@ -12,12 +12,7 @@
   },
   "maintenance": {
     "enabled": false,
-    "lockedTabs": [
-      "discover",
-      "pro",
-      "ai",
-      "challenge"
-    ],
+    "lockedTabs": [],
     "messageCkb": "ئەم بەشە لە ئێستادا لەژێر چاکسازی و نوێکردنەوەدایە بۆ پێشکەشکردنی باشترین خزمەتگوزاری.",
     "messageEn": "This section is currently undergoing scheduled maintenance to improve your learning experience.",
     "estimatedReturn": "بە زووترین کات دەگەڕێینەوە"

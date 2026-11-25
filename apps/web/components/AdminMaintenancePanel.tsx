@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Wrench,
   ShieldAlert,
@@ -310,6 +310,21 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
   );
   const [saving, setSaving] = useState(false);
 
+  // Keep form synced whenever live Firestore settings arrive or update from another session
+  useEffect(() => {
+    const m = systemSettings.maintenance;
+    if (!m) return;
+    setEnabled(Boolean(m.enabled));
+    setLockedTabs(Array.isArray(m.lockedTabs) ? m.lockedTabs : []);
+    if (typeof m.messageCkb === 'string' && m.messageCkb.trim()) setMessageCkb(m.messageCkb);
+    if (typeof m.messageEn === 'string' && m.messageEn.trim()) setMessageEn(m.messageEn);
+    if (typeof m.estimatedReturn === 'string') setEstimatedReturn(m.estimatedReturn);
+  }, [
+    systemSettings.maintenance?.enabled,
+    systemSettings.maintenance?.updatedAt,
+    (systemSettings.maintenance?.lockedTabs || []).join(','),
+  ]);
+
   // Dynamic manageable tabs list
   const manageableTabs = useMemo(() => getDynamicManageableTabs(lockedTabs), [lockedTabs]);
 
@@ -427,23 +442,30 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
 
       const before = { ...systemSettings.maintenance };
 
-      // 1. Update Firestore system_settings/global with 3.5s safety timeout
+      // 1. Update Firestore system_settings/global using strictly whitelisted fields so existing rules accept it globally
+      const firestorePayload = {
+        freeDailyAiLimit: Math.max(1, Math.min(500, Math.round(Number(systemSettings.freeDailyAiLimit || 15)))),
+        proPerMinuteLimit: Math.max(1, Math.min(120, Math.round(Number(systemSettings.proPerMinuteLimit || 12)))),
+        proMaxMessageLength: Math.max(200, Math.min(20000, Math.round(Number(systemSettings.proMaxMessageLength || 4000)))),
+        dailyGenerationJobCap: Math.max(1, Math.min(500, Math.round(Number(systemSettings.dailyGenerationJobCap || 25)))),
+        autoPublishAfterValidation: Boolean(systemSettings.autoPublishAfterValidation),
+        maintenance: updatedConfig,
+        updatedBy: firebaseUser?.uid || 'admin',
+        updatedAt: serverTimestamp(),
+      };
+
+      let firestoreSynced = false;
+      let firestoreErrorText = '';
       try {
-        const fsPromise = setDoc(
-          doc(db, 'system_settings', 'global'),
-          {
-            ...systemSettings,
-            maintenance: updatedConfig,
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
+        const fsPromise = setDoc(doc(db, 'system_settings', 'global'), firestorePayload);
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Firestore timeout')), 3500)
+          setTimeout(() => reject(new Error('Firestore timeout — check internet or database rules')), 8000)
         );
         await Promise.race([fsPromise, timeoutPromise]);
+        firestoreSynced = true;
       } catch (fsErr) {
-        console.warn('Firestore write warning (Rules may need update in Firebase Console):', fsErr);
+        firestoreErrorText = fsErr instanceof Error ? fsErr.message : String(fsErr);
+        console.warn('Firestore maintenance write failed:', fsErr);
       }
 
       // 2. Sync to authoritative server state with 3s timeout
@@ -472,6 +494,19 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
         before as unknown as Record<string, unknown>,
         updatedConfig as unknown as Record<string, unknown>
       ).catch(() => {});
+
+      if (!firestoreSynced) {
+        onBanner(
+          'err',
+          pickLoc(locale, {
+            ckb: `ئاگاداری: دۆخی چاکسازی تەنها لەسەر ئەم ئامێرە پاشەکەوت بوو و نەنێردرا بۆ داتابەیس (${firestoreErrorText}). دڵنیابە بە ئیمێڵی ئەدمینی فەرمی لەژوورەوەیت و Firestore Rules دیپلۆی کراوە.`,
+            kmr: `Agahdarî: Doxa çaksaziyê tenê li ser vê amûrê hate tomar kirin û neçû bo databêjê (${firestoreErrorText}).`,
+            ar: `تنبيه: تم الحفظ محلياً فقط وفشل الإرسال إلى قاعدة البيانات (${firestoreErrorText}). تأكد من صلاحية حساب الإدارة وقواعد Firestore.`,
+            en: `Warning: Saved locally only — failed to sync globally to Firestore (${firestoreErrorText}). Verify admin sign-in and deployed Firestore rules.`,
+          })
+        );
+        return;
+      }
 
       onBanner(
         'ok',

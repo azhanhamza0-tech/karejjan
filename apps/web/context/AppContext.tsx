@@ -10,6 +10,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocFromServer,
   getDocs,
   onSnapshot,
   query,
@@ -521,17 +522,77 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Global authoritative system settings & maintenance sync (public, unauthenticated-safe)
   useEffect(() => {
-    // 1. Fetch from authoritative persistent server cache
+    let cancelled = false;
+    let firestoreLoaded = false;
+
+    const applyFirestoreSettings = (data: Partial<SystemSettings>) => {
+      firestoreLoaded = true;
+      setSystemSettings((prev) => {
+        const next: SystemSettings = {
+          ...DEFAULT_SYSTEM_SETTINGS,
+          ...prev,
+          ...data,
+          practiceConfig: data.practiceConfig || prev.practiceConfig || DEFAULT_SYSTEM_SETTINGS.practiceConfig,
+          maintenance: data.maintenance || prev.maintenance || DEFAULT_SYSTEM_SETTINGS.maintenance,
+        };
+        try {
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('karejan_system_settings', JSON.stringify(next));
+          }
+        } catch { }
+        return next;
+      });
+    };
+
+    // 1. Direct server read from Firestore bypasses stale offline cache across devices/users
+    void getDocFromServer(doc(db, 'system_settings', 'global'))
+      .then((snap) => {
+        if (!cancelled && snap.exists()) {
+          applyFirestoreSettings(snap.data() as SystemSettings);
+        }
+      })
+      .catch(() => { });
+
+    // 2. Real-time Firestore snapshot for immediate multi-client live updates across devices
+    const unsub = onSnapshot(
+      doc(db, 'system_settings', 'global'),
+      (snap) => {
+        if (!cancelled && snap.exists()) {
+          applyFirestoreSettings(snap.data() as SystemSettings);
+        }
+      },
+      (err) => {
+        console.warn('System settings listener notice:', err);
+      }
+    );
+
+    // 3. Fallback / Server settings sync (never overrides live Firestore maintenance state)
     fetch('/api/public/system-settings')
       .then((res) => {
         if (!res.ok) throw new Error('API offline');
         return res.json();
       })
       .then((data: any) => {
+        if (cancelled) return;
         const payload = data?.settings || data;
         if (payload && typeof payload === 'object') {
           setSystemSettings((prev) => {
-            const next = { ...DEFAULT_SYSTEM_SETTINGS, ...prev, ...payload };
+            const payloadHasRemoteTimestamp = Boolean(payload?.maintenance?.updatedAt);
+            const prevUpdated = prev?.maintenance?.updatedAt || '';
+            const nextUpdated = payload?.maintenance?.updatedAt || '';
+            const shouldUseServerMaintenance =
+              !firestoreLoaded &&
+              (!prevUpdated || (payloadHasRemoteTimestamp && nextUpdated >= prevUpdated));
+
+            const next: SystemSettings = {
+              ...DEFAULT_SYSTEM_SETTINGS,
+              ...prev,
+              ...payload,
+              maintenance: shouldUseServerMaintenance
+                ? (payload.maintenance || prev.maintenance)
+                : prev.maintenance,
+              practiceConfig: payload.practiceConfig || prev.practiceConfig || DEFAULT_SYSTEM_SETTINGS.practiceConfig,
+            };
             try {
               if (typeof window !== 'undefined') {
                 window.localStorage.setItem('karejan_system_settings', JSON.stringify(next));
@@ -543,29 +604,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
       .catch(() => { });
 
-    // 2. Real-time Firestore snapshot for immediate multi-client live updates
-    const unsub = onSnapshot(
-      doc(db, 'system_settings', 'global'),
-      (snap) => {
-        if (snap.exists()) {
-          const data = snap.data() as SystemSettings;
-          setSystemSettings((prev) => {
-            const next = { ...DEFAULT_SYSTEM_SETTINGS, ...prev, ...data };
-            try {
-              if (typeof window !== 'undefined') {
-                window.localStorage.setItem('karejan_system_settings', JSON.stringify(next));
-              }
-            } catch { }
-            return next;
-          });
-        }
-      },
-      (err) => {
-        console.warn('System settings listener notice:', err);
-      }
-    );
-
     return () => {
+      cancelled = true;
       unsub();
     };
   }, []);

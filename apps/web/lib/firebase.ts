@@ -6,13 +6,12 @@ import firebaseConfig from '../../../firebase-applet-config.json';
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// Initialize Firestore safely: fallback to standard default database if custom ID is invalid or ephemeral
+// Initialize Firestore against the configured Firebase database ID (named or default)
 function initializeDatabase() {
   try {
     if (
       firebaseConfig.firestoreDatabaseId &&
-      firebaseConfig.firestoreDatabaseId !== '(default)' &&
-      !firebaseConfig.firestoreDatabaseId.startsWith('ai-studio-')
+      firebaseConfig.firestoreDatabaseId !== '(default)'
     ) {
       return getFirestore(app, firebaseConfig.firestoreDatabaseId);
     }

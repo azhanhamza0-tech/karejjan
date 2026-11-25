@@ -1,6 +1,8 @@
 // ../karejan/server/app.ts
 import "dotenv/config";
 import express from "express";
+import path3 from "node:path";
+import fs3 from "node:fs";
 import { Type } from "@google/genai";
 
 // ../karejan/server/lib/auth.ts
@@ -16600,17 +16602,70 @@ function createApiApp() {
     persistServerSettings();
     res.json({ ok: true, settings: serverSettings });
   });
-  app2.get("/api/public/system-settings", (_req, res) => {
+  function decodeFirestoreValue(val) {
+    if (!val || typeof val !== "object") return void 0;
+    if ("stringValue" in val) return val.stringValue;
+    if ("booleanValue" in val) return Boolean(val.booleanValue);
+    if ("integerValue" in val) return Number(val.integerValue);
+    if ("doubleValue" in val) return Number(val.doubleValue);
+    if ("timestampValue" in val) return val.timestampValue;
+    if ("nullValue" in val) return null;
+    if ("arrayValue" in val) {
+      return Array.isArray(val.arrayValue?.values) ? val.arrayValue.values.map(decodeFirestoreValue) : [];
+    }
+    if ("mapValue" in val) {
+      const out = {};
+      const fields = val.mapValue?.fields || {};
+      for (const [k, v] of Object.entries(fields)) {
+        out[k] = decodeFirestoreValue(v);
+      }
+      return out;
+    }
+    return void 0;
+  }
+  async function fetchPublicFirestoreSettings() {
+    try {
+      let projectId = process.env.FIREBASE_PROJECT_ID || "commanding-obelisk-5vc14";
+      let databaseId = "ai-studio-9535e249-e869-4564-9680-fb7208c2b03e";
+      const cfgPath = path3.resolve(process.cwd(), "firebase-applet-config.json");
+      if (fs3.existsSync(cfgPath)) {
+        const cfg = JSON.parse(fs3.readFileSync(cfgPath, "utf8"));
+        if (cfg.projectId) projectId = cfg.projectId;
+        if (cfg.firestoreDatabaseId) databaseId = cfg.firestoreDatabaseId;
+      }
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 1600);
+      try {
+        const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/${encodeURIComponent(databaseId)}/documents/system_settings/global`;
+        const resp = await fetch(url, { signal: ctrl.signal });
+        if (!resp.ok) return null;
+        const json = await resp.json();
+        if (!json?.fields) return null;
+        const decoded = {};
+        for (const [k, v] of Object.entries(json.fields)) {
+          decoded[k] = decodeFirestoreValue(v);
+        }
+        return decoded;
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch {
+      return null;
+    }
+  }
+  app2.get("/api/public/system-settings", async (_req, res) => {
+    const remote = await fetchPublicFirestoreSettings();
+    const maintenance = remote?.maintenance && typeof remote.maintenance === "object" ? remote.maintenance : serverSettings.maintenance;
     res.json({
       ok: true,
       settings: {
-        freeDailyAiLimit: serverSettings.freeDailyAiLimit,
-        proPerMinuteLimit: serverSettings.proPerMinuteLimit,
-        proMaxMessageLength: serverSettings.proMaxMessageLength,
-        dailyGenerationJobCap: serverSettings.dailyGenerationJobCap,
-        autoPublishAfterValidation: serverSettings.autoPublishAfterValidation,
-        maintenance: serverSettings.maintenance,
-        practiceConfig: serverSettings.practiceConfig || {
+        freeDailyAiLimit: remote?.freeDailyAiLimit ?? serverSettings.freeDailyAiLimit,
+        proPerMinuteLimit: remote?.proPerMinuteLimit ?? serverSettings.proPerMinuteLimit,
+        proMaxMessageLength: remote?.proMaxMessageLength ?? serverSettings.proMaxMessageLength,
+        dailyGenerationJobCap: remote?.dailyGenerationJobCap ?? serverSettings.dailyGenerationJobCap,
+        autoPublishAfterValidation: typeof remote?.autoPublishAfterValidation === "boolean" ? remote.autoPublishAfterValidation : serverSettings.autoPublishAfterValidation,
+        maintenance,
+        practiceConfig: remote?.practiceConfig || serverSettings.practiceConfig || {
           lessonsPerGroup: 3,
           requirePassToUnlockNext: true,
           passThresholdPercent: 60,

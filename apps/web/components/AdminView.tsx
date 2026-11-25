@@ -922,6 +922,7 @@ export const AdminView: React.FC = () => {
       };
       const nextPayload = {
         ...settingsForm,
+        maintenance: systemSettings.maintenance || settingsForm.maintenance,
         practiceConfig: normalizedPractice,
       };
 
@@ -932,20 +933,25 @@ export const AdminView: React.FC = () => {
         body: nextPayload,
       }).catch(() => {});
 
+      const coreFirestorePayload = {
+        freeDailyAiLimit: Math.max(1, Math.min(500, Math.round(Number(nextPayload.freeDailyAiLimit || 15)))),
+        proPerMinuteLimit: Math.max(1, Math.min(120, Math.round(Number(nextPayload.proPerMinuteLimit || 12)))),
+        proMaxMessageLength: Math.max(200, Math.min(20000, Math.round(Number(nextPayload.proMaxMessageLength || 4000)))),
+        dailyGenerationJobCap: Math.max(1, Math.min(500, Math.round(Number(nextPayload.dailyGenerationJobCap || 25)))),
+        autoPublishAfterValidation: Boolean(nextPayload.autoPublishAfterValidation),
+        ...(nextPayload.maintenance ? { maintenance: nextPayload.maintenance } : {}),
+        updatedBy: firebaseUser?.uid || 'admin',
+        updatedAt: serverTimestamp(),
+      };
+
       try {
         await setDoc(doc(db, 'system_settings', 'global'), {
-          ...nextPayload,
-          updatedBy: firebaseUser?.uid || 'admin',
-          updatedAt: serverTimestamp(),
+          ...coreFirestorePayload,
+          practiceConfig: normalizedPractice,
         });
       } catch {
         // Fallback if remote Firestore Console rules haven't added practiceConfig key yet
-        const { practiceConfig: _omit, ...coreFields } = nextPayload;
-        await setDoc(doc(db, 'system_settings', 'global'), {
-          ...coreFields,
-          updatedBy: firebaseUser?.uid || 'admin',
-          updatedAt: serverTimestamp(),
-        }).catch(() => {});
+        await setDoc(doc(db, 'system_settings', 'global'), coreFirestorePayload).catch(() => {});
       }
 
       await setDoc(
