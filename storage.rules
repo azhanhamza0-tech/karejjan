@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Global deny by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrapSuperAdmin() {
+      return isSignedIn() && request.auth.token.email == 'onlineguard515@gmail.com';
+    }
+
+    function isPaymentAdmin() {
+      return isBootstrapSuperAdmin() || (
+        isSignedIn() &&
+        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data.role in ['super_admin', 'admin']
+      );
+    }
+
+    // Private payment receipts: readable only by owner and Super Admin / Admin (never Editors or other users)
+    match /receipts/{uid}/{fileName} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isPaymentAdmin());
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && fileName.size() <= 180
+        && request.resource.size > 0
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType in ['image/jpeg', 'image/png', 'image/webp'];
+      allow update, delete: if false;
+    }
+  }
+}

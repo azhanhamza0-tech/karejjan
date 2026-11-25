@@ -1,0 +1,832 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Global Hardened Primitives
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidRefId(id) {
+      return id is string && id.size() >= 3 && id.size() <= 80 && id.matches('^[A-Z0-9_\\-]+$');
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isVerifiedOwner(uid) {
+      return isVerified() && request.auth.uid == uid;
+    }
+
+    function isBootstrapSuperAdmin() {
+      return isSignedIn() && request.auth.token.email == 'onlineguard515@gmail.com';
+    }
+
+    function hasAdminDoc() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function adminRole() {
+      return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role;
+    }
+
+    function isSuperAdmin() {
+      return isBootstrapSuperAdmin() || (hasAdminDoc() && adminRole() == 'super_admin');
+    }
+
+    function isPaymentAdmin() {
+      return isBootstrapSuperAdmin() || (hasAdminDoc() && adminRole() in ['super_admin', 'admin']);
+    }
+
+    function isStaff() {
+      return isBootstrapSuperAdmin() || (hasAdminDoc() && adminRole() in ['super_admin', 'admin', 'editor']);
+    }
+
+    function isValidLocale(lang) {
+      return lang is string && lang in ['ckb', 'kmr', 'ar', 'en'];
+    }
+
+    function isValidTheme(theme) {
+      return theme is string && theme in ['dark', 'light'];
+    }
+
+    function isValidPlan(plan) {
+      return plan is string && plan in ['free', 'pro'];
+    }
+
+    function isValidRole(role) {
+      return role is string && role in ['user', 'editor', 'admin', 'super_admin'];
+    }
+
+    function isValidTrack(track) {
+      return track is string && (track in ['html', 'css', 'js', 'react', 'vite', 'tsx', 'python', 'cpp'] || (track.size() >= 2 && track.size() <= 32));
+    }
+
+    function isValidMethod(method) {
+      return method is string && method in ['fib', 'qi_card', 'zaincash'];
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.size() <= 254;
+    }
+
+    // -------------------------------------------------------------------------
+    // Entity Validation Blueprints (Anti-Update-Gap)
+    // -------------------------------------------------------------------------
+    function isValidUserProfile(data, uid) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'language', 'theme', 'plan', 'role', 'subscriptionStatus', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'language', 'theme', 'plan', 'role', 'subscriptionStatus', 'subscriptionExpiresAt', 'aiDailyUsage', 'aiUsageDate', 'createdAt', 'updatedAt'])
+        && data.uid == uid
+        && isValidId(data.uid)
+        && isValidEmail(data.email)
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100
+        && isValidLocale(data.language)
+        && isValidTheme(data.theme)
+        && isValidPlan(data.plan)
+        && isValidRole(data.role)
+        && data.subscriptionStatus is string && data.subscriptionStatus in ['none', 'active', 'expired']
+        && (!('subscriptionExpiresAt' in data) || data.subscriptionExpiresAt == null || (data.subscriptionExpiresAt is string && data.subscriptionExpiresAt.size() <= 64))
+        && (!('aiDailyUsage' in data) || (data.aiDailyUsage is int && data.aiDailyUsage >= 0 && data.aiDailyUsage <= 100000))
+        && (!('aiUsageDate' in data) || (data.aiUsageDate is string && data.aiUsageDate.size() <= 16))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdminRecord(data, uid) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'email', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
+        && data.uid == uid
+        && isValidId(data.uid)
+        && isValidEmail(data.email)
+        && data.role is string && data.role in ['editor', 'admin', 'super_admin']
+        && (!('grantedBy' in data) || (data.grantedBy is string && data.grantedBy.size() <= 128))
+        && data.createdAt is timestamp;
+    }
+
+    function isValidCourse(data, courseId) {
+      return data.keys().hasAll(['id', 'slug', 'order', 'titles', 'descriptions'])
+        && data.keys().hasOnly(['id', 'slug', 'order', 'titles', 'descriptions', 'practiceConfig', 'updatedAt'])
+        && data.id == courseId
+        && isValidTrack(data.id)
+        && data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 32
+        && data.order is int && data.order >= 0 && data.order <= 100
+        && data.titles is map
+        && data.descriptions is map;
+    }
+
+    function isValidChapter(data, chapterId) {
+      return data.keys().hasAll(['id', 'courseId', 'order', 'titles'])
+        && data.keys().hasOnly(['id', 'courseId', 'order', 'titles', 'updatedAt'])
+        && data.id == chapterId
+        && isValidId(data.id)
+        && isValidTrack(data.courseId)
+        && data.order is int && data.order >= 0 && data.order <= 200
+        && data.titles is map;
+    }
+
+    function isValidLesson(data, lessonId) {
+      return data.keys().hasAll(['id', 'courseId', 'chapterId', 'order', 'difficulty', 'published', 'sharedCode', 'translations', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'courseId', 'chapterId', 'order', 'difficulty', 'published', 'sharedCode', 'translations', 'createdBy', 'createdAt', 'updatedAt'])
+        && data.id == lessonId
+        && isValidId(data.id)
+        && isValidTrack(data.courseId)
+        && data.chapterId is string && data.chapterId.size() >= 1 && data.chapterId.size() <= 64
+        && data.order is int && data.order >= 0 && data.order <= 500
+        && data.difficulty is string && data.difficulty in ['beginner', 'intermediate', 'advanced']
+        && data.published is bool
+        && data.sharedCode is map
+        && data.translations is map
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProgress(data) {
+      return data.keys().hasAll(['uid', 'lessonId', 'courseId', 'completed', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'lessonId', 'courseId', 'completed', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && isValidId(data.lessonId)
+        && isValidTrack(data.courseId)
+        && data.completed is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSnippet(data) {
+      return data.keys().hasAll(['uid', 'title', 'html', 'css', 'js', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'title', 'html', 'css', 'js', 'lessonId', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && data.html is string && data.html.size() <= 30000
+        && data.css is string && data.css.size() <= 30000
+        && data.js is string && data.js.size() <= 30000
+        && (!('lessonId' in data) || data.lessonId == null || (data.lessonId is string && data.lessonId.size() <= 96))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAiChat(data) {
+      return data.keys().hasAll(['uid', 'title', 'language', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'title', 'language', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 140
+        && isValidLocale(data.language)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAiMessage(data) {
+      return data.keys().hasAll(['uid', 'role', 'content', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'role', 'content', 'createdAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.role is string && data.role in ['user', 'assistant']
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 20000
+        && data.createdAt is timestamp;
+    }
+
+    function isValidMaintenanceDoc(m) {
+      return m is map
+        && m.keys().hasAll(['enabled', 'lockedTabs'])
+        && m.enabled is bool
+        && m.lockedTabs is list;
+    }
+
+    function isValidSystemSettings(data) {
+      return data.keys().hasAll(['freeDailyAiLimit', 'proPerMinuteLimit', 'proMaxMessageLength', 'dailyGenerationJobCap', 'autoPublishAfterValidation', 'updatedAt'])
+        && data.keys().hasOnly(['freeDailyAiLimit', 'proPerMinuteLimit', 'proMaxMessageLength', 'dailyGenerationJobCap', 'autoPublishAfterValidation', 'maintenance', 'practiceConfig', 'updatedBy', 'updatedAt'])
+        && data.freeDailyAiLimit is int && data.freeDailyAiLimit >= 1 && data.freeDailyAiLimit <= 500
+        && data.proPerMinuteLimit is int && data.proPerMinuteLimit >= 1 && data.proPerMinuteLimit <= 120
+        && data.proMaxMessageLength is int && data.proMaxMessageLength >= 200 && data.proMaxMessageLength <= 20000
+        && data.dailyGenerationJobCap is int && data.dailyGenerationJobCap >= 1 && data.dailyGenerationJobCap <= 500
+        && data.autoPublishAfterValidation is bool
+        && (!('maintenance' in data) || isValidMaintenanceDoc(data.maintenance))
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPlanDoc(data, planId) {
+      return data.keys().hasAll(['id', 'priceIqd', 'billingPeriod', 'titles', 'descriptions', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'priceIqd', 'billingPeriod', 'titles', 'descriptions', 'features', 'updatedAt'])
+        && data.id == planId
+        && data.id in ['free', 'pro']
+        && data.priceIqd is int && data.priceIqd >= 0 && data.priceIqd <= 10000000
+        && data.billingPeriod is string && data.billingPeriod in ['forever', 'month']
+        && data.titles is map
+        && data.descriptions is map
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPaymentSetting(data, methodId) {
+      return data.keys().hasAll(['id', 'name', 'accountNumber', 'enabled', 'instructions', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'accountNumber', 'enabled', 'instructions', 'updatedBy', 'updatedAt'])
+        && data.id == methodId
+        && isValidMethod(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
+        && data.accountNumber is string && data.accountNumber.size() >= 4 && data.accountNumber.size() <= 40
+        && data.enabled is bool
+        && data.instructions is map
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPaymentTransaction(data) {
+      return data.keys().hasAll(['uid', 'userEmail', 'methodId', 'transactionRef', 'normalizedRef', 'paymentDate', 'amountIqd', 'receiptPath', 'receiptFileName', 'receiptMimeType', 'receiptSizeBytes', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'userEmail', 'methodId', 'transactionRef', 'normalizedRef', 'paymentDate', 'amountIqd', 'receiptPath', 'receiptFileName', 'receiptMimeType', 'receiptSizeBytes', 'receiptPreviewUrl', 'status', 'reviewReason', 'reviewedBy', 'reviewedAt', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && isValidEmail(data.userEmail)
+        && isValidMethod(data.methodId)
+        && data.transactionRef is string && data.transactionRef.size() >= 3 && data.transactionRef.size() <= 80
+        && isValidRefId(data.normalizedRef)
+        && data.paymentDate is string && data.paymentDate.size() >= 8 && data.paymentDate.size() <= 32
+        && data.amountIqd is int && data.amountIqd >= 1000 && data.amountIqd <= 5000000
+        && data.receiptPath is string && data.receiptPath.size() >= 1 && data.receiptPath.size() <= 400
+        && data.receiptFileName is string && data.receiptFileName.size() >= 1 && data.receiptFileName.size() <= 180
+        && data.receiptMimeType is string && data.receiptMimeType in ['image/jpeg', 'image/png', 'image/webp']
+        && data.receiptSizeBytes is int && data.receiptSizeBytes >= 1 && data.receiptSizeBytes <= 5242880
+        && (!('receiptPreviewUrl' in data) || data.receiptPreviewUrl == null || (data.receiptPreviewUrl is string && data.receiptPreviewUrl.size() <= 350000))
+        && data.status is string && data.status in ['pending', 'approved', 'rejected', 'requires_review']
+        && (!('reviewReason' in data) || data.reviewReason == null || (data.reviewReason is string && data.reviewReason.size() <= 500))
+        && (!('reviewedBy' in data) || data.reviewedBy == null || isValidId(data.reviewedBy))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPaymentReference(data, refId) {
+      return data.keys().hasAll(['normalizedRef', 'transactionId', 'uid', 'approvedBy', 'approvedAt'])
+        && data.keys().hasOnly(['normalizedRef', 'transactionId', 'uid', 'approvedBy', 'approvedAt'])
+        && data.normalizedRef == refId
+        && isValidRefId(data.normalizedRef)
+        && isValidId(data.transactionId)
+        && isValidId(data.uid)
+        && isValidId(data.approvedBy)
+        && data.approvedAt is timestamp;
+    }
+
+    function isValidSubscription(data, uid) {
+      return data.keys().hasAll(['uid', 'plan', 'status', 'activatedAt', 'expiresAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'userEmail', 'plan', 'status', 'activatedAt', 'expiresAt', 'lastTransactionId', 'extensionNotes', 'updatedAt'])
+        && data.uid == uid
+        && isValidId(data.uid)
+        && isValidPlan(data.plan)
+        && data.status is string && data.status in ['active', 'expired']
+        && data.activatedAt is string && data.activatedAt.size() <= 64
+        && data.expiresAt is string && data.expiresAt.size() <= 64
+        && (!('extensionNotes' in data) || (data.extensionNotes is list && data.extensionNotes.size() <= 50))
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['uid', 'type', 'title', 'body', 'read', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'type', 'title', 'body', 'read', 'createdAt'])
+        && isValidId(data.uid)
+        && data.type is string && data.type in ['subscription_activated', 'expiry_warning_7d', 'expiry_warning_1d', 'subscription_expired', 'payment_rejected', 'subscription_extended']
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
+        && data.body is string && data.body.size() >= 1 && data.body.size() <= 600
+        && data.read is bool
+        && data.createdAt is timestamp;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['actorUid', 'actorEmail', 'actorRole', 'action', 'targetCollection', 'targetId', 'createdAt'])
+        && data.keys().hasOnly(['actorUid', 'actorEmail', 'actorRole', 'action', 'targetCollection', 'targetId', 'reason', 'before', 'after', 'createdAt'])
+        && isValidId(data.actorUid)
+        && data.actorUid == request.auth.uid
+        && isValidEmail(data.actorEmail)
+        && data.actorRole is string && data.actorRole in ['super_admin', 'admin', 'editor']
+        && data.action is string && data.action.size() >= 1 && data.action.size() <= 80
+        && data.targetCollection is string && data.targetCollection.size() >= 1 && data.targetCollection.size() <= 64
+        && data.targetId is string && data.targetId.size() >= 1 && data.targetId.size() <= 128
+        && (!('reason' in data) || data.reason == null || (data.reason is string && data.reason.size() <= 500))
+        && data.createdAt is timestamp;
+    }
+
+    function isValidExerciseSubmission(data) {
+      return data.keys().hasAll(['uid', 'exerciseId', 'lessonId', 'answer', 'isCorrect', 'feedback', 'submittedAt'])
+        && data.keys().hasOnly(['uid', 'exerciseId', 'lessonId', 'answer', 'isCorrect', 'feedback', 'submittedAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && isValidId(data.exerciseId)
+        && isValidId(data.lessonId)
+        && data.answer is string && data.answer.size() <= 5000
+        && data.isCorrect is bool
+        && data.feedback is string && data.feedback.size() <= 2000
+        && data.submittedAt is timestamp;
+    }
+
+    function isValidQuizAttempt(data) {
+      return data.keys().hasAll(['uid', 'quizId', 'quizType', 'courseId', 'difficulty', 'scorePercent', 'correctCount', 'totalQuestions', 'timedOut', 'submittedAt'])
+        && data.keys().hasOnly(['uid', 'quizId', 'quizType', 'courseId', 'difficulty', 'scorePercent', 'correctCount', 'totalQuestions', 'timedOut', 'recommendedLessonIds', 'submittedAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && isValidId(data.quizId)
+        && data.quizType is string && data.quizType in ['lesson_quiz', 'course_exam', 'practice_test', 'timed_exam']
+        && isValidTrack(data.courseId)
+        && data.difficulty is string && data.difficulty in ['easy', 'medium', 'hard']
+        && data.scorePercent is int && data.scorePercent >= 0 && data.scorePercent <= 100
+        && data.correctCount is int && data.correctCount >= 0 && data.correctCount <= 100
+        && data.totalQuestions is int && data.totalQuestions >= 1 && data.totalQuestions <= 100
+        && data.timedOut is bool
+        && (!('recommendedLessonIds' in data) || (data.recommendedLessonIds is list && data.recommendedLessonIds.size() <= 20))
+        && data.submittedAt is timestamp;
+    }
+
+    function isValidHttpsUrl(url) {
+      return url is string && url.size() >= 12 && url.size() <= 300 && url.matches('^https://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(/.*)?$');
+    }
+
+    function isValidKnowledgeArticle(data, articleId) {
+      return data.keys().hasAll(['id', 'slug', 'category', 'readingMinutes', 'published', 'translations', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'slug', 'category', 'readingMinutes', 'published', 'featured', 'codeExample', 'translations', 'authorUid', 'createdAt', 'updatedAt'])
+        && data.id == articleId
+        && isValidId(data.id)
+        && data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 96
+        && data.category is string && data.category in ['web-architecture', 'performance', 'security', 'ai-engineering', 'tooling']
+        && data.readingMinutes is int && data.readingMinutes >= 1 && data.readingMinutes <= 90
+        && data.published is bool
+        && (!('featured' in data) || data.featured is bool)
+        && (!('codeExample' in data) || data.codeExample == null || (data.codeExample is string && data.codeExample.size() <= 12000))
+        && data.translations is map
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidArticleState(data) {
+      return data.keys().hasAll(['uid', 'articleId', 'bookmarked', 'progressPercent', 'completed', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'articleId', 'bookmarked', 'progressPercent', 'completed', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && isValidId(data.articleId)
+        && data.bookmarked is bool
+        && data.progressPercent is int && data.progressPercent >= 0 && data.progressPercent <= 100
+        && data.completed is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidReferenceEntry(data, refId) {
+      return data.keys().hasAll(['id', 'track', 'category', 'symbol', 'syntax', 'published', 'translations', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'track', 'category', 'symbol', 'syntax', 'exampleHtml', 'exampleCss', 'exampleJs', 'browserSupport', 'published', 'translations', 'updatedAt'])
+        && data.id == refId
+        && isValidId(data.id)
+        && isValidTrack(data.track)
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 64
+        && data.symbol is string && data.symbol.size() >= 1 && data.symbol.size() <= 120
+        && data.syntax is string && data.syntax.size() >= 1 && data.syntax.size() <= 1000
+        && (!('exampleHtml' in data) || (data.exampleHtml is string && data.exampleHtml.size() <= 12000))
+        && (!('exampleCss' in data) || (data.exampleCss is string && data.exampleCss.size() <= 12000))
+        && (!('exampleJs' in data) || (data.exampleJs is string && data.exampleJs.size() <= 12000))
+        && (!('browserSupport' in data) || (data.browserSupport is string && data.browserSupport.size() <= 120))
+        && data.published is bool
+        && data.translations is map
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAiTool(data, toolId) {
+      return data.keys().hasAll(['id', 'name', 'category', 'officialUrl', 'pricingModel', 'lastVerifiedAt', 'published', 'translations', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'category', 'officialUrl', 'pricingModel', 'lastVerifiedAt', 'verifiedBy', 'published', 'translations', 'updatedAt'])
+        && data.id == toolId
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && data.category is string && data.category in ['coding', 'research', 'design', 'writing', 'models', 'productivity']
+        && isValidHttpsUrl(data.officialUrl)
+        && data.pricingModel is string && data.pricingModel in ['free', 'freemium', 'paid', 'open_source']
+        && data.lastVerifiedAt is string && data.lastVerifiedAt.size() >= 10 && data.lastVerifiedAt.size() <= 32
+        && (!('verifiedBy' in data) || (data.verifiedBy is string && data.verifiedBy.size() <= 128))
+        && data.published is bool
+        && data.translations is map
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCodeProject(data, projectId) {
+      return data.keys().hasAll(['id', 'title', 'description', 'track', 'difficulty', 'html', 'css', 'js', 'authorUid', 'authorName', 'isOfficial', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'title', 'description', 'track', 'difficulty', 'tags', 'html', 'css', 'js', 'authorUid', 'authorName', 'isOfficial', 'status', 'moderationReason', 'moderatedBy', 'translations', 'createdAt', 'updatedAt'])
+        && data.id == projectId
+        && isValidId(data.id)
+        && data.title is string && data.title.size() >= 3 && data.title.size() <= 120
+        && data.description is string && data.description.size() >= 10 && data.description.size() <= 1000
+        && data.track is string && data.track in ['html', 'css', 'js', 'fullstack-web']
+        && data.difficulty is string && data.difficulty in ['beginner', 'intermediate', 'advanced']
+        && (!('tags' in data) || (data.tags is list && data.tags.size() <= 6 && (data.tags.size() == 0 || data.tags[0] is string)))
+        && data.html is string && data.html.size() <= 30000
+        && data.css is string && data.css.size() <= 30000
+        && data.js is string && data.js.size() <= 30000
+        && isValidId(data.authorUid)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100
+        && data.isOfficial is bool
+        && data.status is string && data.status in ['pending', 'approved', 'rejected']
+        && (!('moderationReason' in data) || data.moderationReason == null || (data.moderationReason is string && data.moderationReason.size() <= 500))
+        && (!('moderatedBy' in data) || data.moderatedBy == null || isValidId(data.moderatedBy))
+        && (!('translations' in data) || data.translations is map)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidNewsUrl(url) {
+      return url is string && url.size() >= 12 && url.size() <= 500 && url.matches('^https://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(/.*)?$');
+    }
+
+    function isValidNewsCategory(cat) {
+      return cat is string && cat in ['web-platform', 'ai-ml', 'security', 'developer-tools', 'cloud-infra', 'open-source'];
+    }
+
+    function isValidNewsSource(data, sourceId) {
+      return data.keys().hasAll(['id', 'name', 'feedUrl', 'siteUrl', 'defaultCategory', 'permitted', 'enabled', 'lastStatus', 'itemsCollected', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'feedUrl', 'siteUrl', 'defaultCategory', 'permitted', 'enabled', 'lastSyncAt', 'lastStatus', 'lastError', 'itemsCollected', 'updatedAt'])
+        && data.id == sourceId
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+        && isValidHttpsUrl(data.feedUrl)
+        && isValidHttpsUrl(data.siteUrl)
+        && isValidNewsCategory(data.defaultCategory)
+        && data.permitted is bool
+        && data.enabled is bool
+        && (!('lastSyncAt' in data) || data.lastSyncAt == null || (data.lastSyncAt is string && data.lastSyncAt.size() <= 64))
+        && data.lastStatus is string && data.lastStatus in ['idle', 'ok', 'error']
+        && (!('lastError' in data) || data.lastError == null || (data.lastError is string && data.lastError.size() <= 500))
+        && data.itemsCollected is int && data.itemsCollected >= 0 && data.itemsCollected <= 1000000
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidNewsArticle(data, articleId) {
+      return data.keys().hasAll(['id', 'dedupeKey', 'sourceId', 'sourceName', 'sourceSiteUrl', 'originalUrl', 'originalTitle', 'category', 'importance', 'status', 'autoPublished', 'publishedAt', 'translations', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'dedupeKey', 'sourceId', 'sourceName', 'sourceSiteUrl', 'originalUrl', 'originalTitle', 'originalGuid', 'category', 'tags', 'importance', 'importanceReason', 'status', 'autoPublished', 'reviewReason', 'reviewedBy', 'publishedAt', 'translations', 'createdAt', 'updatedAt'])
+        && data.id == articleId
+        && isValidId(data.id)
+        && data.dedupeKey is string && data.dedupeKey.size() >= 8 && data.dedupeKey.size() <= 128
+        && isValidId(data.sourceId)
+        && data.sourceName is string && data.sourceName.size() >= 2 && data.sourceName.size() <= 100
+        && isValidHttpsUrl(data.sourceSiteUrl)
+        && isValidNewsUrl(data.originalUrl)
+        && data.originalTitle is string && data.originalTitle.size() >= 1 && data.originalTitle.size() <= 300
+        && (!('originalGuid' in data) || data.originalGuid == null || (data.originalGuid is string && data.originalGuid.size() <= 300))
+        && isValidNewsCategory(data.category)
+        && (!('tags' in data) || (data.tags is list && data.tags.size() <= 8 && (data.tags.size() == 0 || data.tags[0] is string)))
+        && data.importance is string && data.importance in ['normal', 'important', 'breaking', 'critical']
+        && (!('importanceReason' in data) || data.importanceReason == null || (data.importanceReason is string && data.importanceReason.size() <= 400))
+        && data.status is string && data.status in ['published', 'pending_review', 'rejected']
+        && data.autoPublished is bool
+        && !(data.autoPublished == true && data.importance != 'normal')
+        && (!('reviewReason' in data) || data.reviewReason == null || (data.reviewReason is string && data.reviewReason.size() <= 500))
+        && (!('reviewedBy' in data) || data.reviewedBy == null || isValidId(data.reviewedBy))
+        && data.publishedAt is string && data.publishedAt.size() >= 8 && data.publishedAt.size() <= 64
+        && data.translations is map
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidNewsSyncLog(data, logId) {
+      return data.keys().hasAll(['id', 'trigger', 'runStatus', 'sourcesAttempted', 'sourcesSucceeded', 'sourcesFailed', 'fetchedCount', 'duplicatesSkipped', 'autoPublishedCount', 'queuedReviewCount', 'startedAt', 'finishedAt', 'createdAt'])
+        && data.keys().hasOnly(['id', 'trigger', 'triggeredBy', 'runStatus', 'sourcesAttempted', 'sourcesSucceeded', 'sourcesFailed', 'fetchedCount', 'duplicatesSkipped', 'autoPublishedCount', 'queuedReviewCount', 'sourceResults', 'startedAt', 'finishedAt', 'createdAt'])
+        && data.id == logId
+        && isValidId(data.id)
+        && data.trigger is string && data.trigger in ['scheduled', 'manual']
+        && (!('triggeredBy' in data) || data.triggeredBy == null || (data.triggeredBy is string && data.triggeredBy.size() <= 128))
+        && data.runStatus is string && data.runStatus in ['ok', 'partial', 'failed']
+        && data.sourcesAttempted is int && data.sourcesAttempted >= 0 && data.sourcesAttempted <= 100
+        && data.sourcesSucceeded is int && data.sourcesSucceeded >= 0 && data.sourcesSucceeded <= 100
+        && data.sourcesFailed is int && data.sourcesFailed >= 0 && data.sourcesFailed <= 100
+        && data.fetchedCount is int && data.fetchedCount >= 0 && data.fetchedCount <= 10000
+        && data.duplicatesSkipped is int && data.duplicatesSkipped >= 0 && data.duplicatesSkipped <= 10000
+        && data.autoPublishedCount is int && data.autoPublishedCount >= 0 && data.autoPublishedCount <= 10000
+        && data.queuedReviewCount is int && data.queuedReviewCount >= 0 && data.queuedReviewCount <= 10000
+        && (!('sourceResults' in data) || (data.sourceResults is list && data.sourceResults.size() <= 100))
+        && data.startedAt is string && data.startedAt.size() <= 64
+        && data.finishedAt is string && data.finishedAt.size() <= 64
+        && data.createdAt is timestamp;
+    }
+
+    // -------------------------------------------------------------------------
+    // Collection Rules
+    // -------------------------------------------------------------------------
+    match /users/{uid} {
+      allow get: if isValidId(uid) && (isOwner(uid) || isPaymentAdmin());
+      allow list: if isPaymentAdmin();
+      allow create: if isValidId(uid)
+        && isVerifiedOwner(uid)
+        && isValidUserProfile(incoming(), uid)
+        && incoming().plan == 'free'
+        && incoming().role == 'user'
+        && incoming().subscriptionStatus == 'none';
+      allow update: if isValidId(uid)
+        && isValidUserProfile(incoming(), uid)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && (
+          (isOwner(uid) && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'language', 'theme', 'updatedAt']))
+          || (isPaymentAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['plan', 'subscriptionStatus', 'subscriptionExpiresAt', 'updatedAt']))
+          || isSuperAdmin()
+        );
+      allow delete: if false;
+    }
+
+    match /admins/{uid} {
+      allow get: if isValidId(uid) && (isOwner(uid) || isSuperAdmin());
+      allow list: if isSuperAdmin();
+      allow create: if isValidId(uid) && isSuperAdmin() && isValidAdminRecord(incoming(), uid);
+      allow update: if isValidId(uid) && isSuperAdmin() && isValidAdminRecord(incoming(), uid);
+      allow delete: if isValidId(uid) && isSuperAdmin();
+    }
+
+    match /courses/{courseId} {
+      allow get: if isValidId(courseId);
+      allow list: if true;
+      allow create, update: if isValidId(courseId) && isStaff() && isValidCourse(incoming(), courseId);
+      allow delete: if isValidId(courseId) && isSuperAdmin();
+    }
+
+    match /chapters/{chapterId} {
+      allow get: if isValidId(chapterId);
+      allow list: if true;
+      allow create, update: if isValidId(chapterId) && isStaff() && isValidChapter(incoming(), chapterId);
+      allow delete: if isValidId(chapterId) && isSuperAdmin();
+    }
+
+    match /lessons/{lessonId} {
+      allow get: if isValidId(lessonId) && (existing().published == true || isStaff());
+      allow list: if resource.data.published == true || isStaff();
+      allow create, update: if isValidId(lessonId) && isStaff() && isValidLesson(incoming(), lessonId);
+      allow delete: if isValidId(lessonId) && isPaymentAdmin();
+    }
+
+    match /user_progress/{progressId} {
+      allow get: if isValidId(progressId) && isSignedIn() && existing().uid == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create, update: if isValidId(progressId) && isSignedIn() && isValidProgress(incoming());
+      allow delete: if isValidId(progressId) && isSignedIn() && existing().uid == request.auth.uid;
+    }
+
+    match /code_snippets/{snippetId} {
+      allow get: if isValidId(snippetId) && isSignedIn() && existing().uid == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isValidId(snippetId) && isSignedIn() && isValidSnippet(incoming());
+      allow update: if isValidId(snippetId) && isSignedIn() && existing().uid == request.auth.uid && isValidSnippet(incoming());
+      allow delete: if isValidId(snippetId) && isSignedIn() && existing().uid == request.auth.uid;
+    }
+
+    match /ai_chats/{chatId} {
+      allow get: if isValidId(chatId) && isSignedIn() && existing().uid == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isValidId(chatId) && isSignedIn() && isValidAiChat(incoming());
+      allow update: if isValidId(chatId) && isSignedIn() && existing().uid == request.auth.uid && isValidAiChat(incoming());
+      allow delete: if isValidId(chatId) && isSignedIn() && existing().uid == request.auth.uid;
+
+      match /messages/{messageId} {
+        allow get: if isValidId(chatId) && isValidId(messageId) && isSignedIn()
+          && get(/databases/$(database)/documents/ai_chats/$(chatId)).data.uid == request.auth.uid;
+        allow list: if isValidId(chatId) && isSignedIn()
+          && get(/databases/$(database)/documents/ai_chats/$(chatId)).data.uid == request.auth.uid;
+        allow create: if isValidId(chatId) && isValidId(messageId) && isSignedIn()
+          && get(/databases/$(database)/documents/ai_chats/$(chatId)).data.uid == request.auth.uid
+          && isValidAiMessage(incoming());
+        allow update, delete: if false;
+      }
+    }
+
+    match /system_settings/{settingId} {
+      allow get: if isValidId(settingId);
+      allow list: if true;
+      allow create, update: if isValidId(settingId) && isPaymentAdmin() && isValidSystemSettings(incoming());
+      allow delete: if false;
+    }
+
+    match /subscription_plans/{planId} {
+      allow get: if isValidId(planId);
+      allow list: if true;
+      allow create, update: if isValidId(planId) && isPaymentAdmin() && isValidPlanDoc(incoming(), planId);
+      allow delete: if false;
+    }
+
+    match /payment_settings/{methodId} {
+      allow get: if isValidId(methodId);
+      allow list: if true;
+      allow create: if isSuperAdmin() && isValidId(methodId) && isValidPaymentSetting(incoming(), methodId);
+      allow update: if isSuperAdmin() && isValidId(methodId) && isValidPaymentSetting(incoming(), methodId);
+      allow delete: if false;
+    }
+
+    match /payment_transactions/{txId} {
+      allow get: if isValidId(txId) && isSignedIn() && (existing().uid == request.auth.uid || isPaymentAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isPaymentAdmin());
+      allow create: if isValidId(txId)
+        && isVerified()
+        && isValidPaymentTransaction(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().status == 'pending';
+      allow update: if isPaymentAdmin()
+        && isValidId(txId)
+        && isValidPaymentTransaction(incoming())
+        && incoming().uid == existing().uid
+        && incoming().normalizedRef == existing().normalizedRef
+        && incoming().amountIqd == existing().amountIqd
+        && (
+          incoming().status != 'approved'
+          || existsAfter(/databases/$(database)/documents/payment_references/$(existing().normalizedRef))
+        );
+      allow delete: if false;
+    }
+
+    match /payment_references/{refId} {
+      allow get: if isValidRefId(refId) && isPaymentAdmin();
+      allow list: if isPaymentAdmin();
+      allow create: if isPaymentAdmin() && isValidRefId(refId) && isValidPaymentReference(incoming(), refId);
+      allow update, delete: if false;
+    }
+
+    match /subscriptions/{uid} {
+      allow get: if isValidId(uid) && (isOwner(uid) || isPaymentAdmin());
+      allow list: if isPaymentAdmin();
+      allow create, update: if isValidId(uid) && isPaymentAdmin() && isValidSubscription(incoming(), uid);
+      allow delete: if false;
+    }
+
+    match /notifications/{notifId} {
+      allow get: if isValidId(notifId) && isSignedIn() && (existing().uid == request.auth.uid || isPaymentAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isPaymentAdmin());
+      allow create: if isValidId(notifId) && isPaymentAdmin() && isValidNotification(incoming());
+      allow update: if isValidId(notifId)
+        && isSignedIn()
+        && existing().uid == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly(['read'])
+        && incoming().read == true;
+      allow delete: if false;
+    }
+
+    match /admin_audit_logs/{logId} {
+      allow get: if isValidId(logId) && isSuperAdmin();
+      allow list: if isSuperAdmin();
+      allow create: if isValidId(logId) && isStaff() && isValidAuditLog(incoming());
+      allow update, delete: if false;
+    }
+
+    match /ai_generation_jobs/{jobId} {
+      allow get: if isValidId(jobId) && isStaff();
+      allow list: if isStaff();
+      allow create, update: if isValidId(jobId) && isStaff();
+      allow delete: if isValidId(jobId) && isSuperAdmin();
+    }
+
+    match /generated_lessons/{draftId} {
+      allow get: if isValidId(draftId) && isStaff();
+      allow list: if isStaff();
+      allow create, update, delete: if isValidId(draftId) && isStaff();
+    }
+
+    match /exercises/{exerciseId} {
+      allow get: if isValidId(exerciseId);
+      allow list: if true;
+      allow create, update: if isValidId(exerciseId) && isStaff();
+      allow delete: if isValidId(exerciseId) && isPaymentAdmin();
+    }
+
+    match /exercise_answer_keys/{exerciseId} {
+      allow get: if isValidId(exerciseId) && isStaff();
+      allow list: if isStaff();
+      allow create, update, delete: if isValidId(exerciseId) && isStaff();
+    }
+
+    match /exercise_submissions/{submissionId} {
+      allow get: if isValidId(submissionId) && isSignedIn() && (existing().uid == request.auth.uid || isStaff());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isStaff());
+      allow create, update: if isValidId(submissionId) && isSignedIn() && isValidExerciseSubmission(incoming());
+      allow delete: if false;
+    }
+
+    match /quizzes/{quizId} {
+      allow get: if isValidId(quizId);
+      allow list: if true;
+      allow create, update: if isValidId(quizId) && isStaff();
+      allow delete: if isValidId(quizId) && isPaymentAdmin();
+    }
+
+    match /quiz_answer_keys/{quizId} {
+      allow get: if isValidId(quizId) && isStaff();
+      allow list: if isStaff();
+      allow create, update, delete: if isValidId(quizId) && isStaff();
+    }
+
+    match /quiz_attempts/{attemptId} {
+      allow get: if isValidId(attemptId) && isSignedIn() && (existing().uid == request.auth.uid || isStaff());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isStaff());
+      allow create: if isValidId(attemptId) && isSignedIn() && isValidQuizAttempt(incoming());
+      allow update, delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 5: Content & Discovery Collections
+    // -------------------------------------------------------------------------
+    match /knowledge_articles/{articleId} {
+      allow get: if isValidId(articleId) && (existing().published == true || isStaff());
+      allow list: if resource.data.published == true || isStaff();
+      allow create, update: if isValidId(articleId) && isStaff() && isValidKnowledgeArticle(incoming(), articleId);
+      allow delete: if isValidId(articleId) && isPaymentAdmin();
+    }
+
+    match /user_article_state/{stateId} {
+      allow get: if isValidId(stateId) && isSignedIn() && existing().uid == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create, update: if isValidId(stateId) && isSignedIn() && isValidArticleState(incoming());
+      allow delete: if isValidId(stateId) && isSignedIn() && existing().uid == request.auth.uid;
+    }
+
+    match /reference_entries/{refId} {
+      allow get: if isValidId(refId) && (existing().published == true || isStaff());
+      allow list: if resource.data.published == true || isStaff();
+      allow create, update: if isValidId(refId) && isStaff() && isValidReferenceEntry(incoming(), refId);
+      allow delete: if isValidId(refId) && isPaymentAdmin();
+    }
+
+    match /ai_tools/{toolId} {
+      allow get: if isValidId(toolId) && (existing().published == true || isStaff());
+      allow list: if resource.data.published == true || isStaff();
+      allow create, update: if isValidId(toolId) && isStaff() && isValidAiTool(incoming(), toolId);
+      allow delete: if isValidId(toolId) && isPaymentAdmin();
+    }
+
+    match /code_projects/{projectId} {
+      allow get: if isValidId(projectId) && (
+        existing().status == 'approved'
+        || (isSignedIn() && existing().authorUid == request.auth.uid)
+        || isStaff()
+      );
+      allow list: if resource.data.status == 'approved'
+        || (isSignedIn() && resource.data.authorUid == request.auth.uid)
+        || isStaff();
+      allow create: if isValidId(projectId)
+        && isValidCodeProject(incoming(), projectId)
+        && (
+          isStaff()
+          || (
+            isVerified()
+            && incoming().authorUid == request.auth.uid
+            && incoming().status == 'pending'
+            && incoming().isOfficial == false
+            && !('moderatedBy' in incoming())
+          )
+        );
+      allow update: if isValidId(projectId)
+        && isValidCodeProject(incoming(), projectId)
+        && incoming().authorUid == existing().authorUid
+        && incoming().createdAt == existing().createdAt
+        && (
+          isStaff()
+          || (
+            isVerified()
+            && existing().authorUid == request.auth.uid
+            && existing().status in ['pending', 'rejected']
+            && incoming().status == 'pending'
+            && incoming().isOfficial == false
+            && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'track', 'difficulty', 'tags', 'html', 'css', 'js', 'status', 'updatedAt'])
+          )
+        );
+      allow delete: if isValidId(projectId) && (
+        isStaff()
+        || (isSignedIn() && existing().authorUid == request.auth.uid && existing().status != 'approved')
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // Phase 6: News Automation Collections
+    // -------------------------------------------------------------------------
+    match /news_sources/{sourceId} {
+      allow get: if isValidId(sourceId) && isStaff();
+      allow list: if isStaff();
+      allow create, update: if isValidId(sourceId) && isStaff() && isValidNewsSource(incoming(), sourceId);
+      allow delete: if isValidId(sourceId) && isPaymentAdmin();
+    }
+
+    match /news_articles/{articleId} {
+      allow get: if isValidId(articleId) && (existing().status == 'published' || isStaff());
+      allow list: if resource.data.status == 'published' || isStaff();
+      allow create, update: if isValidId(articleId) && isStaff() && isValidNewsArticle(incoming(), articleId);
+      allow delete: if isValidId(articleId) && isPaymentAdmin();
+    }
+
+    match /news_sync_logs/{logId} {
+      allow get: if isValidId(logId) && isStaff();
+      allow list: if isStaff();
+      allow create: if isValidId(logId) && isStaff() && isValidNewsSyncLog(incoming(), logId);
+      allow update, delete: if false;
+    }
+  }
+}

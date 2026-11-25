@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build & Vercel output
+dist/
+build/
+.vercel/
+coverage/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime persistence & logs
+server/data/persisted_practice_progress.json
+*.log
+.DS_Store
+Thumbs.db

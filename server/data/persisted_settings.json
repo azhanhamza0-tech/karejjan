@@ -1,0 +1,25 @@
+{
+  "freeDailyAiLimit": 15,
+  "proPerMinuteLimit": 12,
+  "proMaxMessageLength": 4000,
+  "dailyGenerationJobCap": 25,
+  "autoPublishAfterValidation": false,
+  "practiceConfig": {
+    "lessonsPerGroup": 3,
+    "requirePassToUnlockNext": true,
+    "passThresholdPercent": 60,
+    "courseOverrides": {}
+  },
+  "maintenance": {
+    "enabled": false,
+    "lockedTabs": [
+      "discover",
+      "pro",
+      "ai",
+      "challenge"
+    ],
+    "messageCkb": "ئەم بەشە لە ئێستادا لەژێر چاکسازی و نوێکردنەوەدایە بۆ پێشکەشکردنی باشترین خزمەتگوزاری.",
+    "messageEn": "This section is currently undergoing scheduled maintenance to improve your learning experience.",
+    "estimatedReturn": "بە زووترین کات دەگەڕێینەوە"
+  }
+}

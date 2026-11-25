@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ckb" dir="rtl" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Early runtime guard: define global locale prior to any module evaluation
+      try {
+        window.locale = 'ckb';
+        var savedLoc = localStorage.getItem('karejan_locale');
+        if (savedLoc) window.locale = savedLoc;
+      } catch (e) {
+        window.locale = 'ckb';
+      }
+    </script>
+    <title>KARÊJAN — پلاتفۆرمی فێربوونی پرۆگرامینگ</title>
+    <meta
+      name="description"
+      content="Learn HTML, CSS, and JavaScript in Sorani Kurdish, Badini Kurdish, Arabic, and English with interactive lessons, a sandboxed live editor, and KARÊJAN AI."
+    />
+    <meta property="og:title" content="KARÊJAN — Multilingual Programming Learning Platform" />
+    <meta
+      property="og:description"
+      content="Learn HTML, CSS, and JavaScript in Sorani Kurdish, Badini Kurdish, Arabic, and English with interactive lessons, a sandboxed live editor, and KARÊJAN AI."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Arabic:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-[var(--kj-paper)] text-[var(--kj-ink)] antialiased selection:bg-[#059669]/20 selection:text-[#09241b] dark:selection:bg-[#36d399]/25 dark:selection:text-[#9af0c7]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
