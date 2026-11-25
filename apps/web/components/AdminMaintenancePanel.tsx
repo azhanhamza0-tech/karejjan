@@ -339,89 +339,16 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
     });
   };
 
-  // Quick preset: Lock All
-  const applyLockAll = () => {
-    setEnabled(true);
-    setLockedTabs(manageableTabs.map((t) => t.id));
-    onBanner(
-      'ok',
-      pickLoc(locale, {
-        ckb: 'پێشوەختەی قفڵکردنی گشتی هەڵبژێردرا (کلیک لە پاشەکەوتکردن بکە).',
-        kmr: 'پێشەکی قفلکرنا گشتی هاتە هەڵبژارتن (کلیک ل پاشکەفتکرنێ بکە).',
-        ar: 'تم اختيار القفل العام المسبق (انقر على حفظ للتطبيق).',
-        en: 'Global lockdown preset selected (click Save to deploy).',
-      })
-    );
-  };
-
-  // Quick preset: Normal Mode (Unlock all)
-  const applyUnlockAll = () => {
-    setEnabled(false);
-    setLockedTabs([]);
-    onBanner(
-      'ok',
-      pickLoc(locale, {
-        ckb: 'پێشوەختەی کردنەوەی هەموو بەشەکان هەڵبژێردرا (کلیک لە پاشەکەوتکردن بکە).',
-        kmr: 'پێشەکی ڤەکرنا هەمی بەشان هاتە هەڵبژارتن (کلیک ل پاشکەفتکرنێ بکە).',
-        ar: 'تم اختيار فتح جميع الأقسام (انقر على حفظ للتطبيق).',
-        en: 'Unlock all preset selected (click Save to deploy).',
-      })
-    );
-  };
-
-  // Quick preset: Challenge Only
-  const applyLockChallengeOnly = () => {
-    setEnabled(false);
-    setLockedTabs(['challenge']);
-    onBanner(
-      'ok',
-      pickLoc(locale, {
-        ckb: 'تەنها بەشی پرسیاری ڕۆژ (Daily Challenge) هەڵبژێردرا بۆ چاکسازی.',
-        kmr: 'تەنها بەشێ پرسیارا ڕۆژێ (Daily Challenge) هاتە هەڵبژارتن بۆ چاکسازیێ.',
-        ar: 'تم اختيار قسم تحدي اليوم فقط للصيانة.',
-        en: 'Daily Challenge tab selected for maintenance.',
-      })
-    );
-  };
-
-  // Quick preset: Editor Only
-  const applyLockEditorOnly = () => {
-    setEnabled(false);
-    setLockedTabs(['editor']);
-    onBanner(
-      'ok',
-      pickLoc(locale, {
-        ckb: 'تەنها بەشی تاقیگەی کۆد هەڵبژێردرا بۆ چاکسازی.',
-        kmr: 'تەنها بەشێ تاقیگەها کۆدی هاتە هەڵبژارتن بۆ چاکسازیێ.',
-        ar: 'تم اختيار قسم مختبر الكود فقط للصيانة.',
-        en: 'Code Lab tab selected for maintenance.',
-      })
-    );
-  };
-
-  // Quick preset: AI Only
-  const applyLockAiOnly = () => {
-    setEnabled(false);
-    setLockedTabs(['ai']);
-    onBanner(
-      'ok',
-      pickLoc(locale, {
-        ckb: 'تەنها بەشی زیرەکی دەستکرد هەڵبژێردرا بۆ چاکسازی.',
-        kmr: 'تەنها بەشێ زیرەکییا دەستکرد هاتە هەڵبژارتن بۆ چاکسازیێ.',
-        ar: 'تم اختيار قسم المساعد الذكي فقط للصيانة.',
-        en: 'AI Assistant tab selected for maintenance.',
-      })
-    );
-  };
-
-  // Save changes to Firestore and sync to Server
-  const handleSaveMaintenance = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  // Core shared saver usable both from form submit and instant 1-click Quick Presets
+  const persistMaintenanceState = async (
+    nextEnabled: boolean,
+    nextLockedTabs: ActiveView[]
+  ) => {
     setSaving(true);
     try {
       const updatedConfig: MaintenanceConfig = {
-        enabled,
-        lockedTabs,
+        enabled: nextEnabled,
+        lockedTabs: nextLockedTabs,
         messageCkb: messageCkb.trim(),
         messageEn: messageEn.trim(),
         estimatedReturn: estimatedReturn.trim(),
@@ -490,7 +417,7 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
         'maintenance_mode_updated',
         'system_settings',
         'global',
-        `Maintenance set to: global=${enabled}, lockedTabs=[${lockedTabs.join(', ')}]`,
+        `Maintenance set to: global=${nextEnabled}, lockedTabs=[${nextLockedTabs.join(', ')}]`,
         before as unknown as Record<string, unknown>,
         updatedConfig as unknown as Record<string, unknown>
       ).catch(() => {});
@@ -510,25 +437,25 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
 
       onBanner(
         'ok',
-        enabled
+        nextEnabled
           ? pickLoc(locale, {
-              ckb: 'دۆخی چاکسازی گشتی لەسەر هەموو پلاتفۆرمەکە چالاک کرا!',
-              kmr: 'دۆخێ چاکسازییا گشتی ل سەر هەمی پلاتفۆرمێ هاتە چالاککرن!',
-              ar: 'تم تفعيل وضع الصيانة العام على المنصة بالكامل!',
-              en: 'Global maintenance mode enabled across the entire platform!',
+              ckb: 'دۆخی چاکسازی گشتی لەسەر هەموو پلاتفۆرمەکە و هەموو ئامێرەکان چالاک کرا!',
+              kmr: 'دۆخێ چاکسازییا گشتی ل سەر هەمی پلاتفۆرمێ و ئامێران هاتە چالاککرن!',
+              ar: 'تم تفعيل وضع الصيانة العام على جميع الأجهزة والمستخدمين!',
+              en: 'Global maintenance mode enabled across all devices & users!',
             })
-          : lockedTabs.length > 0
+          : nextLockedTabs.length > 0
           ? pickLoc(locale, {
-              ckb: `دۆخی چاکسازی بە سەرکەوتوویی بۆ ${lockedTabs.length} بەش جێگیر کرا.`,
-              kmr: `دۆخێ چاکسازیێ ب سەرکەفتی بۆ ${lockedTabs.length} بەشان هاتە جێگیرکرن.`,
-              ar: `تم تفعيل وضع الصيانة لـ ${lockedTabs.length} قسم بنجاح.`,
-              en: `Maintenance mode enabled for ${lockedTabs.length} section(s).`,
+              ckb: `دۆخی چاکسازی بۆ ${nextLockedTabs.length} بەش لەسەر هەموو ئامێرەکان جێگیر کرا.`,
+              kmr: `دۆخێ چاکسازیێ بۆ ${nextLockedTabs.length} بەشان ل سەر هەمی ئامێران هاتە جێگیرکرن.`,
+              ar: `تم تفعيل وضع الصيانة لـ ${nextLockedTabs.length} قسم على جميع الأجهزة.`,
+              en: `Maintenance mode enabled for ${nextLockedTabs.length} section(s) across all devices.`,
             })
           : pickLoc(locale, {
-              ckb: 'هەموو بەشەکان کرانەوە و ماڵپەڕ لە دۆخی ئاساییدایە.',
-              kmr: 'هەمی بەش هاتنە ڤەکرن و مالپەڕ د دۆخێ ئاسایی دایە.',
-              ar: 'تم فتح جميع الأقسام والموقع في الوضع الطبيعي.',
-              en: 'All sections unlocked; platform is operating normally.',
+              ckb: 'هەموو بەشەکان کرانەوە و ماڵپەڕ بۆ هەمووان لە دۆخی ئاساییدایە.',
+              kmr: 'هەمی بەش هاتنە ڤەکرن و مالپەڕ بۆ هەمییان د دۆخێ ئاسایی دایە.',
+              ar: 'تم فتح جميع الأقسام والموقع متاح للجميع.',
+              en: 'All sections unlocked globally; platform is live for everyone.',
             })
       );
     } catch (err) {
@@ -548,8 +475,56 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
     }
   };
 
+  // Quick preset: Lock All (saves immediately across all devices)
+  const applyLockAll = () => {
+    const allTabs = manageableTabs.map((t) => t.id);
+    setEnabled(true);
+    setLockedTabs(allTabs);
+    void persistMaintenanceState(true, allTabs);
+  };
+
+  // Quick preset: Normal Mode (Unlock all & save immediately)
+  const applyUnlockAll = () => {
+    setEnabled(false);
+    setLockedTabs([]);
+    void persistMaintenanceState(false, []);
+  };
+
+  // Quick preset: Challenge Only (saves immediately)
+  const applyLockChallengeOnly = () => {
+    setEnabled(false);
+    setLockedTabs(['challenge']);
+    void persistMaintenanceState(false, ['challenge']);
+  };
+
+  // Quick preset: Editor Only (saves immediately)
+  const applyLockEditorOnly = () => {
+    setEnabled(false);
+    setLockedTabs(['editor']);
+    void persistMaintenanceState(false, ['editor']);
+  };
+
+  // Quick preset: AI Only (saves immediately)
+  const applyLockAiOnly = () => {
+    setEnabled(false);
+    setLockedTabs(['ai']);
+    void persistMaintenanceState(false, ['ai']);
+  };
+
+  // Save changes to Firestore and sync to Server
+  const handleSaveMaintenance = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    await persistMaintenanceState(enabled, lockedTabs);
+  };
+
   const isGlobalActive = enabled;
   const isAnyTabLocked = lockedTabs.length > 0;
+  const hasUnsavedChanges =
+    enabled !== Boolean(currentMaintenance.enabled) ||
+    [...lockedTabs].sort().join(',') !== [...(currentMaintenance.lockedTabs || [])].sort().join(',') ||
+    messageCkb.trim() !== (currentMaintenance.messageCkb || '').trim() ||
+    messageEn.trim() !== (currentMaintenance.messageEn || '').trim() ||
+    estimatedReturn.trim() !== (currentMaintenance.estimatedReturn || '').trim();
 
   return (
     <div className="space-y-6">
@@ -714,6 +689,26 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
 
       {/* Main Configuration Grid */}
       <form onSubmit={handleSaveMaintenance} className="space-y-6">
+        {hasUnsavedChanges && (
+          <div className="sticky top-20 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/60 bg-amber-500/15 px-4 py-3 text-xs font-semibold text-amber-800 shadow-md backdrop-blur dark:text-amber-200">
+            <span>
+              {pickLoc(locale, {
+                ckb: 'گۆڕانکارییەکان هێشتا پاشەکەوت نەکراون بۆ بەکارهێنەرانی تر — کلیک لە پاشەکەوتکردن بکە:',
+                kmr: 'Guhertin hîn nehatine tomar kirin — klîk li tomarkirinê bike:',
+                ar: 'التعديلات غير محفوظة بعد للمستخدمين الآخرين — انقر على حفظ الآن:',
+                en: 'You have unsaved changes not yet live for other users — click Save & Deploy:',
+              })}
+            </span>
+            <Button type="submit" variant="primary" size="sm" disabled={saving}>
+              <Save className="h-3.5 w-3.5" />
+              <span>
+                {saving
+                  ? pickLoc(locale, { ckb: 'پاشەکەوت دەکرێت...', kmr: 'Tomar dibe...', ar: 'جارٍ الحفظ...', en: 'Saving...' })
+                  : pickLoc(locale, { ckb: 'پاشەکەوتکردن ئێستا', kmr: 'Niha Tomar Bike', ar: 'حفظ الآن', en: 'Save & Deploy Now' })}
+              </span>
+            </Button>
+          </div>
+        )}
         {/* Global Master Switch */}
         <Surface className="p-5">
           <div className="flex items-center justify-between gap-4">

@@ -545,13 +545,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     // 1. Direct server read from Firestore bypasses stale offline cache across devices/users
-    void getDocFromServer(doc(db, 'system_settings', 'global'))
-      .then((snap) => {
+    const syncDirectFromFirestore = async () => {
+      try {
+        const snap = await getDocFromServer(doc(db, 'system_settings', 'global'));
         if (!cancelled && snap.exists()) {
           applyFirestoreSettings(snap.data() as SystemSettings);
+          return;
         }
-      })
-      .catch(() => { });
+      } catch { }
+      // Public Firestore REST fallback if WebChannel/SDK is restricted on mobile network
+      try {
+        const r = await fetch(
+          'https://firestore.googleapis.com/v1/projects/commanding-obelisk-5vc14/databases/ai-studio-9535e249-e869-4564-9680-fb7208c2b03e/documents/system_settings/global'
+        );
+        if (!r.ok || cancelled) return;
+        const j: any = await r.json();
+        const mf = j?.fields?.maintenance?.mapValue?.fields;
+        if (mf) {
+          const decodedMaintenance: MaintenanceConfig = {
+            enabled: Boolean(mf.enabled?.booleanValue),
+            lockedTabs: Array.isArray(mf.lockedTabs?.arrayValue?.values)
+              ? mf.lockedTabs.arrayValue.values.map((v: any) => v?.stringValue).filter(Boolean)
+              : [],
+            messageCkb: mf.messageCkb?.stringValue || '',
+            messageEn: mf.messageEn?.stringValue || '',
+            estimatedReturn: mf.estimatedReturn?.stringValue || '',
+            updatedAt: mf.updatedAt?.stringValue || '',
+            updatedBy: mf.updatedBy?.stringValue || '',
+          };
+          applyFirestoreSettings({ maintenance: decodedMaintenance });
+        }
+      } catch { }
+    };
+
+    void syncDirectFromFirestore();
+
+    const onWakeSync = () => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+        void syncDirectFromFirestore();
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', onWakeSync);
+      document.addEventListener('visibilitychange', onWakeSync);
+    }
 
     // 2. Real-time Firestore snapshot for immediate multi-client live updates across devices
     const unsub = onSnapshot(
@@ -607,6 +644,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => {
       cancelled = true;
       unsub();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', onWakeSync);
+        document.removeEventListener('visibilitychange', onWakeSync);
+      }
     };
   }, []);
 
