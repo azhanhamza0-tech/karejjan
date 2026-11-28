@@ -1,11 +1,11 @@
-// ../karejan/server/app.ts
+// server/app.ts
 import "dotenv/config";
 import express from "express";
 import path3 from "node:path";
 import fs3 from "node:fs";
 import { Type } from "@google/genai";
 
-// ../karejan/server/lib/auth.ts
+// server/lib/auth.ts
 import fs from "node:fs";
 import path from "node:path";
 import { createRemoteJWKSet, jwtVerify } from "jose";
@@ -54,7 +54,7 @@ async function verifyFirebaseIdToken(authHeader) {
   return { uid, email, emailVerified, name };
 }
 
-// ../karejan/server/lib/gemini.ts
+// server/lib/gemini.ts
 import { GoogleGenAI } from "@google/genai";
 var cachedClient = null;
 var KAR_GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
@@ -76,7 +76,7 @@ function getGeminiClient() {
   return cachedClient;
 }
 
-// ../karejan/server/lib/schemas.ts
+// server/lib/schemas.ts
 import { z } from "zod";
 var LocaleSchema = z.enum(["ckb", "kmr", "ar", "en"]);
 var TrackSchema = z.string().min(2).max(32);
@@ -206,7 +206,7 @@ var SubmitQuizRequestSchema = z.object({
   answers: z.record(z.string(), z.number().int().min(0).max(5))
 });
 
-// ../karejan/server/lib/sandbox.ts
+// server/lib/sandbox.ts
 import vm from "node:vm";
 function runJsInSandbox(code) {
   const logs = [];
@@ -275,7 +275,7 @@ function validateHtmlCssSnippet(track, code) {
   return { valid: true };
 }
 
-// ../karejan/server/data/answerKeys.ts
+// server/data/answerKeys.ts
 var EXERCISE_KEY_VAULT = /* @__PURE__ */ new Map([
   // Original exercises
   [
@@ -1162,7 +1162,7 @@ var QUIZ_KEY_VAULT = /* @__PURE__ */ new Map([
   ]
 ]);
 
-// ../karejan/apps/web/data/courses/htmlCourse.ts
+// apps/web/data/courses/htmlCourse.ts
 var HTML_LESSONS = [
   {
     id: "html-1-semantic-structure",
@@ -3015,7 +3015,7 @@ var HTML_QUIZZES = [
   }
 ];
 
-// ../karejan/apps/web/data/courses/cssCourse.ts
+// apps/web/data/courses/cssCourse.ts
 var CSS_LESSONS = [
   {
     id: "css-1-selectors-and-specificity",
@@ -4488,126 +4488,10 @@ var CSS_LESSONS = [
     }
   }
 ];
-var CSS_EXERCISES = [
-  {
-    id: "ex-css-basic-1",
-    lessonId: "css-1-selectors-and-specificity",
-    courseId: "css",
-    type: "multiple_choice",
-    difficulty: "easy",
-    tier: "free",
-    translations: {
-      en: {
-        prompt: "What is the primary concept taught in Modern CSS Layout & Design?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ckb: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      kmr: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ar: {
-        prompt: "What is the primary concept taught in Modern CSS Layout & Design?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      }
-    }
-  },
-  {
-    id: "ex-css-syntax-2",
-    lessonId: "css-2-the-box-model",
-    courseId: "css",
-    type: "fill_blank",
-    difficulty: "easy",
-    tier: "free",
-    codeSnippet: "// Complete the statement\n_____________",
-    translations: {
-      en: {
-        prompt: "Write the correct keyword for Modern CSS Layout & Design:",
-        hint: "Refer to standard syntax rules."
-      },
-      ckb: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      kmr: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      ar: {
-        prompt: "Write the correct keyword for Modern CSS Layout & Design:",
-        hint: "Refer to standard syntax rules."
-      }
-    }
-  }
-];
-var CSS_QUIZZES = [
-  {
-    id: "quiz-css-core-exam",
-    quizType: "course_exam",
-    courseId: "css",
-    difficulty: "medium",
-    tier: "free",
-    titles: {
-      en: "Modern CSS Layout & Design Comprehensive Exam",
-      ckb: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC Modern CSS Layout & Design",
-      kmr: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC Modern CSS Layout & Design",
-      ar: "Modern CSS Layout & Design Comprehensive Exam"
-    },
-    questions: [
-      {
-        id: "quiz-css-core-exam-q1",
-        translations: {
-          en: {
-            prompt: "Which statement best describes modern Modern CSS Layout & Design?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ckb: {
-            prompt: "Which statement best describes modern Modern CSS Layout & Design?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          kmr: {
-            prompt: "Which statement best describes modern Modern CSS Layout & Design?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ar: {
-            prompt: "Which statement best describes modern Modern CSS Layout & Design?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          }
-        }
-      },
-      {
-        id: "quiz-css-core-exam-q2",
-        translations: {
-          en: {
-            prompt: "What is the recommended best practice in Modern CSS Layout & Design?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ckb: {
-            prompt: "What is the recommended best practice in Modern CSS Layout & Design?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          kmr: {
-            prompt: "What is the recommended best practice in Modern CSS Layout & Design?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ar: {
-            prompt: "What is the recommended best practice in Modern CSS Layout & Design?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          }
-        }
-      }
-    ]
-  }
-];
+var CSS_EXERCISES = [];
+var CSS_QUIZZES = [];
 
-// ../karejan/apps/web/data/courses/jsCourse.ts
+// apps/web/data/courses/jsCourse.ts
 var JS_LESSONS = [
   {
     id: "js-1-variables-and-data-types",
@@ -6148,126 +6032,10 @@ var JS_LESSONS = [
     }
   }
 ];
-var JS_EXERCISES = [
-  {
-    id: "ex-js-basic-1",
-    lessonId: "js-1-variables-and-data-types",
-    courseId: "js",
-    type: "multiple_choice",
-    difficulty: "easy",
-    tier: "free",
-    translations: {
-      en: {
-        prompt: "What is the primary concept taught in JavaScript Core & Async?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ckb: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      kmr: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ar: {
-        prompt: "What is the primary concept taught in JavaScript Core & Async?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      }
-    }
-  },
-  {
-    id: "ex-js-syntax-2",
-    lessonId: "js-2-operators-and-expressions",
-    courseId: "js",
-    type: "fill_blank",
-    difficulty: "easy",
-    tier: "free",
-    codeSnippet: "// Complete the statement\n_____________",
-    translations: {
-      en: {
-        prompt: "Write the correct keyword for JavaScript Core & Async:",
-        hint: "Refer to standard syntax rules."
-      },
-      ckb: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      kmr: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      ar: {
-        prompt: "Write the correct keyword for JavaScript Core & Async:",
-        hint: "Refer to standard syntax rules."
-      }
-    }
-  }
-];
-var JS_QUIZZES = [
-  {
-    id: "quiz-js-core-exam",
-    quizType: "course_exam",
-    courseId: "js",
-    difficulty: "medium",
-    tier: "free",
-    titles: {
-      en: "JavaScript Core & Async Comprehensive Exam",
-      ckb: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC JavaScript Core & Async",
-      kmr: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC JavaScript Core & Async",
-      ar: "JavaScript Core & Async Comprehensive Exam"
-    },
-    questions: [
-      {
-        id: "quiz-js-core-exam-q1",
-        translations: {
-          en: {
-            prompt: "Which statement best describes modern JavaScript Core & Async?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ckb: {
-            prompt: "Which statement best describes modern JavaScript Core & Async?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          kmr: {
-            prompt: "Which statement best describes modern JavaScript Core & Async?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ar: {
-            prompt: "Which statement best describes modern JavaScript Core & Async?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          }
-        }
-      },
-      {
-        id: "quiz-js-core-exam-q2",
-        translations: {
-          en: {
-            prompt: "What is the recommended best practice in JavaScript Core & Async?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ckb: {
-            prompt: "What is the recommended best practice in JavaScript Core & Async?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          kmr: {
-            prompt: "What is the recommended best practice in JavaScript Core & Async?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ar: {
-            prompt: "What is the recommended best practice in JavaScript Core & Async?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          }
-        }
-      }
-    ]
-  }
-];
+var JS_EXERCISES = [];
+var JS_QUIZZES = [];
 
-// ../karejan/apps/web/data/courses/reactCourse.ts
+// apps/web/data/courses/reactCourse.ts
 var REACT_LESSONS = [
   {
     id: "react-1-intro-to-react-and-jsx",
@@ -7750,126 +7518,10 @@ var REACT_LESSONS = [
     }
   }
 ];
-var REACT_EXERCISES = [
-  {
-    id: "ex-react-basic-1",
-    lessonId: "react-1-intro-to-react-and-jsx",
-    courseId: "react",
-    type: "multiple_choice",
-    difficulty: "easy",
-    tier: "free",
-    translations: {
-      en: {
-        prompt: "What is the primary concept taught in React & Component UI?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ckb: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      kmr: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ar: {
-        prompt: "What is the primary concept taught in React & Component UI?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      }
-    }
-  },
-  {
-    id: "ex-react-syntax-2",
-    lessonId: "react-2-jsx-syntax-and-expressions",
-    courseId: "react",
-    type: "fill_blank",
-    difficulty: "easy",
-    tier: "free",
-    codeSnippet: "// Complete the statement\n_____________",
-    translations: {
-      en: {
-        prompt: "Write the correct keyword for React & Component UI:",
-        hint: "Refer to standard syntax rules."
-      },
-      ckb: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      kmr: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      ar: {
-        prompt: "Write the correct keyword for React & Component UI:",
-        hint: "Refer to standard syntax rules."
-      }
-    }
-  }
-];
-var REACT_QUIZZES = [
-  {
-    id: "quiz-react-core-exam",
-    quizType: "course_exam",
-    courseId: "react",
-    difficulty: "medium",
-    tier: "free",
-    titles: {
-      en: "React & Component UI Comprehensive Exam",
-      ckb: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC React & Component UI",
-      kmr: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC React & Component UI",
-      ar: "React & Component UI Comprehensive Exam"
-    },
-    questions: [
-      {
-        id: "quiz-react-core-exam-q1",
-        translations: {
-          en: {
-            prompt: "Which statement best describes modern React & Component UI?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ckb: {
-            prompt: "Which statement best describes modern React & Component UI?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          kmr: {
-            prompt: "Which statement best describes modern React & Component UI?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ar: {
-            prompt: "Which statement best describes modern React & Component UI?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          }
-        }
-      },
-      {
-        id: "quiz-react-core-exam-q2",
-        translations: {
-          en: {
-            prompt: "What is the recommended best practice in React & Component UI?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ckb: {
-            prompt: "What is the recommended best practice in React & Component UI?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          kmr: {
-            prompt: "What is the recommended best practice in React & Component UI?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ar: {
-            prompt: "What is the recommended best practice in React & Component UI?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          }
-        }
-      }
-    ]
-  }
-];
+var REACT_EXERCISES = [];
+var REACT_QUIZZES = [];
 
-// ../karejan/apps/web/data/courses/viteCourse.ts
+// apps/web/data/courses/viteCourse.ts
 var VITE_LESSONS = [
   {
     id: "vite-1-what-is-vite-esm",
@@ -9380,126 +9032,10 @@ var VITE_LESSONS = [
     }
   }
 ];
-var VITE_EXERCISES = [
-  {
-    id: "ex-vite-basic-1",
-    lessonId: "vite-1-what-is-vite-esm",
-    courseId: "vite",
-    type: "multiple_choice",
-    difficulty: "easy",
-    tier: "free",
-    translations: {
-      en: {
-        prompt: "What is the primary concept taught in Vite & Build Tooling?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ckb: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      kmr: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ar: {
-        prompt: "What is the primary concept taught in Vite & Build Tooling?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      }
-    }
-  },
-  {
-    id: "ex-vite-syntax-2",
-    lessonId: "vite-2-scaffolding-projects",
-    courseId: "vite",
-    type: "fill_blank",
-    difficulty: "easy",
-    tier: "free",
-    codeSnippet: "// Complete the statement\n_____________",
-    translations: {
-      en: {
-        prompt: "Write the correct keyword for Vite & Build Tooling:",
-        hint: "Refer to standard syntax rules."
-      },
-      ckb: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      kmr: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      ar: {
-        prompt: "Write the correct keyword for Vite & Build Tooling:",
-        hint: "Refer to standard syntax rules."
-      }
-    }
-  }
-];
-var VITE_QUIZZES = [
-  {
-    id: "quiz-vite-core-exam",
-    quizType: "course_exam",
-    courseId: "vite",
-    difficulty: "medium",
-    tier: "free",
-    titles: {
-      en: "Vite & Build Tooling Comprehensive Exam",
-      ckb: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC Vite & Build Tooling",
-      kmr: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC Vite & Build Tooling",
-      ar: "Vite & Build Tooling Comprehensive Exam"
-    },
-    questions: [
-      {
-        id: "quiz-vite-core-exam-q1",
-        translations: {
-          en: {
-            prompt: "Which statement best describes modern Vite & Build Tooling?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ckb: {
-            prompt: "Which statement best describes modern Vite & Build Tooling?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          kmr: {
-            prompt: "Which statement best describes modern Vite & Build Tooling?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ar: {
-            prompt: "Which statement best describes modern Vite & Build Tooling?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          }
-        }
-      },
-      {
-        id: "quiz-vite-core-exam-q2",
-        translations: {
-          en: {
-            prompt: "What is the recommended best practice in Vite & Build Tooling?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ckb: {
-            prompt: "What is the recommended best practice in Vite & Build Tooling?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          kmr: {
-            prompt: "What is the recommended best practice in Vite & Build Tooling?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ar: {
-            prompt: "What is the recommended best practice in Vite & Build Tooling?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          }
-        }
-      }
-    ]
-  }
-];
+var VITE_EXERCISES = [];
+var VITE_QUIZZES = [];
 
-// ../karejan/apps/web/data/courses/tsxCourse.ts
+// apps/web/data/courses/tsxCourse.ts
 var TSX_LESSONS = [
   {
     id: "tsx-1-why-typescript-static-types",
@@ -11036,126 +10572,10 @@ var TSX_LESSONS = [
     }
   }
 ];
-var TSX_EXERCISES = [
-  {
-    id: "ex-tsx-basic-1",
-    lessonId: "tsx-1-why-typescript-static-types",
-    courseId: "tsx",
-    type: "multiple_choice",
-    difficulty: "easy",
-    tier: "free",
-    translations: {
-      en: {
-        prompt: "What is the primary concept taught in TypeScript & TSX?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ckb: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      kmr: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ar: {
-        prompt: "What is the primary concept taught in TypeScript & TSX?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      }
-    }
-  },
-  {
-    id: "ex-tsx-syntax-2",
-    lessonId: "tsx-2-primitive-types-inference",
-    courseId: "tsx",
-    type: "fill_blank",
-    difficulty: "easy",
-    tier: "free",
-    codeSnippet: "// Complete the statement\n_____________",
-    translations: {
-      en: {
-        prompt: "Write the correct keyword for TypeScript & TSX:",
-        hint: "Refer to standard syntax rules."
-      },
-      ckb: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      kmr: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      ar: {
-        prompt: "Write the correct keyword for TypeScript & TSX:",
-        hint: "Refer to standard syntax rules."
-      }
-    }
-  }
-];
-var TSX_QUIZZES = [
-  {
-    id: "quiz-tsx-core-exam",
-    quizType: "course_exam",
-    courseId: "tsx",
-    difficulty: "medium",
-    tier: "free",
-    titles: {
-      en: "TypeScript & TSX Comprehensive Exam",
-      ckb: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC TypeScript & TSX",
-      kmr: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC TypeScript & TSX",
-      ar: "TypeScript & TSX Comprehensive Exam"
-    },
-    questions: [
-      {
-        id: "quiz-tsx-core-exam-q1",
-        translations: {
-          en: {
-            prompt: "Which statement best describes modern TypeScript & TSX?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ckb: {
-            prompt: "Which statement best describes modern TypeScript & TSX?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          kmr: {
-            prompt: "Which statement best describes modern TypeScript & TSX?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ar: {
-            prompt: "Which statement best describes modern TypeScript & TSX?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          }
-        }
-      },
-      {
-        id: "quiz-tsx-core-exam-q2",
-        translations: {
-          en: {
-            prompt: "What is the recommended best practice in TypeScript & TSX?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ckb: {
-            prompt: "What is the recommended best practice in TypeScript & TSX?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          kmr: {
-            prompt: "What is the recommended best practice in TypeScript & TSX?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ar: {
-            prompt: "What is the recommended best practice in TypeScript & TSX?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          }
-        }
-      }
-    ]
-  }
-];
+var TSX_EXERCISES = [];
+var TSX_QUIZZES = [];
 
-// ../karejan/apps/web/data/courses/pythonCourse.ts
+// apps/web/data/courses/pythonCourse.ts
 var PYTHON_LESSONS = [
   {
     id: "python-1-python-intro-and-syntax",
@@ -12657,126 +12077,10 @@ var PYTHON_LESSONS = [
     }
   }
 ];
-var PYTHON_EXERCISES = [
-  {
-    id: "ex-python-basic-1",
-    lessonId: "python-1-python-intro-and-syntax",
-    courseId: "python",
-    type: "multiple_choice",
-    difficulty: "easy",
-    tier: "free",
-    translations: {
-      en: {
-        prompt: "What is the primary concept taught in Python Programming?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ckb: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      kmr: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ar: {
-        prompt: "What is the primary concept taught in Python Programming?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      }
-    }
-  },
-  {
-    id: "ex-python-syntax-2",
-    lessonId: "python-2-variables-and-dynamic-types",
-    courseId: "python",
-    type: "fill_blank",
-    difficulty: "easy",
-    tier: "free",
-    codeSnippet: "// Complete the statement\n_____________",
-    translations: {
-      en: {
-        prompt: "Write the correct keyword for Python Programming:",
-        hint: "Refer to standard syntax rules."
-      },
-      ckb: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      kmr: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      ar: {
-        prompt: "Write the correct keyword for Python Programming:",
-        hint: "Refer to standard syntax rules."
-      }
-    }
-  }
-];
-var PYTHON_QUIZZES = [
-  {
-    id: "quiz-python-core-exam",
-    quizType: "course_exam",
-    courseId: "python",
-    difficulty: "medium",
-    tier: "free",
-    titles: {
-      en: "Python Programming Comprehensive Exam",
-      ckb: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC Python Programming",
-      kmr: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC Python Programming",
-      ar: "Python Programming Comprehensive Exam"
-    },
-    questions: [
-      {
-        id: "quiz-python-core-exam-q1",
-        translations: {
-          en: {
-            prompt: "Which statement best describes modern Python Programming?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ckb: {
-            prompt: "Which statement best describes modern Python Programming?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          kmr: {
-            prompt: "Which statement best describes modern Python Programming?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ar: {
-            prompt: "Which statement best describes modern Python Programming?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          }
-        }
-      },
-      {
-        id: "quiz-python-core-exam-q2",
-        translations: {
-          en: {
-            prompt: "What is the recommended best practice in Python Programming?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ckb: {
-            prompt: "What is the recommended best practice in Python Programming?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          kmr: {
-            prompt: "What is the recommended best practice in Python Programming?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ar: {
-            prompt: "What is the recommended best practice in Python Programming?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          }
-        }
-      }
-    ]
-  }
-];
+var PYTHON_EXERCISES = [];
+var PYTHON_QUIZZES = [];
 
-// ../karejan/apps/web/data/courses/cppCourse.ts
+// apps/web/data/courses/cppCourse.ts
 var CPP_LESSONS = [
   {
     id: "cpp-1-cpp-intro-and-compilation",
@@ -14249,126 +13553,10 @@ var CPP_LESSONS = [
     }
   }
 ];
-var CPP_EXERCISES = [
-  {
-    id: "ex-cpp-basic-1",
-    lessonId: "cpp-1-cpp-intro-and-compilation",
-    courseId: "cpp",
-    type: "multiple_choice",
-    difficulty: "easy",
-    tier: "free",
-    translations: {
-      en: {
-        prompt: "What is the primary concept taught in C++ Modern Programming?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ckb: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      kmr: {
-        prompt: "\u0686\u06D5\u0645\u06A9\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u0626\u06D5\u0645 \u0628\u06D5\u0634\u06D5 \u0686\u06CC\u06CC\u06D5\u061F",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      },
-      ar: {
-        prompt: "What is the primary concept taught in C++ Modern Programming?",
-        options: ["Option A (Correct)", "Option B", "Option C", "Option D"],
-        hint: "Read the introductory lesson text."
-      }
-    }
-  },
-  {
-    id: "ex-cpp-syntax-2",
-    lessonId: "cpp-2-variables-and-data-types",
-    courseId: "cpp",
-    type: "fill_blank",
-    difficulty: "easy",
-    tier: "free",
-    codeSnippet: "// Complete the statement\n_____________",
-    translations: {
-      en: {
-        prompt: "Write the correct keyword for C++ Modern Programming:",
-        hint: "Refer to standard syntax rules."
-      },
-      ckb: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      kmr: {
-        prompt: "\u0648\u0634\u06D5\u06CC \u0633\u06D5\u0631\u06D5\u06A9\u06CC \u062F\u0631\u0648\u0633\u062A \u0628\u0646\u0648\u0648\u0633\u06D5:",
-        hint: "Refer to standard syntax rules."
-      },
-      ar: {
-        prompt: "Write the correct keyword for C++ Modern Programming:",
-        hint: "Refer to standard syntax rules."
-      }
-    }
-  }
-];
-var CPP_QUIZZES = [
-  {
-    id: "quiz-cpp-core-exam",
-    quizType: "course_exam",
-    courseId: "cpp",
-    difficulty: "medium",
-    tier: "free",
-    titles: {
-      en: "C++ Modern Programming Comprehensive Exam",
-      ckb: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC C++ Modern Programming",
-      kmr: "\u062A\u0627\u0642\u06CC\u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u06AF\u0634\u062A\u06AF\u06CC\u0631\u06CC C++ Modern Programming",
-      ar: "C++ Modern Programming Comprehensive Exam"
-    },
-    questions: [
-      {
-        id: "quiz-cpp-core-exam-q1",
-        translations: {
-          en: {
-            prompt: "Which statement best describes modern C++ Modern Programming?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ckb: {
-            prompt: "Which statement best describes modern C++ Modern Programming?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          kmr: {
-            prompt: "Which statement best describes modern C++ Modern Programming?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          },
-          ar: {
-            prompt: "Which statement best describes modern C++ Modern Programming?",
-            options: ["Standard, fast, scalable", "Deprecated", "Browser incompatible", "Unsafe"]
-          }
-        }
-      },
-      {
-        id: "quiz-cpp-core-exam-q2",
-        translations: {
-          en: {
-            prompt: "What is the recommended best practice in C++ Modern Programming?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ckb: {
-            prompt: "What is the recommended best practice in C++ Modern Programming?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          kmr: {
-            prompt: "What is the recommended best practice in C++ Modern Programming?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          },
-          ar: {
-            prompt: "What is the recommended best practice in C++ Modern Programming?",
-            options: ["Use clean idioms and type safety", "Ignore edge cases", "Rely on global variables", "Skip testing"]
-          }
-        }
-      }
-    ]
-  }
-];
+var CPP_EXERCISES = [];
+var CPP_QUIZZES = [];
 
-// ../karejan/apps/web/data/courses/w3schoolsCatalog.ts
+// apps/web/data/courses/w3schoolsCatalog.ts
 var W3_INTERACTIVE_EXERCISES = [
   // --- HTML EXERCISES ---
   {
@@ -15676,7 +14864,7 @@ var W3_OFFICIAL_QUIZZES = [
   }
 ];
 
-// ../karejan/apps/web/data/courses/expandedCurriculum.ts
+// apps/web/data/courses/expandedCurriculum.ts
 var HTML_TOPIC_BLUEPRINTS = [
   // Ch 2: Elements, Links & Tables (23-35)
   { titleKurdish: "\u0628\u06D5\u0633\u062A\u06D5\u0631\u06CC \u067E\u06D5\u06CC\u0648\u06D5\u0646\u062F\u06CC \u0628\u06D5 \u0626\u06CC\u0645\u06D5\u06CC\u06B5 (mailto)", titleEnglish: "HTML Email Links with mailto", tag: '<a href="mailto:...">', desc: "\u0686\u06C6\u0646\u06CC\u06D5\u062A\u06CC \u062F\u0627\u0646\u0627\u0646\u06CC \u0644\u06CC\u0646\u06A9\u06CC \u0695\u0627\u0633\u062A\u06D5\u0648\u062E\u06C6 \u0628\u06C6 \u06A9\u0631\u062F\u0646\u06D5\u0648\u06D5\u06CC \u0626\u06D5\u067E\u06CC \u0626\u06CC\u0645\u06D5\u06CC\u06B5 \u06A9\u0627\u062A\u06CE\u06A9 \u0628\u06D5\u06A9\u0627\u0631\u0647\u06CE\u0646\u06D5\u0631 \u06A9\u0644\u06CC\u06A9 \u062F\u06D5\u06A9\u0627\u062A.", syntax: '<a href="mailto:info@karejan.org">\u0626\u06CC\u0645\u06D5\u06CC\u06B5\u0645\u0627\u0646 \u0628\u06C6 \u0628\u0646\u06CE\u0631\u06D5</a>', code: '<p>\u067E\u06D5\u06CC\u0648\u06D5\u0646\u062F\u06CC\u0645\u0627\u0646 \u067E\u06CE\u0648\u06D5 \u0628\u06A9\u06D5: <a href="mailto:support@karejan.org?subject=\u067E\u0631\u0633\u06CC\u0627\u0631">support@karejan.org</a></p>', ch: "ch-html-2", diff: "beginner" },
@@ -15849,7 +15037,7 @@ var ALL_COMPREHENSIVE_LESSONS = [
   ...COMPREHENSIVE_CPP_LESSONS
 ];
 
-// ../karejan/apps/web/data/courses/index.ts
+// apps/web/data/courses/index.ts
 var ALL_EXERCISES = [
   ...W3_INTERACTIVE_EXERCISES,
   ...HTML_EXERCISES,
@@ -15873,7 +15061,7 @@ var ALL_QUIZZES = [
   ...CPP_QUIZZES
 ];
 
-// ../karejan/server/data/dailyChallenges.ts
+// server/data/dailyChallenges.ts
 var INITIAL_DAILY_CHALLENGES = [
   {
     id: "ch-largest-number",
@@ -16165,7 +15353,7 @@ function getTodayChampions(challengeId) {
   return list;
 }
 
-// ../karejan/server/lib/challengeRunner.ts
+// server/lib/challengeRunner.ts
 import vm2 from "node:vm";
 function runChallengeTestCases(userCode, testCases) {
   const startTime = Date.now();
@@ -16264,7 +15452,7 @@ ${userCode}`, {
   }
 }
 
-// ../karejan/server/data/runtimeState.ts
+// server/data/runtimeState.ts
 import os from "node:os";
 import fs2 from "node:fs";
 import path2 from "node:path";
@@ -16467,7 +15655,7 @@ function runExpirySweep() {
   return downgraded;
 }
 
-// ../karejan/server/app.ts
+// server/app.ts
 var PORT = Number(process.env.PORT) || 3e3;
 async function requireAuth(req, res, next) {
   try {
@@ -17599,7 +16787,7 @@ ${JSON.stringify({ quizQuestions: lesson.quizQuestions, exercises: lesson.exerci
   return app2;
 }
 
-// ../karejan/server/vercelEntry.ts
+// server/vercelEntry.ts
 var app = createApiApp();
 function handler(req, res) {
   if (typeof req.url === "string") {

@@ -270,14 +270,10 @@ export const AiChatView: React.FC = () => {
   return (
     <div>
       <section className="kj-hero-band">
-        <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6">
-          <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="mx-auto max-w-[1440px] px-4 py-4 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-start">
-              <div className="kj-eyebrow">
-                <span className="kj-eyebrow-dot" />
-                <span>KARÊJAN AI COPILOT</span>
-              </div>
-              <h1 className="mt-1.5 text-2xl font-extrabold tracking-tight text-[var(--kj-ink)]">
+              <h1 className="text-xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-2xl">
                 {t.ai.title}
               </h1>
               <p className="mt-0.5 text-xs text-[var(--kj-muted)]">
@@ -417,7 +413,7 @@ export const AiChatView: React.FC = () => {
                     >
                       <div className="mb-2 flex items-center justify-between gap-2 text-xs text-[var(--kj-muted)]">
                         <span className="font-bold text-[var(--kj-ink)]">
-                          {msg.role === 'user' ? 'You' : 'KARÊJAN AI'}
+                          {msg.role === 'user' ? 'You' : 'karejan AI'}
                         </span>
                         <div className="flex items-center gap-2">
                           <button

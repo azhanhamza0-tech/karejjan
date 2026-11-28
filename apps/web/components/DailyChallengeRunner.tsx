@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { pickLoc } from '../i18n/translations';
-import { CLIENT_DAILY_CHALLENGES, INITIAL_FALLBACK_CHAMPIONS } from '../data/dailyChallengesCatalog';
+import { CLIENT_DAILY_CHALLENGES } from '../data/dailyChallengesCatalog';
 import type { DailyChallenge, ChampionRecord } from '../types/domain';
 import { Button, Surface } from './ui/Primitives';
 
@@ -28,6 +28,59 @@ interface TestCaseResult {
   actualOutput: string;
   passed: boolean;
   error?: string;
+}
+
+function formatEvalValue(val: unknown): string {
+  if (typeof val === 'string') return JSON.stringify(val);
+  if (val === undefined) return 'undefined';
+  try {
+    return JSON.stringify(val);
+  } catch {
+    return String(val);
+  }
+}
+
+function runLocalChallengeTests(
+  userCode: string,
+  testCases: DailyChallenge['testCases']
+): { allPassed: boolean; results: TestCaseResult[]; totalTimeMs: number; error?: string } {
+  const start = performance.now();
+  const results: TestCaseResult[] = [];
+  let fatalError: string | undefined;
+
+  for (const tc of testCases) {
+    try {
+      const fn = new Function(`"use strict";\n${userCode}\nreturn (${tc.callExpression});`);
+      const actual = fn();
+      const actualStr = formatEvalValue(actual);
+      const passed = actualStr === tc.expectedOutput.trim();
+      results.push({
+        id: tc.id,
+        callExpression: tc.callExpression,
+        expectedOutput: tc.expectedOutput,
+        actualOutput: actualStr,
+        passed,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Runtime error';
+      fatalError = msg;
+      results.push({
+        id: tc.id,
+        callExpression: tc.callExpression,
+        expectedOutput: tc.expectedOutput,
+        actualOutput: `Error: ${msg}`,
+        passed: false,
+        error: msg,
+      });
+    }
+  }
+
+  return {
+    allPassed: results.length > 0 && results.every((r) => r.passed),
+    results,
+    totalTimeMs: Math.max(1, Math.round(performance.now() - start)),
+    error: fatalError,
+  };
 }
 
 export const DailyChallengeRunner: React.FC = () => {
@@ -41,46 +94,68 @@ export const DailyChallengeRunner: React.FC = () => {
   const [evalTimeMs, setEvalTimeMs] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [champions, setChampions] = useState<ChampionRecord[]>(INITIAL_FALLBACK_CHAMPIONS);
+  const [champions, setChampions] = useState<ChampionRecord[]>([]);
   const [loadingChallenge, setLoadingChallenge] = useState<boolean>(true);
   const [copied, setCopied] = useState<boolean>(false);
   const [showHints, setShowHints] = useState<boolean>(false);
   const [justSolved, setJustSolved] = useState<boolean>(false);
 
-  // Fetch today's challenge & champions from server
+  const selectChallenge = async (target: DailyChallenge) => {
+    setChallenge(target);
+    setCode(target.starterCode);
+    setResults(null);
+    setAllPassed(null);
+    setErrorMessage(null);
+    setJustSolved(false);
+    setShowHints(false);
+    setChampions([]);
+    try {
+      const res = await fetch(`/api/daily-challenge/champions?challengeId=${encodeURIComponent(target.id)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.champions)) {
+          setChampions(data.champions);
+        }
+      }
+    } catch {}
+  };
+
+  // Fetch active challenge & verified champions from server
   useEffect(() => {
     let isMounted = true;
 
     async function loadData() {
+      let activeId = CLIENT_DAILY_CHALLENGES[0].id;
       try {
         const resChallenge = await fetch('/api/daily-challenge/today');
         if (resChallenge.ok) {
           const data = await resChallenge.json();
           if (data.ok && data.challenge && isMounted) {
+            activeId = data.challenge.id;
             setChallenge(data.challenge);
             setCode(data.challenge.starterCode);
           }
         }
-      } catch (err) {
-        console.warn('Using client daily challenge catalog fallback:', err);
+      } catch {
+        // Offline/static fallback keeps real client catalog challenge
       }
 
       try {
-        const resChamps = await fetch('/api/daily-challenge/champions');
+        const resChamps = await fetch(`/api/daily-challenge/champions?challengeId=${encodeURIComponent(activeId)}`);
         if (resChamps.ok) {
           const data = await resChamps.json();
           if (data.ok && Array.isArray(data.champions) && isMounted) {
-            setChampions(data.champions.length > 0 ? data.champions : INITIAL_FALLBACK_CHAMPIONS);
+            setChampions(data.champions);
           }
         }
-      } catch (err) {
-        console.warn('Using fallback champions:', err);
+      } catch {
+        // Honest empty list if offline
       } finally {
         if (isMounted) setLoadingChallenge(false);
       }
     }
 
-    loadData();
+    void loadData();
     return () => {
       isMounted = false;
     };
@@ -118,10 +193,10 @@ export const DailyChallengeRunner: React.FC = () => {
       (firebaseUser?.email
         ? firebaseUser.email.split('@')[0]
         : pickLoc(locale, {
-            ckb: 'پاڵەوانی کاڕێژان',
-            kmr: 'قارەمانێ کاڕێژان',
-            ar: 'بطل KARÊJAN',
-            en: 'KARÊJAN Champion',
+            ckb: 'پاڵەوانی karejan',
+            kmr: 'قارەمانێ karejan',
+            ar: 'بطل karejan',
+            en: 'karejan Champion',
           }));
 
     try {
@@ -137,45 +212,70 @@ export const DailyChallengeRunner: React.FC = () => {
         }),
       });
 
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}));
-        throw new Error(
-          errJson.error ||
-            pickLoc(locale, {
-              ckb: 'هەڵەیەک لە تاقیکردنەوەی کۆدەکە ڕوویدا.',
-              kmr: 'شاشییەک د تاقیکرنا کۆدی دا ڕوودا.',
-              ar: 'حدث خطأ أثناء فحص الكود.',
-              en: 'An error occurred while evaluating your code.',
-            })
-        );
+      let resData: {
+        allPassed?: boolean;
+        results?: TestCaseResult[];
+        totalTimeMs?: number;
+        championRecord?: ChampionRecord;
+      } | null = null;
+
+      if (response.ok) {
+        resData = await response.json();
+      } else {
+        // Execute real tests directly in isolated browser runner if server endpoint is unavailable
+        const localEval = runLocalChallengeTests(code, challenge.testCases);
+        resData = {
+          allPassed: localEval.allPassed,
+          results: localEval.results,
+          totalTimeMs: localEval.totalTimeMs,
+          championRecord: localEval.allPassed
+            ? {
+                id: `champ-local-${Date.now()}`,
+                uid: firebaseUser?.uid || 'local-solver',
+                displayName,
+                solvedAt: new Date().toISOString(),
+                challengeId: challenge.id,
+                executionTimeMs: localEval.totalTimeMs,
+                rank: 1,
+              }
+            : undefined,
+        };
       }
 
-      const resData = await response.json();
-      setAllPassed(Boolean(resData.allPassed));
-      setResults(resData.results || []);
-      setEvalTimeMs(typeof resData.totalTimeMs === 'number' ? resData.totalTimeMs : null);
+      setAllPassed(Boolean(resData?.allPassed));
+      setResults(resData?.results || []);
+      setEvalTimeMs(typeof resData?.totalTimeMs === 'number' ? resData.totalTimeMs : null);
 
-      if (resData.allPassed) {
+      if (resData?.allPassed) {
         setJustSolved(true);
         if (resData.championRecord) {
           setChampions((prev) => {
-            const exists = prev.some((c) => c.uid === resData.championRecord.uid);
+            const exists = prev.some((c) => c.uid === resData!.championRecord!.uid);
             if (exists) return prev;
-            return [resData.championRecord, ...prev];
+            return [resData!.championRecord!, ...prev];
           });
         }
       }
-    } catch (err) {
-      setErrorMessage(
-        err instanceof Error
-          ? err.message
-          : pickLoc(locale, {
-              ckb: 'هەڵەی جێبەجێکردن',
-              kmr: 'شاشییا جێبەجێکرنێ',
-              ar: 'خطأ في التنفيذ',
-              en: 'Execution Error',
-            })
-      );
+    } catch {
+      const localEval = runLocalChallengeTests(code, challenge.testCases);
+      setAllPassed(localEval.allPassed);
+      setResults(localEval.results);
+      setEvalTimeMs(localEval.totalTimeMs);
+      if (localEval.allPassed) {
+        setJustSolved(true);
+        setChampions((prev) => [
+          {
+            id: `champ-local-${Date.now()}`,
+            uid: firebaseUser?.uid || 'local-solver',
+            displayName,
+            solvedAt: new Date().toISOString(),
+            challengeId: challenge.id,
+            executionTimeMs: localEval.totalTimeMs,
+            rank: 1,
+          },
+          ...prev,
+        ]);
+      }
     } finally {
       setRunning(false);
     }
@@ -187,62 +287,62 @@ export const DailyChallengeRunner: React.FC = () => {
 
   return (
     <div>
-      {/* Hero Header Band */}
+      {/* Compact Challenge Header */}
       <section className="kj-hero-band">
-        <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="text-start">
-              <div className="kj-eyebrow">
-                <span className="kj-eyebrow-dot" />
-                <span>
-                  {pickLoc(locale, {
-                    ckb: 'پرسیاری ڕۆژ و چاڵنجی خێرا · هەموو ٢٤ کاتژمێر جارێک',
-                    kmr: 'پرسیارا ڕۆژێ و چالێنجا بلەز · هەر ٢٤ دەمژمێران جارەکێ',
-                    ar: 'تحدي اليوم البرمجي السريع · يتجدد كل ٢٤ ساعة',
-                    en: 'Daily Code Challenge · Rotates every 24 hours',
-                  })}
-                </span>
-              </div>
-              <h1 className="mt-2.5 text-2xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-3xl">
+              <h1 className="text-xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-2xl">
                 {title}
               </h1>
-              <p className="mt-1.5 text-sm text-[var(--kj-muted-2)]">
+              <p className="mt-0.5 text-xs text-[var(--kj-muted)]">
                 {pickLoc(locale, {
-                  ckb: 'توانای بیرکردنەوە و پرۆگرامینگت تاقیبکەرەوە و ناوت بخەرە ناو لیستی پاڵەوانانی ئەمڕۆی کاڕێژان.',
-                  kmr: 'شیانا هزرکرن و پرۆگرامسازییا خۆ تاقی بکە و ناڤێ خۆ بکە د لیستا قارەمانێن ئەڤرۆ یێن کاڕێژان دا.',
-                  ar: 'اختبر قدراتك المنطقية والبرمجية وأضف اسمك إلى لوحة أبطال KARÊJAN اليوم.',
-                  en: 'Test your problem-solving speed and claim your spot on Today’s KARÊJAN Champions leaderboard.',
+                  ckb: 'پرسیاری ڕۆژ · کۆد بنووسە و تاقیبکەرەوە',
+                  kmr: 'پرسیارا ڕۆژێ · کۆدی بنڤیسە و تاقی بکە',
+                  ar: 'تحدي اليوم · اكتب الكود واختبر الحل',
+                  en: 'Daily Code Challenge · Solve & Test',
                 })}
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="rounded-[7px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-4 py-2 text-center">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--kj-muted)]">
-                  {pickLoc(locale, { ckb: 'ئاستی چاڵنج', kmr: 'ئاستێ چالێنجێ', ar: 'مستوى التحدي', en: 'Difficulty' })}
-                </span>
-                <span className="text-sm font-bold text-[var(--kj-green)]">
-                  {challenge.difficulty === 'easy'
-                    ? pickLoc(locale, { ckb: 'ئاسان (Beginner)', kmr: 'ئاسان (Beginner)', ar: 'سهل (مبتدئ)', en: 'Easy (Beginner)' })
-                    : challenge.difficulty === 'medium'
-                    ? pickLoc(locale, { ckb: 'ناوەند (Medium)', kmr: 'ناڤنجی (Medium)', ar: 'متوسط (Medium)', en: 'Medium' })
-                    : pickLoc(locale, { ckb: 'قورس (Hard)', kmr: 'دژوار (Hard)', ar: 'صعب (Hard)', en: 'Hard' })}
-                </span>
-              </div>
-              <div className="rounded-[7px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-4 py-2 text-center">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--kj-muted)]">
-                  {pickLoc(locale, { ckb: 'خاڵی پاداشت', kmr: 'خاڵێن خەلاتی', ar: 'مكافأة النقاط', en: 'Reward' })}
-                </span>
-                <span className="text-sm font-bold text-amber-500">
-                  +{challenge.points} {pickLoc(locale, { ckb: 'خاڵ ⭐', kmr: 'خاڵ ⭐', ar: 'نقطة ⭐', en: 'pts ⭐' })}
-                </span>
-              </div>
+            <div className="flex items-center gap-2.5 text-xs">
+              <span className="rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-bold text-[var(--kj-green)]">
+                {challenge.difficulty === 'easy'
+                  ? pickLoc(locale, { ckb: 'ئاسان', kmr: 'ئاسان', ar: 'سهل', en: 'Easy' })
+                  : challenge.difficulty === 'medium'
+                  ? pickLoc(locale, { ckb: 'ناوەند', kmr: 'ناڤنجی', ar: 'متوسط', en: 'Medium' })
+                  : pickLoc(locale, { ckb: 'قورس', kmr: 'دژوار', ar: 'صعب', en: 'Hard' })}
+              </span>
+              <span className="rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-bold text-amber-500">
+                +{challenge.points} {pickLoc(locale, { ckb: 'خاڵ', kmr: 'خاڵ', ar: 'نقطة', en: 'pts' })}
+              </span>
             </div>
           </div>
         </div>
       </section>
 
       <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
+        {/* Real Interactive Challenge Switcher */}
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          {CLIENT_DAILY_CHALLENGES.map((item) => {
+            const active = item.id === challenge.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => selectChallenge(item)}
+                className={`rounded-[10px] border px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                  active
+                    ? 'border-[#087f5b] bg-[#087f5b] text-white'
+                    : 'border-[var(--kj-border)] bg-[var(--kj-card)] text-[var(--kj-ink)] hover:border-[#087f5b]'
+                }`}
+              >
+                <span dir="ltr">{item.functionName}()</span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* Left Column: Problem & Code Editor */}
           <div className="space-y-6 lg:col-span-8">
@@ -576,45 +676,58 @@ export const DailyChallengeRunner: React.FC = () => {
               </div>
 
               <div className="mt-4 divide-y divide-[var(--kj-border)]">
-                {champions.map((champ, index) => {
-                  const rank = champ.rank || index + 1;
-                  return (
-                    <div key={champ.id || index} className="flex items-center justify-between py-3 first:pt-1 last:pb-1">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${
-                          rank === 1 ? 'kj-btn-primary' : 'bg-[var(--kj-soft)] text-[var(--kj-ink)] border border-[var(--kj-border)]'
-                        }`}>
-                          {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-[var(--kj-ink)]">{champ.displayName}</div>
-                          <div className="text-[10px] text-[var(--kj-muted)]">
-                            {champ.solvedAt
-                              ? new Date(champ.solvedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                              : pickLoc(locale, { ckb: 'ئەمڕۆ', kmr: 'ئەڤرۆ', ar: 'اليوم', en: 'Today' })}
+                {loadingChallenge ? (
+                  <p className="py-4 text-xs text-[var(--kj-muted)]">...</p>
+                ) : champions.length === 0 ? (
+                  <p className="py-4 text-xs text-[var(--kj-muted)]">
+                    {pickLoc(locale, {
+                      ckb: 'هێشتا هیچ کەسێک ئەم چاڵنجەی تەواو نەکردووە — ببە بە یەکەم کەس!',
+                      kmr: 'هێشتا چ کەسێ ئەڤ چالێنجە تمام نەکرییە — ببە یەکەم کەس!',
+                      ar: 'لم يحل هذا التحدي أحد بعد — كن الأول اليوم!',
+                      en: 'No solvers yet — submit a passing solution to lead the board!',
+                    })}
+                  </p>
+                ) : (
+                  champions.map((champ, index) => {
+                    const rank = champ.rank || index + 1;
+                    return (
+                      <div key={champ.id || index} className="flex items-center justify-between py-3 first:pt-1 last:pb-1">
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${
+                            rank === 1 ? 'kj-btn-primary' : 'bg-[var(--kj-soft)] text-[var(--kj-ink)] border border-[var(--kj-border)]'
+                          }`}>
+                            {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-[var(--kj-ink)]">{champ.displayName}</div>
+                            <div className="text-[10px] text-[var(--kj-muted)]">
+                              {champ.solvedAt
+                                ? new Date(champ.solvedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                : pickLoc(locale, { ckb: 'ئەمڕۆ', kmr: 'ئەڤرۆ', ar: 'اليوم', en: 'Today' })}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-mono font-semibold kj-badge">
-                        <Sparkles className="h-2.5 w-2.5" />
-                        <span>
-                          {champ.executionTimeMs
-                            ? `${champ.executionTimeMs}ms`
-                            : pickLoc(locale, { ckb: 'تێپەڕی', kmr: 'سەرکەفت', ar: 'ناجح', en: 'Passed' })}
+                        <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-mono font-semibold kj-badge">
+                          <Sparkles className="h-2.5 w-2.5" />
+                          <span>
+                            {champ.executionTimeMs
+                              ? `${champ.executionTimeMs}ms`
+                              : pickLoc(locale, { ckb: 'تێپەڕی', kmr: 'سەرکەفت', ar: 'ناجح', en: 'Passed' })}
+                          </span>
                         </span>
-                      </span>
-                    </div>
-                  );
-                })}
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
               <div className="kj-callout mt-6 rounded-[6px] p-3.5 text-center text-xs">
                 <Award className="mx-auto mb-1 h-5 w-5" />
                 <span>
                   {pickLoc(locale, {
-                    ckb: 'پاش شیکارکردنی پرسیارەکە، ناوت لەم لیستەدا دادەنرێت و لە مێژووی کاڕێژاندا دەمێنێتەوە!',
+                    ckb: 'پاش شیکارکردنی پرسیارەکە، ناوت لەم لیستەدا دادەنرێت و لە مێژووی karejanـدا دەمێنێتەوە!',
                     kmr: 'پشتی شیکارکرنا پرسیارێ، ناڤێ تە د ڤێ لیستێ دا دهێتە دانان!',
-                    ar: 'بعد حل التحدي بنجاح، سيظهر اسمك هنا في سجل أبطال KARÊJAN!',
+                    ar: 'بعد حل التحدي بنجاح، سيظهر اسمك هنا في سجل أبطال karejan!',
                     en: 'Solve today’s challenge to add your name to the verified champions board!',
                   })}
                 </span>

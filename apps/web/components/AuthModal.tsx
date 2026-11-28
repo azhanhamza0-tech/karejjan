@@ -63,7 +63,7 @@ const VISUAL_COPY: Record<Locale, AuthVisualCopy> = {
     trustNote: 'Your learning space is private and secure.',
     divider: 'or continue with email',
     passwordHint: 'Use at least 6 characters',
-    terms: 'By continuing, you agree to use KARÊJAN responsibly.',
+    terms: 'By continuing, you agree to use karejan responsibly.',
     close: 'Close sign-in dialog',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
@@ -86,7 +86,7 @@ const VISUAL_COPY: Record<Locale, AuthVisualCopy> = {
     trustNote: 'مساحة تعلّمك خاصة وآمنة.',
     divider: 'أو تابع باستخدام البريد الإلكتروني',
     passwordHint: 'استخدم 6 أحرف على الأقل',
-    terms: 'بالمتابعة، أنت توافق على استخدام KARÊJAN بمسؤولية.',
+    terms: 'بالمتابعة، أنت توافق على استخدام karejan بمسؤولية.',
     close: 'إغلاق نافذة تسجيل الدخول',
     showPassword: 'إظهار كلمة المرور',
     hidePassword: 'إخفاء كلمة المرور',
@@ -109,7 +109,7 @@ const VISUAL_COPY: Record<Locale, AuthVisualCopy> = {
     trustNote: 'بۆشایی فێربوونەکەت تایبەت و پارێزراوە.',
     divider: 'یان بە ئیمەیڵ بەردەوام بە',
     passwordHint: 'لانیکەم ٦ پیت بەکاربهێنە',
-    terms: 'بە بەردەوامبوون، ڕازی دەبیت KARÊJAN بە بەرپرسیاری بەکاربهێنیت.',
+    terms: 'بە بەردەوامبوون، ڕازی دەبیت karejan بە بەرپرسیاری بەکاربهێنیت.',
     close: 'داخستنی پەنجەرەی چوونەژوورەوە',
     showPassword: 'پیشاندانی وشەی نهێنی',
     hidePassword: 'شاردنەوەی وشەی نهێنی',
@@ -132,7 +132,7 @@ const VISUAL_COPY: Record<Locale, AuthVisualCopy> = {
     trustNote: 'Cihê hînbûna te taybet û ewle ye.',
     divider: 'an bi e-nameyê bidomîne',
     passwordHint: 'Herî kêm 6 tîpan bi kar bîne',
-    terms: 'Bi domandinê, tu qebûl dikî KARÊJAN bi berpirsiyarî bi kar bînî.',
+    terms: 'Bi domandinê, tu qebûl dikî karejan bi berpirsiyarî bi kar bînî.',
     close: 'Paceya têketinê bigire',
     showPassword: 'Şîfreyê nîşan bide',
     hidePassword: 'Şîfreyê veşêre',
@@ -272,13 +272,10 @@ export const AuthModal: React.FC = () => {
 
           <div className="relative z-10">
             <div className="mb-10 flex items-center gap-3">
-              <div className="kj-brandmark h-11 w-11 text-[26px]">
-                <span>k</span>
-                <i className="kj-brandmark-dot" />
-              </div>
+              <div className="kj-codenest-mark h-11 w-11 text-sm">&lt;/&gt;</div>
               <div>
-                <p className="text-lg font-extrabold tracking-[0.12em]">KARÊJAN</p>
-                <p className="text-[11px] font-medium text-[#9af0c7]">کاڕێژان · CODING ACADEMY</p>
+                <p className="text-xl font-extrabold tracking-tight">kare<strong className="text-[#9cebc3]">jan</strong></p>
+                <p className="text-[11px] font-medium text-[#9cebc3]">CODING ACADEMY</p>
               </div>
             </div>
 
@@ -321,8 +318,8 @@ export const AuthModal: React.FC = () => {
           <div className="mx-auto w-full max-w-[430px]">
             <div className="mb-7 pe-10">
               <div className="mb-5 flex items-center gap-2 lg:hidden">
-                <div className="kj-brandmark"><span>k</span><i className="kj-brandmark-dot" /></div>
-                <span className="font-extrabold tracking-[0.08em] text-[var(--kj-ink)]">KARÊJAN</span>
+                <div className="kj-codenest-mark">&lt;/&gt;</div>
+                <span className="text-lg font-extrabold tracking-tight text-[var(--kj-ink)]">kare<strong className="text-[var(--kj-green)]">jan</strong></span>
               </div>
               <h1 id="auth-dialog-title" className="text-2xl font-black tracking-tight text-[var(--kj-ink)] sm:text-[30px]">
                 {title}

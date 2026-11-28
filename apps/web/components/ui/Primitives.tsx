@@ -106,24 +106,24 @@ export class ErrorBoundary extends React.Component<
       const errCopy =
         lang === 'ckb'
           ? {
-            title: 'هەڵەی کارپێکردن · کاڕێژان',
+            title: 'هەڵەی کارپێکردن · karejan',
             reload: 'دەستپێکردنەوە',
             dismiss: 'پاشگەزبوونەوە',
           }
           : lang === 'kmr'
             ? {
-              title: 'شاشیا کارپێکرنێ · کاڕێژان',
+              title: 'شاشیا کارپێکرنێ · karejan',
               reload: 'دەستپێکرن ژ نو',
               dismiss: 'پاشڤەگەڕیان',
             }
             : lang === 'ar'
               ? {
-                title: 'خطأ في التشغيل · KARÊJAN',
+                title: 'خطأ في التشغيل · karejan',
                 reload: 'إعادة تحميل',
                 dismiss: 'تجاهل',
               }
               : {
-                title: 'Application Error · KARÊJAN',
+                title: 'Application Error · karejan',
                 reload: 'Reload View',
                 dismiss: 'Dismiss',
               };

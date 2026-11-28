@@ -221,7 +221,7 @@ export const ProPurchaseView: React.FC = () => {
         <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6 text-start">
           <div className="kj-eyebrow">
             <span className="kj-eyebrow-dot" />
-            <span>{proPlan?.priceIqd?.toLocaleString() || '10,000'} IQD / MONTH · KARÊJAN PRO</span>
+            <span>{proPlan?.priceIqd?.toLocaleString() || '10,000'} IQD / MONTH · karejan PRO</span>
           </div>
           <h1 className="mt-2 text-2xl font-extrabold text-[var(--kj-ink)] sm:text-3xl">
             {t.pro.title}

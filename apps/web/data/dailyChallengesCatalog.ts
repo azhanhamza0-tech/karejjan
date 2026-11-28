@@ -248,32 +248,4 @@ export const CLIENT_DAILY_CHALLENGES: DailyChallenge[] = [
   },
 ];
 
-export const INITIAL_FALLBACK_CHAMPIONS: ChampionRecord[] = [
-  {
-    id: 'champ-seed-1',
-    uid: 'hero-1',
-    displayName: 'ئارا کاروان (Ara Karwan)',
-    solvedAt: new Date(Date.now() - 1000 * 60 * 42).toISOString(),
-    challengeId: 'ch-largest-number',
-    executionTimeMs: 4,
-    rank: 1,
-  },
-  {
-    id: 'champ-seed-2',
-    uid: 'hero-2',
-    displayName: 'لاڤین ئازاد (Lavin Azad)',
-    solvedAt: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-    challengeId: 'ch-largest-number',
-    executionTimeMs: 7,
-    rank: 2,
-  },
-  {
-    id: 'champ-seed-3',
-    uid: 'hero-3',
-    displayName: 'دیار هۆشمەند (Diyar Hoshmand)',
-    solvedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    challengeId: 'ch-largest-number',
-    executionTimeMs: 11,
-    rank: 3,
-  },
-];
+export const INITIAL_FALLBACK_CHAMPIONS: ChampionRecord[] = [];

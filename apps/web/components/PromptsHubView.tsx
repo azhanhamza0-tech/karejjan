@@ -141,76 +141,25 @@ export const PromptsHubView: React.FC = () => {
 
   return (
     <div>
-      {/* Editorial Hero Header Band matching dist.zip */}
+      {/* Compact Page Header */}
       <section className="kj-hero-band">
-        <div className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 text-start">
-          <div className="max-w-4xl space-y-4">
-            <div className="kj-eyebrow">
-              <span className="kj-eyebrow-dot" />
-              <span>
-                {pickLoc(locale, {
-                  ckb: 'پرۆمپتە زێڕینە تاقیکراوەکان · PROMPT DIRECTIVES',
-                  kmr: 'پرۆمپتێن زێڕین یێن تاقیکری · PROMPT DIRECTIVES',
-                  ar: 'الأوامر الذهبية المجربة · PROMPT DIRECTIVES',
-                  en: 'GOLDEN PROMPT DIRECTIVES · THINK10X & MORE',
-                })}
-              </span>
-            </div>
-
-            <h1 className="text-3xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-4xl lg:text-5xl">
-              {pickLoc(locale, {
-                ckb: 'فەرمان و پرۆمپتە زێڕینەکانی AI (THINK10X, ELI5 و ٢٠ فەرمانی تر)',
-                kmr: 'فەرمان و پرۆمپتێن زێڕین یێن AI (THINK10X, ELI5 و ٢٠ فەرمانێن دی)',
-                ar: 'الأوامر الذهبية للذكاء الاصطناعي (THINK10X و ELI5 و ٢٠ أمراً احترافياً)',
-                en: 'Golden AI Prompts & Directives (THINK10X, ELI5 & 20+ Directives)',
-              })}
-            </h1>
-
-            <p className="text-sm sm:text-base leading-relaxed text-[var(--kj-muted-2)]">
-              {pickLoc(locale, {
-                ckb: 'ئەو دەستەواژە و فەرمانە ئەفسانەییانەی کە شێوازی وەڵامدانەوەی مۆدێلە زیرەکەکان (ChatGPT, Claude, DeepSeek, KARÊJAN AI) دەگۆڕن بۆ ئاستی ئەندازیاری باڵا؛ هەڵەکان کەم دەکەنەوە و وردبینی دەگەیەننە لووتکە.',
-                kmr: 'ئەو فەرمانێن بهێز یێن کو شێوازێ بەرسڤدانا مۆدێلێن AI (ChatGPT, Claude, DeepSeek, KARÊJAN AI) دگوهۆڕن بۆ ئاستێ ئەندازیارێن بلند و شاشییان کێم دکەن.',
-                ar: 'أهم الصيغ والتوجيهات البرمجية التي ترفع جودة إجابات نماذج الذكاء الاصطناعي إلى مستوى كبار المهندسين وتقلل الأخطاء.',
-                en: 'The battle-tested prompting patterns, meta-prompts, and directives that unlock senior-level reasoning and zero-fluff answers from modern LLMs.',
-              })}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-              <div className="flex items-center gap-1.5 rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-semibold text-[var(--kj-ink)]">
-                <CheckCircle2 className="h-4 w-4 text-[var(--kj-green)]" />
-                <span>
-                  {pickLoc(locale, {
-                    ckb: '٢٢ فەرمانی تاقیکراوە',
-                    kmr: '٢٢ فەرمانێن تاقیکری',
-                    ar: '٢٢ أمراً مجرباً',
-                    en: '22 Proven Directives',
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-semibold text-[var(--kj-ink)]">
-                <Zap className="h-4 w-4 text-[var(--kj-green)]" />
-                <span>
-                  {pickLoc(locale, {
-                    ckb: 'کاریگەری تا %٩٩',
-                    kmr: 'کارتێکرن هەتا %٩٩',
-                    ar: 'فعالية تصل إلى ٩٩٪',
-                    en: 'Up to 99% Impact Score',
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-semibold text-[var(--kj-ink)]">
-                <Copy className="h-4 w-4 text-[var(--kj-green)]" />
-                <span>
-                  {pickLoc(locale, {
-                    ckb: 'کۆپیکردنی دەستبەجێ بە یەک کلیک',
-                    kmr: 'کۆپیکرنا بلەز ب ئێک کلیک',
-                    ar: 'نسخ فوري بنقرة واحدة',
-                    en: 'One-Click Copy & Chat',
-                  })}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 text-start">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-3xl">
+            {pickLoc(locale, {
+              ckb: 'پرۆمپتە زێڕینەکانی AI (THINK10X, ELI5...)',
+              kmr: 'پرۆمپتێن زێڕین یێن AI (THINK10X, ELI5...)',
+              ar: 'الأوامر الذهبية للذكاء الاصطناعي',
+              en: 'Golden AI Prompts & Directives',
+            })}
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-[var(--kj-muted-2)]">
+            {pickLoc(locale, {
+              ckb: '٢٢ فەرمانی ئامادە بۆ کۆپیکردن و بەکارهێنانی ڕاستەوخۆ لەگەڵ AI.',
+              kmr: '٢٢ فەرمانێن ئامادە بۆ کۆپیکرن و بکارئینانێ.',
+              ar: '٢٢ أمراً جاهزاً للنسخ والاستخدام المباشر مع نماذج الذكاء الاصطناعي.',
+              en: '22 copy-ready prompt directives for sharper, clearer AI answers.',
+            })}
+          </p>
         </div>
       </section>
 
@@ -405,10 +354,10 @@ export const PromptsHubView: React.FC = () => {
                     type="button"
                     onClick={(e) => handleTryInChat(prompt, e)}
                     title={pickLoc(locale, {
-                      ckb: 'تاقیکردنەوە لە چاتی کاڕێژان',
-                      kmr: 'تاقیکرن د چاتا کاڕێژان دا',
-                      ar: 'جرّبه في محادثة KARÊJAN AI',
-                      en: 'Try inside KARÊJAN AI Chat',
+                      ckb: 'تاقیکردنەوە لە چاتی karejan',
+                      kmr: 'تاقیکرن د چاتا karejan دا',
+                      ar: 'جرّبه في محادثة karejan AI',
+                      en: 'Try inside karejan AI Chat',
                     })}
                     className="inline-flex items-center gap-1 rounded-[5px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] px-2.5 py-1.5 text-xs font-semibold text-[var(--kj-ink)] hover:bg-[var(--kj-elevated)] transition-colors cursor-pointer"
                   >
@@ -567,10 +516,10 @@ export const PromptsHubView: React.FC = () => {
                 >
                   <span>
                     {pickLoc(locale, {
-                      ckb: 'کۆپیکردن و کردنەوە لە چاتی کاڕێژان 💬',
-                      kmr: 'کۆپیکرن و ڤەکرن د چاتا کاڕێژان دا 💬',
-                      ar: 'نسخ وفتح في محادثة KARÊJAN AI 💬',
-                      en: 'Copy & Open in KARÊJAN AI 💬',
+                      ckb: 'کۆپیکردن و کردنەوە لە چاتی karejan 💬',
+                      kmr: 'کۆپیکرن و ڤەکرن د چاتا karejan دا 💬',
+                      ar: 'نسخ وفتح في محادثة karejan AI 💬',
+                      en: 'Copy & Open in karejan AI 💬',
                     })}
                   </span>
                 </button>

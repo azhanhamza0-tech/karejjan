@@ -202,11 +202,7 @@ export const CodeEditorView: React.FC = () => {
       {/* Editorial Header + Toolbar */}
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--kj-border)] pb-4">
         <div className="text-start">
-          <div className="kj-eyebrow">
-            <span className="kj-eyebrow-dot" />
-            <span>THE PLAYGROUND · LIVE CODE LAB</span>
-          </div>
-          <h1 className="mt-1.5 text-2xl font-extrabold tracking-tight text-[var(--kj-ink)]">
+          <h1 className="text-xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-2xl">
             {t.editor.title}
           </h1>
           <p className="mt-0.5 text-xs text-[var(--kj-muted)]">{t.editor.sandboxNotice}</p>
@@ -266,10 +262,10 @@ export const CodeEditorView: React.FC = () => {
             <h2 className="text-sm font-bold text-[var(--kj-ink)] flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-[var(--kj-green)]" />
               <span>{pickLoc(locale, {
-  ckb: 'تێمپلەیت و کۆدە ئامادەکراوەکانی کاڕێژان',
-  kmr: 'تێمپلەیت و کۆدێن ئامادەکری یێن کاڕێژان',
-  ar: 'قوالب وأكواد KARÊJAN الجاهزة',
-  en: 'KARÊJAN Ready-Made Starter Templates',
+  ckb: 'تێمپلەیت و کۆدە ئامادەکراوەکانی karejan',
+  kmr: 'تێمپلەیت و کۆدێن ئامادەکری یێن karejan',
+  ar: 'قوالب وأكواد karejan الجاهزة',
+  en: 'karejan Ready-Made Starter Templates',
 })}</span>
             </h2>
             <span className="text-xs text-[var(--kj-muted)]">
@@ -405,7 +401,7 @@ export const CodeEditorView: React.FC = () => {
             </div>
             <iframe
               key={runKey}
-              title="KARÊJAN Sandboxed Live Preview"
+              title="karejan Sandboxed Live Preview"
               sandbox="allow-scripts"
               srcDoc={srcDoc}
               className="h-full w-full flex-1 bg-white"

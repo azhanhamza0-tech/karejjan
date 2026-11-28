@@ -167,87 +167,25 @@ export const AiToolsHubView: React.FC = () => {
 
   return (
     <div>
-      {/* Editorial Hero Header Band matching dist.zip */}
+      {/* Compact Page Header */}
       <section className="kj-hero-band">
-        <div className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 text-start">
-          <div className="max-w-4xl space-y-4">
-            <div className="kj-eyebrow">
-              <span className="kj-eyebrow-dot" />
-              <span>
-                {pickLoc(locale, {
-                  ckb: 'پێڕستی هەڵبژێردراوی ٢٠٢٥ - ٢٠٢٦ · TOP 50 AI HUB',
-                  kmr: 'لیستا هەلبژارتی ٢٠٢٥ - ٢٠٢٦ · TOP 50 AI HUB',
-                  ar: 'الدليل المختار ٢٠٢٥ - ٢٠٢٦ · TOP 50 AI HUB',
-                  en: 'CURATED DEVELOPER DIRECTORY · TOP 50 AI HUB',
-                })}
-              </span>
-            </div>
-
-            <h1 className="text-3xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-4xl lg:text-5xl">
-              {pickLoc(locale, {
-                ckb: 'باشترین ٥٠ ئامراز، ئەیجنت و چاتبۆتی AI بۆ پرۆگرامەران',
-                kmr: 'باشترین ٥٠ ئامراز، ئەجێنت و چاتبۆتێن AI بۆ پرۆگرامسازان',
-                ar: 'أفضل ٥٠ أداة ووكيل ذكاء اصطناعي للمبرمجين',
-                en: 'TOP 50 AI Tools & Agents for Developers',
-              })}
-            </h1>
-
-            <p className="text-sm sm:text-base leading-relaxed text-[var(--kj-muted-2)]">
-              {pickLoc(locale, {
-                ckb: 'کۆمەڵەیەکی دەوڵەمەند و پوختەکراو لە زیرەکترین و کاریگەرترین ئامرازەکانی زیرەکی دەستکرد لە جیهاندا؛ بە تەواوی ڕوونکردنەوەی فەرمی، کارە سەرەکییەکەیان و هۆکاری سەرکەوتووییان بۆ هەموو گەشەپێدەرێکی نەرمەکاڵا.',
-                kmr: 'کۆمەڵەکا دەوڵەمەند و پوخت ژ زیرەکترین ئامرازێن AI د جیهانێ دا، دگەل شیکرنا کارێ وان یێ سەرەکی و سەدەمێن سەرکەفتنێ بۆ پرۆگرامسازان.',
-                ar: 'دليل شامل ومنتقى لأقوى ٥٠ أداة ووكيل ذكاء اصطناعي للمبرمجين مع شرح المهمة الأساسية ومميزات كل أداة.',
-                en: 'A curated directory of the 50 most essential, battle-tested AI tools, autonomous coding agents, and frontier models empowering modern software engineers.',
-              })}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-              <div className="flex items-center gap-1.5 rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-semibold text-[var(--kj-ink)]">
-                <CheckCircle2 className="h-4 w-4 text-[var(--kj-green)]" />
-                <span>
-                  {pickLoc(locale, {
-                    ckb: '٥٠ ئامرازی تاقیکراوە',
-                    kmr: '٥٠ ئامرازێن تاقیکری',
-                    ar: '٥٠ أداة مجربة',
-                    en: '50 Verified Tools',
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-semibold text-[var(--kj-ink)]">
-                <Layers className="h-4 w-4 text-[var(--kj-green)]" />
-                <span>
-                  {pickLoc(locale, {
-                    ckb: '٩ کەتەگۆری تایبەتمەند',
-                    kmr: '٩ کەتەگۆریێن تایبەتمەند',
-                    ar: '٩ تصنيفات متخصصة',
-                    en: '9 Specialized Categories',
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-semibold text-[var(--kj-ink)]">
-                <Bot className="h-4 w-4 text-[var(--kj-green)]" />
-                <span>
-                  {pickLoc(locale, {
-                    ckb: 'ئەیجنتە سەربەخۆکان و IDE',
-                    kmr: 'ئەجێنتێن سەربەخۆ و IDE',
-                    ar: 'الوكلاء المستقلون و IDEs',
-                    en: 'Autonomous Agents & IDEs',
-                  })}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded-[6px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-3 py-1.5 font-semibold text-[var(--kj-ink)]">
-                <Zap className="h-4 w-4 text-[var(--kj-green)]" />
-                <span>
-                  {pickLoc(locale, {
-                    ckb: 'کۆدی کراوە (Open Source) و بێبەرامبەر',
-                    kmr: 'کۆدڤەکری (Open Source) و بێبەرامبەر',
-                    ar: 'مفتوح المصدر ومجاني',
-                    en: 'Open Source & Free Tiers',
-                  })}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 text-start">
+          <h1 className="text-2xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-3xl">
+            {pickLoc(locale, {
+              ckb: 'باشترین ٥٠ ئامرازی AI بۆ پرۆگرامەران',
+              kmr: 'باشترین ٥٠ ئامرازێن AI بۆ پرۆگرامسازان',
+              ar: 'أفضل ٥٠ أداة AI للمبرمجين',
+              en: 'TOP 50 AI Tools for Developers',
+            })}
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-[var(--kj-muted-2)]">
+            {pickLoc(locale, {
+              ckb: 'پێڕستێکی پوخت بۆ هەڵبژاردنی ئامراز و چاتبۆتی گونجاو.',
+              kmr: 'لیستەکا پوخت بۆ هەلبژارتنا باشترین ئامرازێن AI.',
+              ar: 'دليل موجز لأفضل أدوات ووكلاء البرمجة الذكية.',
+              en: 'Search and filter curated AI coding tools, IDEs, and agents.',
+            })}
+          </p>
         </div>
       </section>
 

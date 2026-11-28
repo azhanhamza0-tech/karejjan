@@ -1,179 +1,234 @@
-import React from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
-  Code2,
-  Sparkles,
-  Zap,
+  Search,
+  X,
   Terminal,
-  BookOpen,
-  Award,
-  ArrowRight,
-  ArrowLeft,
-  ArrowUpRight,
-  Check,
-  Flame,
+  Sparkles,
   Bot,
+  Flame,
+  Compass,
+  LayoutDashboard,
+  Crown,
+  BookOpen,
+  Zap,
+  Play,
+  CheckCircle2,
+  Shield,
+  ArrowUpRight,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { pickLoc } from '../i18n/translations';
 import { CLIENT_DAILY_CHALLENGES } from '../data/dailyChallengesCatalog';
-import type { Locale, TrackId } from '../types/domain';
-import { Button } from './ui/Primitives';
+import { TOP_50_AI_TOOLS } from '../data/top50AiTools';
+import { GOLDEN_PROMPTS } from '../data/promptsCatalog';
+import type { ActiveView, Locale, TrackId } from '../types/domain';
+
+type PastelTone = 'green' | 'yellow' | 'purple' | 'blue' | 'peach' | 'teal';
 
 interface TrackCardInfo {
   id: TrackId;
+  num: string;
+  toneClass: string;
   name: string;
-  codeGlyph: string;
-  lessonsCount: number;
+  searchKeys: string;
+  lessonsFallback: number;
+  levelLabel: Record<Locale, string>;
   tags: Record<Locale, string>;
   descriptions: Record<Locale, string>;
 }
 
+const TONE_MAP: Record<PastelTone, string> = {
+  green: 'cn-icon-green',
+  yellow: 'cn-icon-yellow',
+  purple: 'cn-icon-purple',
+  blue: 'cn-icon-blue',
+  peach: 'cn-icon-peach',
+  teal: 'cn-icon-teal',
+};
+
 const FEATURED_TRACKS: TrackCardInfo[] = [
   {
     id: 'html',
+    num: '01',
+    toneClass: TONE_MAP.green,
     name: 'HTML5',
-    codeGlyph: '<>',
-    lessonsCount: 110,
+    searchKeys: 'html html5 web structure tags forms semantics',
+    lessonsFallback: 110,
+    levelLabel: { ckb: 'سەرەتایی', kmr: 'دەستپێک', ar: 'مبتدئ', en: 'BEGINNER' },
     tags: {
-      ckb: 'بنچینەی وێب',
-      kmr: 'بنەمایێ وێبێ',
+      ckb: 'پێکهاتەی وێب',
+      kmr: 'پێکهاتەیا وێبێ',
       ar: 'أساسيات الويب',
-      en: 'Web Foundations',
+      en: 'Structure the web',
     },
     descriptions: {
-      ckb: 'فێربوونی تەواوی تاگەکان، پێکهاتەی وێبپەڕە، فۆڕم، میدیا، و ستانداردی مۆدێرنی HTML5 لە سەرەتاوە.',
-      kmr: 'فێربوونا تەڤایا تاگان، پێکهاتەیا وێبپەڕان، فۆرم، میدیا و ستانداردێن مۆدێرن یێن HTML5 ژ دەستپێکێ.',
-      ar: 'تعلّم جميع الوسوم، بنية صفحات الويب، النماذج، الوسائط، ومعايير HTML5 الحديثة من الصفر.',
-      en: 'Master semantic tags, document structure, forms, multimedia, and modern HTML5 standards from scratch.',
+      ckb: 'بنچینەی هەموو ماڵپەڕێک بە تاگ، فۆڕم، و میدیا.',
+      kmr: 'بنەمایێ هەر مالپەڕەکێ ب تاگ، فۆرم و میدیایێ.',
+      ar: 'اللبنة الأساسية لكل موقع عبر الوسوم والنماذج.',
+      en: 'The building blocks of every modern website.',
     },
   },
   {
     id: 'css',
+    num: '02',
+    toneClass: TONE_MAP.yellow,
     name: 'CSS3',
-    codeGlyph: '#',
-    lessonsCount: 105,
+    searchKeys: 'css css3 style layout design flexbox grid responsive',
+    lessonsFallback: 105,
+    levelLabel: { ckb: 'سەرەتایی', kmr: 'دەستپێک', ar: 'مبتدئ', en: 'BEGINNER' },
     tags: {
       ckb: 'شێواز و دیزاین',
       kmr: 'شێواز و دیزاین',
       ar: 'التنسيق والتصميم',
-      en: 'Styling & Layout',
+      en: 'Style your ideas',
     },
     descriptions: {
-      ckb: 'شێوازدانانی پێشکەوتوو بە Flexbox, Grid, ئەنیمەیشن، و دروستکردنی ماڵپەڕی ڕیسپۆنسیڤ بۆ مۆبایل و کۆمپیوتەر.',
-      kmr: 'دیزاینکرنا پێشکەفتی ب Flexbox, Grid, ئەنیمەیشن و چێکرنا مالپەڕێن ڕیسپۆنسیڤ بۆ مۆبایل و کۆمپیوتەران.',
-      ar: 'تنسيق احترافي باستخدام Flexbox و Grid والرسوم المتحركة وبناء مواقع متجاوبة لجميع الشاشات.',
-      en: 'Build responsive, accessible layouts with Flexbox, CSS Grid, transitions, and modern design systems.',
+      ckb: 'دیزاینی جوان و ڕیسپۆنسیڤ بە Flexbox و Grid.',
+      kmr: 'دیزاینێن جوان و ڕیسپۆنسیڤ ب Flexbox و Grid.',
+      ar: 'تصاميم عصرية متجاوبة باستخدام Flexbox و Grid.',
+      en: 'Make beautiful, responsive designs cleanly.',
     },
   },
   {
     id: 'js',
+    num: '03',
+    toneClass: TONE_MAP.purple,
     name: 'JavaScript',
-    codeGlyph: 'JS',
-    lessonsCount: 120,
+    searchKeys: 'js javascript interactive dom async es6 logic',
+    lessonsFallback: 120,
+    levelLabel: { ckb: 'باوترین', kmr: 'بەربەلاڤ', ar: 'الأكثر طلباً', en: 'POPULAR' },
     tags: {
-      ckb: 'مێشکی وێب',
-      kmr: 'مێشکێ وێبێ',
+      ckb: 'زیندووکردنی وێب',
+      kmr: 'زیندوکرنا وێبێ',
       ar: 'برمجة التفاعل',
-      en: 'Web Interactivity',
+      en: 'Bring pages to life',
     },
     descriptions: {
-      ckb: 'فێربوونی مۆدێرنی JS بە ڕێگەی فەنکشن، Loop، بەڕێوەبردنی DOM، پڕۆمیس و ئاسینک لە سفرەوە تا ئاستی ئەندازیاری.',
-      kmr: 'فێربوونا مۆدێرن یا JS ب فەنکشن، Loop، ڕێڤەبرنا DOM، Promise و Async ژ سەرەتا هەتا ئاستێ ئەندازیاریێ.',
-      ar: 'تعلّم JavaScript الحديثة من الدوال والحلقات ومعالجة DOM إلى Promises و Async بمستوى هندسي متكامل.',
-      en: 'Learn modern ES syntax, functions, loops, DOM manipulation, Promises, and async engineering from step zero.',
+      ckb: 'کارلێکی DOM، فەنکشن و پرۆگرامینگی مۆدێرن.',
+      kmr: 'کارلێکا DOM، فەنکشن و پرۆگرامسازیا مۆدێرن.',
+      ar: 'إضافة التفاعل والدوال والبرمجة الحديثة للمتصفح.',
+      en: 'Make websites interactive with modern ES+ code.',
     },
   },
   {
     id: 'react',
+    num: '04',
+    toneClass: TONE_MAP.teal,
     name: 'React 19',
-    codeGlyph: '⚛',
-    lessonsCount: 100,
+    searchKeys: 'react hooks jsx ui components frontend',
+    lessonsFallback: 100,
+    levelLabel: { ckb: 'ناوەند', kmr: 'ناڤنجی', ar: 'متوسط', en: 'INTERMEDIATE' },
     tags: {
-      ckb: 'فرەیموۆرکی پێشەنگ',
-      kmr: 'فرەیموۆرکا سەرەکی',
-      ar: 'مكتبة الواجهات',
-      en: 'Frontend Architecture',
+      ckb: 'ڕووکاری مۆدێرن',
+      kmr: 'ڕووکارێ مۆدێرن',
+      ar: 'واجهات تفاعلية',
+      en: 'Build modern UIs',
     },
     descriptions: {
-      ckb: 'دروستکردنی سیستەم و ماڵپەڕی زیندوو بە کامپۆنێنت، هۆکەکان (Hooks)، و دۆخی سەردەمیانەی ئەپڵیکەیشن.',
-      kmr: 'ئاڤاکرنا سیستەم و ئەپڵیکەیشنێن زیندی ب کامپۆنێنتان، Hooks، و دۆخێ سەردەمێ ئەپان.',
-      ar: 'بناء تطبيقات ويب تفاعلية حديثة باستخدام المكونات والخطافات (Hooks) وإدارة الحالة المتقدمة.',
-      en: 'Craft interactive web apps using composable components, modern Hooks, and predictable state flows.',
-    },
-  },
-  {
-    id: 'vite',
-    name: 'Vite & Tooling',
-    codeGlyph: '⚡',
-    lessonsCount: 100,
-    tags: {
-      ckb: 'ئامرازی خێرا',
-      kmr: 'ئامرازێ بلەز',
-      ar: 'أدوات البناء السريعة',
-      en: 'Fast Build Tooling',
-    },
-    descriptions: {
-      ckb: 'دامەزراندنی پرۆژەی مۆدێرن، پەیڕەوکردنی کۆد، و ڕێکخستنی سێرڤەری پرۆژە بە خێرایی باڵا.',
-      kmr: 'دامەزراندنا پڕۆژەیێن مۆدێرن و ڕێکخستنا سێرڤەر و باندلکرنا کۆدی ب لەزاتیەکا مەزن.',
-      ar: 'تهيئة المشاريع الحديثة، تسريع الحزم، وضبط بيئات التطوير بأعلى أداء ممكن.',
-      en: 'Configure modern web projects, instantaneous HMR, production bundling, and clean tooling workflows.',
-    },
-  },
-  {
-    id: 'tsx',
-    name: 'TypeScript (TSX)',
-    codeGlyph: 'TS',
-    lessonsCount: 100,
-    tags: {
-      ckb: 'کۆدی پارێزراو',
-      kmr: 'کۆدێ پاراستی',
-      ar: 'كتابة آمنة للأنواع',
-      en: 'Type-Safe Engineering',
-    },
-    descriptions: {
-      ckb: 'تایپکردنی بەهێز و توندوتۆڵ بۆ پڕۆژە گەورەکان و دڵنیابوونەوە لە نەبوونی هەڵەی پرۆگرامینگی باو.',
-      kmr: 'تایپکرنا بهێز بۆ پڕۆژەیێن مەزن و دوورکەفتن ژ شاشییێن بەربەلاڤ یێن پرۆگرامسازیێ.',
-      ar: 'تطوير مشاريع واسعة النطاق مع التحقق الصارم من الأنواع ومنع أخطاء التشغيل المبكرة.',
-      en: 'Write strongly typed React and Node codebases that catch bugs at compile time before shipping.',
+      ckb: 'کامپۆنێنتی دووبارەبەکارهاتوو و Hooks.',
+      kmr: 'کامپۆنێنتێن دوبارەبکارهاتی و Hooks.',
+      ar: 'بناء واجهات مرنة عبر المكونات وخطافات Hooks.',
+      en: 'Create reusable, component-driven interfaces.',
     },
   },
   {
     id: 'python',
+    num: '05',
+    toneClass: TONE_MAP.blue,
     name: 'Python',
-    codeGlyph: 'Py',
-    lessonsCount: 100,
+    searchKeys: 'python py ai data automation backend',
+    lessonsFallback: 100,
+    levelLabel: { ckb: 'سەرەتایی', kmr: 'دەستپێک', ar: 'مبتدئ', en: 'BEGINNER' },
     tags: {
       ckb: 'زیرەکی و داتا',
       kmr: 'زیرەکی و داتا',
       ar: 'الذكاء والبيانات',
-      en: 'AI & Automation',
+      en: 'Create with code',
     },
     descriptions: {
-      ckb: 'فێربوونی زمانی گونجاو بۆ زیرەکی دەستکرد، ئۆتۆمەیشن، و شیکردنەوەی داتا بە شێوازی هەنگاو بە هەنگاو.',
-      kmr: 'فێربوونا زمانێ گونجای بۆ زیرەکییا دەستکرد، ئۆتۆمەیشن و شیکرنا داتایان پێنگاڤ ب پێنگاڤ.',
-      ar: 'إتقان لغة بايثون للذكاء الاصطناعي والأتمتة وتحليل البيانات خطوة بخطوة.',
-      en: 'Learn the language powering AI engineering, scripting automation, APIs, and data analysis.',
+      ckb: 'زمانێکی ئاسان بۆ زیرەکی دەستکرد و ئۆتۆمەیشن.',
+      kmr: 'زمانەکێ سادە بۆ زیرەکییا دەستکرد و ئۆتۆمەیشن.',
+      ar: 'لغة ودودة للأفكار الكبرى والذكاء الاصطناعي.',
+      en: 'A friendly language for AI, data, and big ideas.',
+    },
+  },
+  {
+    id: 'tsx',
+    num: '06',
+    toneClass: TONE_MAP.peach,
+    name: 'TypeScript',
+    searchKeys: 'ts tsx typescript types safety interfaces',
+    lessonsFallback: 100,
+    levelLabel: { ckb: 'ئەندازیاری', kmr: 'ئەندازیاری', ar: 'هندسة', en: 'TYPE-SAFE' },
+    tags: {
+      ckb: 'کۆدی پارێزراو',
+      kmr: 'کۆدێ پاراستی',
+      ar: 'أمان الأنواع',
+      en: 'Write safer JavaScript',
+    },
+    descriptions: {
+      ckb: 'دۆزینەوەی هەڵەکان پێش کارپێکردنی پڕۆژە.',
+      kmr: 'دیتنا شاشییان بەری بکارئینانا پڕۆژەی.',
+      ar: 'كتابة كود موثوق يمنع أخطاء التشغيل المبكرة.',
+      en: 'Catch bugs early with strict types and React TSX.',
+    },
+  },
+  {
+    id: 'vite',
+    num: '07',
+    toneClass: TONE_MAP.yellow,
+    name: 'Vite',
+    searchKeys: 'vite tooling build hmr bundler',
+    lessonsFallback: 100,
+    levelLabel: { ckb: 'خێرا', kmr: 'بلەز', ar: 'سريع', en: 'TOOLING' },
+    tags: {
+      ckb: 'بنیاتنانی خێرا',
+      kmr: 'ئاڤاکرنا بلەز',
+      ar: 'أدوات البناء',
+      en: 'Ship lightning fast',
+    },
+    descriptions: {
+      ckb: 'سێرڤەری خێرا و ئامادەکردنی پڕۆژە بۆ بڵاوکردنەوە.',
+      kmr: 'سێرڤەرێ بلەز و ئامادەکرنا پڕۆژان.',
+      ar: 'تهيئة وبناء مشاريع الويب الحديثة بأعلى سرعة.',
+      en: 'Instant HMR and clean production bundling.',
     },
   },
   {
     id: 'cpp',
+    num: '08',
+    toneClass: TONE_MAP.purple,
     name: 'C++',
-    codeGlyph: 'C++',
-    lessonsCount: 100,
+    searchKeys: 'c++ cpp systems pointers memory oop',
+    lessonsFallback: 100,
+    levelLabel: { ckb: 'سیستەم', kmr: 'سیستەم', ar: 'أنظمة', en: 'SYSTEMS' },
     tags: {
-      ckb: 'سیستەم و خێرایی',
-      kmr: 'سیستەم و لەزاتی',
-      ar: 'الأنظمة والأداء العالي',
-      en: 'Systems Performance',
+      ckb: 'خێرایی و میمۆری',
+      kmr: 'لەزاتی و میمۆری',
+      ar: 'الأداء العالي',
+      en: 'Master performance',
     },
     descriptions: {
-      ckb: 'فێربوونی کۆنترۆڵی میمۆری و بنەماکانی سۆفتوێری ئاستی نزم بە تێگەیشتن لە چەمکە سەرەکییەکان.',
-      kmr: 'فێربوونا کۆنترۆلکرنا میمۆریێ و بنەمایێن نەرمەکاڵایێن ئاستێ نزم و ئەلگۆریتمان.',
-      ar: 'فهم إدارة الذاكرة وبنية البرمجيات منخفضة المستوى والخوارزميات فائقة السرعة.',
-      en: 'Understand memory management, pointers, OOP, and high-performance systems fundamentals.',
+      ckb: 'پۆینتەر، بەڕێوەبردنی میمۆری و ئەلگۆریتمەکان.',
+      kmr: 'پۆینتەر، ڕێڤەبرنا میمۆریێ و ئەلگۆریتم.',
+      ar: 'إدارة الذاكرة والمؤشرات والبرمجة عالية الأداء.',
+      en: 'Understand memory, pointers, OOP, and speed.',
     },
   },
 ];
+
+interface PlatformFeatureItem {
+  id: string;
+  view: ActiveView;
+  badge: string;
+  toneClass: string;
+  searchKeys: string;
+  icon: React.ReactNode;
+  title: Record<Locale, string>;
+  subtitle: Record<Locale, string>;
+  desc: Record<Locale, string>;
+  cta: Record<Locale, string>;
+}
 
 const HOME_COPY: Record<
   Locale,
@@ -182,647 +237,887 @@ const HOME_COPY: Record<
     heroTitle1: string;
     heroTitle2: string;
     heroDesc: string;
-    ctaLessons: string;
-    ctaEditor: string;
-    ctaChallenge: string;
-    heroNote: string;
-    yourFirstStep: string;
-    codeHeading: string;
-    codeSub: string;
-    livePreview: string;
-    codeWindowFooter: string;
-    tracksStripLabel: string;
-    pathsEyebrow: string;
-    pathsHeading: string;
-    pathsSub: string;
-    viewAllLessons: string;
+    searchPlaceholder: string;
+    searchBtn: string;
+    popularLabel: string;
+    clearSearch: string;
+    foundResults: (n: number, q: string) => string;
+    runCodeBtn: string;
+    togglePreview: string;
+    hidePreview: string;
+    editorReady: string;
+    editorGreeting: string;
+    editorSub: string;
+    b1Title: string;
+    b1Sub: string;
+    b2Title: string;
+    b2Sub: string;
+    b3Title: string;
+    b3Sub: string;
+    b4Title: string;
+    b4Sub: string;
+    coursesEyebrow: string;
+    coursesHeading: string;
+    coursesSub: string;
+    viewAllCourses: string;
+    exploreCourse: string;
     lessonsUnit: string;
-    newToCoding: string;
-    startFromHtml: string;
-    dailyEyebrow: string;
-    diffEasy: string;
-    diffMedium: string;
-    rewardPrefix: string;
-    pointsUnit: string;
-    every24h: string;
-    participateBtn: string;
-    todayChampsWindow: string;
-    dailyTaskComment: string;
-    dailyCommentBottom: string;
-    whyEyebrow: string;
-    whyTitle1: string;
-    whyTitle2: string;
-    whyDesc: string;
-    p1Title: string;
-    p1Desc: string;
-    p2Title: string;
-    p2Desc: string;
-    p3Title: string;
-    p3Desc: string;
-    p4Title: string;
-    p4Desc: string;
-    finalEyebrow: string;
-    finalTitle: string;
-    finalDesc: string;
-    finalCta: string;
+    completedLabel: string;
+    practiceCardBadge: string;
+    practiceCardTitle: string;
+    practiceCardSub: string;
+    practiceCardDesc: string;
+    practiceCardCta: string;
+    featuresEyebrow: string;
+    featuresHeading: string;
+    featuresSub: string;
+    adminShortcut: string;
+    practiceEyebrow: string;
+    practiceTitle1: string;
+    practiceTitle2: string;
+    practiceDesc: string;
+    solveChallengeBtn: string;
+    openAcademyBtn: string;
+    quickQuizEyebrow: string;
+    quizQuestion: string;
+    quizInitialFeedback: string;
+    quizCorrectFeedback: string;
+    quizWrongFeedback: string;
+    todayLiveChallenge: string;
+    ptsUnit: string;
   }
 > = {
   ckb: {
-    heroEyebrow: 'پلاتفۆرمی نیشتمانی فێربوونی پرۆگرامینگ و تەکنەلۆژیا',
-    heroTitle1: 'فێربوونی پرۆگرامینگ.',
-    heroTitle2: 'داهاتووت دروست بکە.',
-    heroDesc:
-      'خاوەنی زیاتر لە ٨٤٠ وانەی زانستی، تاقیگەی ڕاستەوخۆی کۆد، پرسیاری ڕۆژانە، ٥٠ ئامرازی AI و مامۆستای زیرەک — هەمووی بە کوردی لە یەک شوێن.',
-    ctaLessons: 'دەستپێکردنی وانەکان',
-    ctaEditor: 'تاقیگەی کۆد',
-    ctaChallenge: 'پرسیاری ڕۆژ ⚡',
-    heroNote: 'لە سەرەتاوە دەستپێبکە و بە خێرایی خۆت فێربە — زیاد لە ٨ زمان ئامادەن.',
-    yourFirstStep: 'هەنگاوی یەکەم',
-    codeHeading: 'سڵاو جیهان! · Hello, KARÊJAN!',
-    codeSub: 'با پێکەوە بنیات بنێین.',
-    livePreview: 'پیشاندانی ڕاستەوخۆ',
-    codeWindowFooter: 'دروستکراوە بۆ فێرخوازانی داهێنەر',
-    tracksStripLabel: 'زمانە فێرکارییەکانی کاڕێژان',
-    pathsEyebrow: 'ڕێڕەوی فێربوونت (LEARNING PATHS)',
-    pathsHeading: 'لە هەر شوێنێک بیت، لێرەوە دەست پێبکە.',
-    pathsSub: 'زمانێک هەڵبژێرە و هەنگاو بە هەنگاو لە سفرەوە تا ئاستی ئەندازیاری بڕۆ پێشەوە.',
-    viewAllLessons: 'بینینی هەموو وانەکان',
+    heroEyebrow: 'شوێنی فێربوونی پرۆگرامینگ',
+    heroTitle1: 'توانات بنیات بنێ.',
+    heroTitle2: 'داهاتوو دروست بکە.',
+    heroDesc: 'وانەی پراکتیکی و تاقیگەی کۆد لە یەک شوێن.',
+    searchPlaceholder: 'گەڕان لە کۆرسەکان...',
+    searchBtn: 'گەڕان',
+    popularLabel: 'باوترین:',
+    clearSearch: 'پاککردنەوە',
+    foundResults: (n, q) => `${n} ئەنجام دۆزرایەوە بۆ "${q}"`,
+    runCodeBtn: 'تاقیبکەرەوە',
+    togglePreview: 'پێشبینین',
+    hidePreview: 'شاردنەوە',
+    editorReady: 'Code Lab',
+    editorGreeting: 'سڵاو، karejan!',
+    editorSub: 'یەکەم وێبپەڕت بە خێرایی دروست بکە.',
+    b1Title: 'ئاسان بۆ سەرەتا',
+    b1Sub: '٨ کۆرس و ٨٤٠+ وانە لە سفرەوە',
+    b2Title: 'فێربوون بە کردار',
+    b2Sub: 'تاقیکردنەوە لەدوای هەر ٣ وانەیەک',
+    b3Title: 'تاقیگە و مامۆستای AI',
+    b3Sub: 'کۆد بنووسە و یەکسەر تاقیبکەرەوە',
+    b4Title: 'بە ٤ زمان بەردەستە',
+    b4Sub: 'سۆرانی · بادینی · عەرەبی · ئینگلیزی',
+    coursesEyebrow: 'هەموو ڕێڕەوەکان بگەڕێ',
+    coursesHeading: 'دەتەوێت چی فێربیت؟',
+    coursesSub: 'زمانێک هەڵبژێرە، ٣ وانە بخوێنە و ڕاستەوخۆ تاقیکردنەوەکە بکە.',
+    viewAllCourses: 'هەموو وانەکان',
+    exploreCourse: 'کردنەوەی کۆرس',
     lessonsUnit: 'وانە',
-    newToCoding: 'تازەیت لە پرۆگرامینگ؟',
-    startFromHtml: 'لە HTML5ەوە دەستپێبکە — هیچ پێشینەیەک ناوێت.',
-    dailyEyebrow: 'پرسیاری ڕۆژ و چاڵنجی خێرا (Daily Code Challenge ⚡)',
-    diffEasy: 'ئاسان',
-    diffMedium: 'ناوەند',
-    rewardPrefix: 'پاداشت:',
-    pointsUnit: 'خاڵ ⭐',
-    every24h: 'هەموو ٢٤ کاتژمێر جارێک',
-    participateBtn: 'ئێستا بەشداری بکە و وەڵام بدەرەوە',
-    todayChampsWindow: 'پاڵەوانانی ئەمڕۆ',
-    dailyTaskComment: '// ئەرکی ئەمڕۆ:',
-    dailyCommentBottom: '// ئەوانەی وەڵامی دروست دەدەنەوە دەچنە لیستی پاڵەوانانی ئەمڕۆ',
-    whyEyebrow: 'بۆچی پلاتفۆرمی کاڕێژان؟',
-    whyTitle1: 'ژاوەژاوی کەمتر.',
-    whyTitle2: 'فێربوونی زیاتر.',
-    whyDesc: 'هەموو شتێک لە شوێنی دروستی خۆیدایە تا سەرنجت لەسەر فێربوون، تاقیکردنەوە و بنیاتنانی پڕۆژەی ڕاستەقینە بێت.',
-    p1Title: 'تاقیگەی زیندووی کۆد (Code Lab)',
-    p1Desc: 'ڕاستەوخۆ HTML, CSS و JavaScript بنووسە و ئەنجامەکەی ببینە بەبێ دامەزراندنی هیچ بەرنامەیەک.',
-    p2Title: 'مامۆستای هۆشمەند (KARÊJAN AI)',
-    p2Desc: 'لە هەر تاگ و کۆدێک تێنەگەیشتی، مامۆستا زیرەکەکە بە سادەیی و ڕوونی پێت دەڵێت بۆ چییە.',
-    p3Title: 'TOP 50 ئامراز و ٢٢ پرۆمپتی زێڕین',
-    p3Desc: 'هەموو ئامراز و ئەیجنتە جیهانییەکانی پرۆگرامینگ لەگەڵ فەرمانەکانی THINK10X و ELI5 لە یەک شوێن.',
-    p4Title: 'ڕاهێنان و تاقیکردنەوەی تێکەڵکراو',
-    p4Desc: 'هەڵبژاردن، دۆزینەوەی هەڵەی کۆد، تەواوکردن و کۆدنینگ ڕاستەوخۆ لەناو گڕوپەکانی وانەدا.',
-    finalEyebrow: 'ئامادەیت دەست پێبکەیت؟',
-    finalTitle: 'گەشتی پرۆگرامینگی تۆ لێرەوە دەست پێدەکات.',
-    finalDesc: 'یەک وانە، یەک تاقیکردنەوە، یەک بیرۆکە لە هەر کاتێکدا.',
-    finalCta: 'دەستپێکردنی ڕێڕەوی فێربوون',
+    completedLabel: 'تەواوکراو',
+    practiceCardBadge: 'چاڵنج',
+    practiceCardTitle: 'چاڵنج و ڕاهێنان',
+    practiceCardSub: 'بە کردار بیسەلمێنە',
+    practiceCardDesc: 'چاڵنجی ڕۆژانەی JavaScript و ڕاهێنانە تێکەڵکراوەکان.',
+    practiceCardCta: 'کردنەوەی چاڵنج',
+    featuresEyebrow: 'ئامراز و تایبەتمەندییەکانی karejan',
+    featuresHeading: 'هەموو ئامرازەکانی وێبسایت لە یەک شوێن',
+    featuresSub: 'لە تاقیگەی کۆدەوە تا مامۆستای زیرەک و ٥٠ ئامرازی AI.',
+    adminShortcut: 'پانێڵی ئەدمین',
+    practiceEyebrow: 'فێربوون بە ئەنجامدان',
+    practiceTitle1: 'ڕاهێنان',
+    practiceTitle2: 'پێشکەوتن دەهێنێت.',
+    practiceDesc: 'لەدوای هەر ٣ وانەیەک تاقیکردنەوەی ئۆتۆماتیکی دەکرێتەوە، لەگەڵ چاڵنجی ڕۆژانە و لیستی پاڵەوانان.',
+    solveChallengeBtn: 'شیکارکردنی چاڵنجی ئەمڕۆ',
+    openAcademyBtn: 'ڕاهێنان لە ئەکادیمیا',
+    quickQuizEyebrow: 'تاقیکردنەوەی خێرا',
+    quizQuestion: 'کام تاگ لە HTML لینک دروست دەکات؟',
+    quizInitialFeedback: 'وەڵامێک هەڵبژێرە بۆ تاقیکردنەوە.',
+    quizCorrectFeedback: 'دروستە! تاگی <a> بەستەر (link) دروست دەکات.',
+    quizWrongFeedback: 'نزیک بوو! وەڵامێکی تر تاقی بکەرەوە.',
+    todayLiveChallenge: 'چاڵنجی ئەمڕۆ:',
+    ptsUnit: 'خاڵ',
   },
   kmr: {
-    heroEyebrow: 'پلاتفۆرما نیشتمانی یا فێربوونا پرۆگرامسازی و تەکنەلۆژیایێ',
-    heroTitle1: 'فێربوونا پرۆگرامسازیێ.',
-    heroTitle2: 'پاشەڕۆژا خۆ ئاڤا بکە.',
-    heroDesc:
-      'پتر ژ ٨٤٠ وانەیێن زانستی، تاقیگەها ڕاستەوخۆ یا کۆدی، پرسیارا ڕۆژانە، ٥٠ ئامرازێن AI و مامۆستایێ زیرەک — هەمی ب کوردی د ئێک جهدا.',
-    ctaLessons: 'دەستپێکرنا وانەیان',
-    ctaEditor: 'تاقیگەها کۆدی',
-    ctaChallenge: 'پرسیارا ڕۆژێ ⚡',
-    heroNote: 'ژ سەرەتا دەست پێ بکە و ب لەزا خۆ فێربە — پتر ژ ٨ زمانان ئامادەنە.',
-    yourFirstStep: 'پێنگاڤا ئێکێ',
-    codeHeading: 'سڵاڤ جیهان! · Hello, KARÊJAN!',
-    codeSub: 'دا پێکڤە ئاڤا بکەین.',
-    livePreview: 'نیشاندانا ڕاستەوخۆ',
-    codeWindowFooter: 'هاتیە چێکرن بۆ مێشکێن داهێنەر',
-    tracksStripLabel: 'زمانێن فێرکاری یێن کاڕێژان',
-    pathsEyebrow: 'ڕێبازا فێربوونا تە (LEARNING PATHS)',
-    pathsHeading: 'ل هەر جهەکی بی، ژ ڤێرێ دەست پێ بکە.',
-    pathsSub: 'زمانەکی هەلبژێرە و پێنگاڤ ب پێنگاڤ ژ سفرێ هەتا ئاستێ ئەندازیاریێ پێشڤە هەڕە.',
-    viewAllLessons: 'دیتنا هەمی وانەیان',
+    heroEyebrow: 'جهێ فێربوونا پرۆگرامسازیێ',
+    heroTitle1: 'شیانان ئاڤا بکە.',
+    heroTitle2: 'پڕۆژەیان چێبکە.',
+    heroDesc: 'وانەیێن پراکتیکی و تاقیگەها کۆدی د ئێک جهدا.',
+    searchPlaceholder: 'لێگەڕیان د کۆرسان دا...',
+    searchBtn: 'لێگەڕیان',
+    popularLabel: 'بەربەلاڤ:',
+    clearSearch: 'پاقژکرن',
+    foundResults: (n, q) => `${n} ئەنجام هاتنە دیتن بۆ "${q}"`,
+    runCodeBtn: 'ب خۆ تاقیبکە',
+    togglePreview: 'پێشدیتن',
+    hidePreview: 'ڤەشارتن',
+    editorReady: 'Code Lab',
+    editorGreeting: 'سڵاڤ، karejan!',
+    editorSub: 'ئێکەم وێبپەڕا خۆ ب سادەهی چێبکە.',
+    b1Title: 'گونجای بۆ دەستپێکێ',
+    b1Sub: '٨ کۆرس و ٨٤٠+ وانە ژ سفرێ',
+    b2Title: 'فێربوون ب پراکتیک',
+    b2Sub: 'ئەزموون پشتی هەر ٣ وانەیان',
+    b3Title: 'تاقیگە و یاریدەدەرێ AI',
+    b3Sub: 'کۆدی بنڤیسە و ڕاستەوخۆ تاقیبکە',
+    b4Title: 'ب ٤ زمانان بەردەستە',
+    b4Sub: 'سۆرانی · بادینی · عەرەبی · ئینگلیزی',
+    coursesEyebrow: 'هەمی دەلیڤان بگەڕێ',
+    coursesHeading: 'تە دڤێت چ فێرببی؟',
+    coursesSub: 'زمانەکی هەلبژێرە و پێنگاڤ ب پێنگاڤ پڕۆژان چێبکە.',
+    viewAllCourses: 'هەمی وانە',
+    exploreCourse: 'ڤەکرنا کۆرسی',
     lessonsUnit: 'وانە',
-    newToCoding: 'تو د پرۆگرامسازیێ دا نوو ی؟',
-    startFromHtml: 'ژ HTML5 دەست پێ بکە — چ پاشخان ناڤێت.',
-    dailyEyebrow: 'پرسیارا ڕۆژێ و چالێنجا بلەز (Daily Code Challenge ⚡)',
-    diffEasy: 'ئاسان',
-    diffMedium: 'ناڤنجی',
-    rewardPrefix: 'خەلات:',
-    pointsUnit: 'خاڵ ⭐',
-    every24h: 'هەر ٢٤ دەمژمێران جارەکێ',
-    participateBtn: 'نها پشکداریێ بکە و بەرسڤێ بدە',
-    todayChampsWindow: 'قارەمانێن ئەڤرۆ',
-    dailyTaskComment: '// ئەرکێ ئەڤرۆ:',
-    dailyCommentBottom: '// ئەوێن بەرسڤا دروست ددەن دچنە د لیستا قارەمانێن ئەڤرۆ دا',
-    whyEyebrow: 'بۆچی پلاتفۆرما کاڕێژان؟',
-    whyTitle1: 'کێمتر قەلەبالغ.',
-    whyTitle2: 'فێربوونا پتر.',
-    whyDesc: 'هەمی تشت د جهێ خۆ یێ دروست دانە دا کو تو تەنها هزر ل فێربوون و ئاڤاکرنا پڕۆژەیان بکەی.',
-    p1Title: 'تاقیگەها زیندی یا کۆدی (Code Lab)',
-    p1Desc: 'ڕاستەوخۆ HTML, CSS و JavaScript بنڤیسە و ئەنجامی ببینە بێی دامەزراندنا چ بەرنامەیان.',
-    p2Title: 'مامۆستایێ زیرەک (KARÊJAN AI)',
-    p2Desc: 'د هەر تاگ و کۆدەکی دا نەگەهشتبی، مامۆستایێ زیرەک ب زمانەکێ سادە بۆ تە شڕۆڤە دکەت.',
-    p3Title: 'TOP 50 ئامراز و ٢٢ پرۆمپتێن زێڕین',
-    p3Desc: 'هەمی ئامراز و ئەجێنتێن جیهانی دگەل فەرمانێن THINK10X و ELI5 د ئێک جهدا.',
-    p4Title: 'ڕاهێنان و ئەزموونێن تێکەڵکری',
-    p4Desc: 'پرسیارێن هەلبژارتنێ، دیتنا شاشیێن کۆدی، تەمامکرن و تاقیکرنا زیندی د ناڤ کۆمێن وانەیان دا.',
-    finalEyebrow: 'ئامادەیی دەست پێ بکەی؟',
-    finalTitle: 'گەشتا تە یا پرۆگرامسازیێ ژ ڤێرێ دەست پێ دکەت.',
-    finalDesc: 'ئێک وانە، ئێک تاقیکرن، ئێک هزر د هەر دەمەکی دا.',
-    finalCta: 'دەستپێکرنا ڕێبازا فێربوونێ',
+    completedLabel: 'تمامبوویە',
+    practiceCardBadge: 'چالێنج',
+    practiceCardTitle: 'چالێنج و ڕاهێنان',
+    practiceCardSub: 'ب کردار بسەلمینە',
+    practiceCardDesc: 'چالێنجا ڕۆژانە یا JavaScript و ئەزموونێن تێکەڵکری.',
+    practiceCardCta: 'ڤەکرنا چالێنجێ',
+    featuresEyebrow: 'ئامراز و تایبەتمەندیێن karejan',
+    featuresHeading: 'هەمی تایبەتمەندیێن وێبسایتی د ئێک جهدا',
+    featuresSub: 'ژ تاقیگەها کۆدی هەتا مامۆستایێ AI و ٥٠ ئامرازێن زیرەک.',
+    adminShortcut: 'پانێلێ ڕێڤەبەریێ',
+    practiceEyebrow: 'فێربوون ب کارکرنێ',
+    practiceTitle1: 'ڕاهێنان',
+    practiceTitle2: 'پێشکەفتنێ دئینیت.',
+    practiceDesc: 'پشتی هەر ٣ وانەیان ئەزموونەکا کارلێککەر ڤەدبیت، دگەل چالێنجا ڕۆژانە و لیستەیا قارەمانان.',
+    solveChallengeBtn: 'شیکارکرنا چالێنجا ئەڤرۆ',
+    openAcademyBtn: 'ڕاهێنان د ئەکادیمیایێ دا',
+    quickQuizEyebrow: 'ئەزموونا بلەز',
+    quizQuestion: 'کیژ تاگ د HTML دا لینکی دروست دکەت؟',
+    quizInitialFeedback: 'بەرسڤەکێ هەلبژێرە دا تاقیبکەی.',
+    quizCorrectFeedback: 'دروستە! تاگێ <a> لینکی دروست دکەت.',
+    quizWrongFeedback: 'نێزیک بوو! بەرسڤەکا دی تاقیبکە.',
+    todayLiveChallenge: 'چالێنجا ئەڤرۆ:',
+    ptsUnit: 'خاڵ',
   },
   ar: {
-    heroEyebrow: 'المنصة الوطنية لتعليم البرمجة والتكنولوجيا',
-    heroTitle1: 'تعلّم البرمجة.',
-    heroTitle2: 'اصنع مستقبلك.',
-    heroDesc:
-      'أكثر من ٨٤٠ درساً علمياً، مختبر كود مباشر، تحدي برمجي يومي، ٥٠ أداة ذكاء اصطناعي ومعلم ذكي — كل ذلك في مكان واحد.',
-    ctaLessons: 'ابدأ الدروس الآن',
-    ctaEditor: 'مختبر الكود',
-    ctaChallenge: 'تحدي اليوم ⚡',
-    heroNote: 'ابدأ من الصفر وتعلّم بالسرعة التي تناسبك — أكثر من ٨ مسارات جاهزة.',
-    yourFirstStep: 'خطوتك الأولى',
-    codeHeading: 'أهلاً بالعالم! · Hello, KARÊJAN!',
-    codeSub: 'لنبني مشاريع حقيقية معاً.',
-    livePreview: 'معاينة فورية',
-    codeWindowFooter: 'مصمم للعقول الطموحة',
-    tracksStripLabel: 'مسارات التعلّم الأساسية في KARÊJAN',
-    pathsEyebrow: 'مسارات التعلّم (LEARNING PATHS)',
-    pathsHeading: 'من أي مستوى كنت، ابدأ رحلتك هنا.',
-    pathsSub: 'اختر لغة برمجة وتقدّم خطوة بخطوة من الأساسيات إلى الهندسة المتقدمة.',
-    viewAllLessons: 'عرض جميع الدروس',
+    heroEyebrow: 'المكان الأسهل لتعلّم البرمجة',
+    heroTitle1: 'ابنِ مهاراتك.',
+    heroTitle2: 'اصنع مشاريعك.',
+    heroDesc: 'دروس عملية ومختبر كود في مكان واحد.',
+    searchPlaceholder: 'ابحث في المسارات...',
+    searchBtn: 'بحث',
+    popularLabel: 'الشائع:',
+    clearSearch: 'مسح',
+    foundResults: (n, q) => `تم العثور على ${n} نتيجة لـ "${q}"`,
+    runCodeBtn: 'جرّب الكود',
+    togglePreview: 'معاينة',
+    hidePreview: 'إخفاء',
+    editorReady: 'Code Lab',
+    editorGreeting: 'مرحباً، karejan!',
+    editorSub: 'أنشئ صفحتك الأولى بكل سلاسة.',
+    b1Title: 'مناسب للمبتدئين',
+    b1Sub: '٨ مسارات و٨٤٠+ درساً من الصفر',
+    b2Title: 'تعلّم بالممارسة',
+    b2Sub: 'تقييم مدمج بعد كل ٣ دروس',
+    b3Title: 'مختبر كود ومساعد AI',
+    b3Sub: 'اكتب الكود وجرّبه في نفس اللحظة',
+    b4Title: 'بأربع لغات متكاملة',
+    b4Sub: 'سوراني · باديني · عربي · إنجليزي',
+    coursesEyebrow: 'استكشف المسارات التعليمية',
+    coursesHeading: 'ماذا تريد أن تتعلّم؟',
+    coursesSub: 'اختر لغة برمجة وابدأ التعلّم مع اختبارات بعد كل ٣ دروس.',
+    viewAllCourses: 'كل الدروس',
+    exploreCourse: 'ابدأ المسار',
     lessonsUnit: 'درس',
-    newToCoding: 'مبتدئ في عالم البرمجة؟',
-    startFromHtml: 'ابدأ بمسار HTML5 — لا يتطلب أي خبرة سابقة.',
-    dailyEyebrow: 'تحدي اليوم البرمجي السريع (Daily Code Challenge ⚡)',
-    diffEasy: 'سهل',
-    diffMedium: 'متوسط',
-    rewardPrefix: 'المكافأة:',
-    pointsUnit: 'نقطة ⭐',
-    every24h: 'يتجدد كل ٢٤ ساعة',
-    participateBtn: 'شارك الآن وأرسل حلك',
-    todayChampsWindow: 'أبطال اليوم',
-    dailyTaskComment: '// مهمة اليوم:',
-    dailyCommentBottom: '// من يقدّم الحل الصحيح يدخل قائمة أبطال اليوم',
-    whyEyebrow: 'لماذا منصة KARÊJAN؟',
-    whyTitle1: 'تشويش أقل.',
-    whyTitle2: 'تعلّم أعمق.',
-    whyDesc: 'كل أداة في مكانها الصحيح لتبقي تركيزك منصباً على التعلّم والتطبيق وبناء المشاريع الحقيقية.',
-    p1Title: 'مختبر الكود التفاعلي (Code Lab)',
-    p1Desc: 'اكتب HTML و CSS و JavaScript وشاهد النتيجة فوراً دون تثبيت أي برامج.',
-    p2Title: 'المعلم الذكي (KARÊJAN AI)',
-    p2Desc: 'اشرح أي سطر كود أو خطأ برمجي واحصل على إجابة واضحة بلغتك فوراً.',
-    p3Title: 'أفضل ٥٠ أداة AI و ٢٢ أمراً ذهنياً',
-    p3Desc: 'كل أدوات البرمجة الذكية وأوامر THINK10X و ELI5 الاحترافية في مرجع واحد.',
-    p4Title: 'التدريب والتقييم المدمج',
-    p4Desc: 'اختيار من متعدد، اكتشاف وإصلاح الأخطاء، إكمال الكود، وتحديات محرر حية داخل كل مجموعة دروس.',
-    finalEyebrow: 'هل أنت مستعد للانطلاق؟',
-    finalTitle: 'رحلتك البرمجية تبدأ من هنا.',
-    finalDesc: 'درس واحد، تحدٍ واحد، وفكرة واحدة في كل خطوة.',
-    finalCta: 'ابدأ مسار التعلّم',
+    completedLabel: 'مكتمل',
+    practiceCardBadge: 'التحديات',
+    practiceCardTitle: 'التحدي اليومي والتمارين',
+    practiceCardSub: 'طبّق ما تعلّمته',
+    practiceCardDesc: 'تحديات JavaScript اليومية والاختبارات المدمجة.',
+    practiceCardCta: 'ابدأ التحدي',
+    featuresEyebrow: 'أدوات ومميزات karejan',
+    featuresHeading: 'جميع مميزات المنصة في متناول يدك',
+    featuresSub: 'من مختبر الكود الحي إلى المساعد الذكي ودليل الأدوات.',
+    adminShortcut: 'لوحة الإدارة',
+    practiceEyebrow: 'التعلّم بالتطبيق',
+    practiceTitle1: 'الممارسة تصنع',
+    practiceTitle2: 'التقدّم الحقيقي.',
+    practiceDesc: 'بعد كل ٣ دروس يُفتح لك تقييم عملي تفاعلي، إضافةً إلى تحدي البرمجة اليومي ولوحة الأبطال.',
+    solveChallengeBtn: 'حل تحدي اليوم الآن',
+    openAcademyBtn: 'التمارين في الأكاديمية',
+    quickQuizEyebrow: 'تحدٍ سريع',
+    quizQuestion: 'أي وسم في HTML يُستخدم لإنشاء رابط؟',
+    quizInitialFeedback: 'اختر إجابة لتجربة التحدي فوراً.',
+    quizCorrectFeedback: 'إجابة صحيحة! وسم <a> ينشئ الروابط.',
+    quizWrongFeedback: 'ليست هذه الإجابة، جرّب خياراً آخر.',
+    todayLiveChallenge: 'تحدي اليوم:',
+    ptsUnit: 'نقطة',
   },
   en: {
-    heroEyebrow: 'Multilingual Coding Academy & AI Developer Studio',
-    heroTitle1: 'Learn to code.',
-    heroTitle2: 'Build your future.',
-    heroDesc:
-      'Explore 840+ structured lessons, an isolated live Code Lab, daily programming challenges, 50 curated AI developer tools, and an interactive AI tutor — all in one unified workspace.',
-    ctaLessons: 'Start Learning',
-    ctaEditor: 'Open Code Lab',
-    ctaChallenge: 'Daily Challenge ⚡',
-    heroNote: 'Start from zero and learn at your own pace — 8 complete engineering tracks included.',
-    yourFirstStep: 'YOUR FIRST STEP',
-    codeHeading: 'Hello, KARÊJAN!',
-    codeSub: 'Let us build something remarkable together.',
-    livePreview: 'LIVE PREVIEW',
-    codeWindowFooter: 'Built for curious engineers',
-    tracksStripLabel: 'Core Learning Tracks on KARÊJAN',
-    pathsEyebrow: 'Learning Paths',
-    pathsHeading: 'Start from wherever you are.',
-    pathsSub: 'Pick a language track and progress step-by-step from fundamentals to real engineering.',
-    viewAllLessons: 'Browse All Lessons',
+    heroEyebrow: 'THE PLACE TO LEARN TO CODE',
+    heroTitle1: 'Build skills.',
+    heroTitle2: 'Make things.',
+    heroDesc: 'Guided coding lessons and live Code Lab in one place.',
+    searchPlaceholder: 'Search courses...',
+    searchBtn: 'Search',
+    popularLabel: 'Popular:',
+    clearSearch: 'Clear',
+    foundResults: (n, q) => `${n} result${n === 1 ? '' : 's'} found for "${q}".`,
+    runCodeBtn: 'Try it yourself',
+    togglePreview: 'Preview',
+    hidePreview: 'Hide preview',
+    editorReady: 'Code Lab',
+    editorGreeting: 'Hello, karejan!',
+    editorSub: 'Build your first webpage here.',
+    b1Title: 'Beginner friendly',
+    b1Sub: '8 structured tracks, 840+ lessons',
+    b2Title: 'Learn by doing',
+    b2Sub: 'Built-in quiz after every 3 lessons',
+    b3Title: 'Live Code Lab & AI',
+    b3Sub: 'Write code and get instant help',
+    b4Title: '4 Native Languages',
+    b4Sub: 'Sorani · Badini · Arabic · English',
+    coursesEyebrow: 'EXPLORE THE POSSIBILITIES',
+    coursesHeading: 'What do you want to learn?',
+    coursesSub: 'Start with a track and unlock interactive practice after every 3 lessons.',
+    viewAllCourses: 'View all courses',
+    exploreCourse: 'Explore course',
     lessonsUnit: 'lessons',
-    newToCoding: 'Brand new to programming?',
-    startFromHtml: 'Start with HTML5 — zero prior experience required.',
-    dailyEyebrow: 'Daily Code Challenge & Champions ⚡',
-    diffEasy: 'Easy',
-    diffMedium: 'Medium',
-    rewardPrefix: 'Reward:',
-    pointsUnit: 'pts ⭐',
-    every24h: 'Rotates every 24h',
-    participateBtn: 'Solve Challenge Now',
-    todayChampsWindow: "Today's Champions",
-    dailyTaskComment: "// Today's mission:",
-    dailyCommentBottom: '// Pass all server test cases to join Today’s Champions leaderboard',
-    whyEyebrow: 'Why KARÊJAN?',
-    whyTitle1: 'Less noise.',
-    whyTitle2: 'Deeper mastery.',
-    whyDesc: 'Every surface is structured so your attention stays on writing code, testing ideas, and shipping projects.',
-    p1Title: 'Interactive Code Lab',
-    p1Desc: 'Write HTML, CSS, and JavaScript side by side with an instant sandbox preview and saved snippets.',
-    p2Title: 'Intelligent Tutor (KARÊJAN AI)',
-    p2Desc: 'Ask about any concept or bug in Kurdish, Arabic, or English and get clear explanations on demand.',
-    p3Title: 'TOP 50 AI Tools & 22 Golden Prompts',
-    p3Desc: 'Discover 50 essential developer AI agents alongside proven prompt directives like THINK10X and ELI5.',
-    p4Title: 'Integrated Practice & Assessments',
-    p4Desc: 'Adaptive MCQs, code debugging, completion, and live editor challenges right inside every learning group.',
-    finalEyebrow: 'Ready to begin?',
-    finalTitle: 'Your engineering journey starts right here.',
-    finalDesc: 'One lesson, one challenge, one idea at a time.',
-    finalCta: 'Launch Academy Tracks',
+    completedLabel: 'completed',
+    practiceCardBadge: 'PRACTICE',
+    practiceCardTitle: 'Challenges & Tests',
+    practiceCardSub: 'Prove your skills',
+    practiceCardDesc: 'Daily JavaScript missions and integrated quizzes.',
+    practiceCardCta: 'Start practice',
+    featuresEyebrow: 'ALL karejan FEATURES',
+    featuresHeading: 'Every tool you need in one place',
+    featuresSub: 'Code Lab, AI Tutor, 50 AI Tools, Golden Prompts, Discovery Hub & Dashboard.',
+    adminShortcut: 'Admin Console',
+    practiceEyebrow: 'LEARN BY DOING',
+    practiceTitle1: 'Practice makes',
+    practiceTitle2: 'progress.',
+    practiceDesc: 'Put your new skills to work with automatic practice every 3 lessons, plus today’s live coding challenge.',
+    solveChallengeBtn: 'Solve today’s challenge',
+    openAcademyBtn: 'Open Academy practice',
+    quickQuizEyebrow: 'QUICK CHALLENGE',
+    quizQuestion: 'Which tag creates a link?',
+    quizInitialFeedback: 'Choose an answer to try it out.',
+    quizCorrectFeedback: 'Correct! The <a> tag creates a hyperlink.',
+    quizWrongFeedback: 'Not quite. Try another answer.',
+    todayLiveChallenge: 'Live challenge:',
+    ptsUnit: 'pts',
   },
 };
 
 export const HomeView: React.FC = () => {
-  const { setActiveView, lessons, setActiveLessonId, locale } = useApp();
-  const isRtl = locale !== 'en';
-  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
-  const copy = pickLoc(locale, HOME_COPY);
+  const {
+    locale,
+    lessons,
+    completedLessonIds,
+    staffRole,
+    setActiveLessonId,
+    setActiveView,
+    openCodeInEditor,
+  } = useApp();
 
+  const copy = pickLoc(locale, HOME_COPY);
+  const [searchQuery, setSearchQuery] = useState('');
+  const tutorialsRef = useRef<HTMLElement>(null);
+
+  const isStaff = staffRole !== 'user';
   const todayChallenge = CLIENT_DAILY_CHALLENGES[0];
   const challengeTitle = todayChallenge.titles[locale] || todayChallenge.titles.en || todayChallenge.titles.ckb;
-  const challengeDesc = todayChallenge.descriptions[locale] || todayChallenge.descriptions.en || todayChallenge.descriptions.ckb;
+
+  const lessonCountsByTrack = useMemo(() => {
+    const counts: Record<string, { total: number; done: number }> = {};
+    lessons.forEach((lesson) => {
+      const entry = counts[lesson.courseId] || { total: 0, done: 0 };
+      entry.total += 1;
+      if (completedLessonIds.has(lesson.id)) entry.done += 1;
+      counts[lesson.courseId] = entry;
+    });
+    return counts;
+  }, [lessons, completedLessonIds]);
 
   const handleOpenCourse = (trackId: TrackId) => {
-    const target = lessons.find((l) => l.courseId === trackId);
-    if (target) {
-      setActiveLessonId(target.id);
-    }
+    const trackLessons = lessons.filter((l) => l.courseId === trackId);
+    const nextUnfinished = trackLessons.find((l) => !completedLessonIds.has(l.id)) || trackLessons[0];
+    if (nextUnfinished) setActiveLessonId(nextUnfinished.id);
     setActiveView('academy');
   };
 
+  const handleHeroRunInLab = () => {
+    openCodeInEditor({
+      html: `<!DOCTYPE html>\n<html>\n  <body>\n    <div class="hero-card">\n      <h1>${copy.editorGreeting}</h1>\n      <p>${copy.editorSub}</p>\n    </div>\n  </body>\n</html>`,
+      css: `body {\n  font-family: Inter, system-ui, sans-serif;\n  background: #f8faf8;\n  color: #18362b;\n  padding: 2rem;\n}\n.hero-card {\n  background: #ffffff;\n  border: 1px solid #d8e8df;\n  border-left: 5px solid #087f5b;\n  border-radius: 14px;\n  padding: 24px;\n}`,
+      js: `console.log("karejan Code Lab ready!");`,
+      lessonId: null,
+    });
+  };
+
+  const handleHeroSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    tutorialsRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const platformFeatures: PlatformFeatureItem[] = useMemo(
+    () => [
+      {
+        id: 'code-lab',
+        view: 'editor',
+        badge: 'HTML · CSS · JS',
+        toneClass: TONE_MAP.green,
+        searchKeys: 'code lab editor playground sandbox live preview',
+        icon: <Terminal className="h-5 w-5" />,
+        title: { ckb: 'تاقیگەی کۆد (Code Lab)', kmr: 'تاقیگەها کۆدی', ar: 'مختبر الكود المباشر', en: 'Live Code Lab' },
+        subtitle: { ckb: 'نووسین و تاقیکردنەوەی کۆد', kmr: 'نڤیسین و تاقیکرنا کۆدی', ar: 'كتابة وتشغيل الأكواد', en: 'Interactive sandbox editor' },
+        desc: {
+          ckb: 'تاقیکردنەوەی ڕاستەوخۆی HTML و CSS و JS لەگەڵ تێمپلەیت و پاشەکەوتکردنی کۆد.',
+          kmr: 'تاقیکرنا ڕاستەوخۆ یا HTML و CSS و JS دگەل تێمپلەیت و پاشکەفتکرنا کۆدی.',
+          ar: 'اكتب HTML و CSS و JS مع معاينة معزولة وحفظ مقاطعك الخاصة.',
+          en: 'Write HTML, CSS & JS side-by-side with starter templates and cloud snippets.',
+        },
+        cta: { ckb: 'کردنەوەی تاقیگە', kmr: 'ڤەکرنا تاقیگەهێ', ar: 'افتح المختبر', en: 'Open Code Lab' },
+      },
+      {
+        id: 'ai-tutor',
+        view: 'ai',
+        badge: '4 LANGUAGES',
+        toneClass: TONE_MAP.purple,
+        searchKeys: 'ai tutor assistant chat bot mentor karejan',
+        icon: <Sparkles className="h-5 w-5" />,
+        title: { ckb: 'مامۆستای karejan AI', kmr: 'مامۆستایێ karejan AI', ar: 'المساعد الذكي karejan AI', en: 'karejan AI Tutor' },
+        subtitle: { ckb: 'یاریدەدەری ٢٤ کاتژمێری', kmr: 'هاریکارێ ٢٤ دەمژمێری', ar: 'مساعد برمجي فوري', en: 'Instant coding mentor' },
+        desc: {
+          ckb: 'پرسیار بکە و هەڵەی کۆدەکانت بە کوردی، عەرەبی یان ئینگلیزی چاک بکە.',
+          kmr: 'پرسیاران بکە و شاشییێن کۆدێ خۆ ب کوردی یان ئینگلیزی چارەسەر بکە.',
+          ar: 'اسأل عن أي مفهوم أو أصلح أخطاء الكود بلغتك مع أمثلة قابلة للتشغيل.',
+          en: 'Debug code, get clear explanations, and learn faster in all 4 languages.',
+        },
+        cta: { ckb: 'دەستپێکردنی چات', kmr: 'دەستپێکرنا چاتێ', ar: 'ابدأ المحادثة', en: 'Chat with AI' },
+      },
+      {
+        id: 'ai-tools',
+        view: 'aitools',
+        badge: `TOP ${TOP_50_AI_TOOLS.length}`,
+        toneClass: TONE_MAP.blue,
+        searchKeys: 'ai tools top 50 directory cursor agents coding',
+        icon: <Bot className="h-5 w-5" />,
+        title: { ckb: 'باشترین ٥٠ ئامرازی AI', kmr: '٥٠ باشترین ئامرازێن AI', ar: 'أفضل ٥٠ أداة ذكاء اصطناعي', en: 'TOP 50 AI Tools' },
+        subtitle: { ckb: 'ڕیزبەندی و ڕێنمایی', kmr: 'ڕیزبەندی و ڕێنما', ar: 'دليل مصنّف ومحدّث', en: 'Curated tools directory' },
+        desc: {
+          ckb: 'هەڵبژاردەی باشترین ئامرازەکانی AI بۆ گەشەپێدان، دیزاین و خێراکردنی کارەکان.',
+          kmr: 'باشترین ئامرازێن AI بۆ پرۆگرامسازی، دیزاین و لەزکرنا کاران.',
+          ar: 'أهم أدوات الذكاء الاصطناعي للبرمجة والتصميم ورفع الإنتاجية.',
+          en: 'Explore 50 top developer & creative AI tools with guides and filters.',
+        },
+        cta: { ckb: 'بینینی ٥٠ ئامراز', kmr: 'دیتنا ٥٠ ئامرازان', ar: 'تصفح الأدوات', en: 'Browse TOP 50' },
+      },
+      {
+        id: 'golden-prompts',
+        view: 'prompts',
+        badge: `${GOLDEN_PROMPTS.length} PROMPTS`,
+        toneClass: TONE_MAP.peach,
+        searchKeys: 'prompts golden templates directives copy chat',
+        icon: <Flame className="h-5 w-5" />,
+        title: { ckb: '٢٢ پرۆمپتی زێڕین', kmr: '٢٢ پرۆمپتێن زێڕین', ar: '٢٢ أمراً احترافياً (Prompts)', en: '22 Golden Prompts' },
+        subtitle: { ckb: 'کۆپی بکە و بەکاری بهێنە', kmr: 'کۆپی بکە و بکاربینە', ar: 'قوالب جاهزة للنسخ', en: 'Engineered prompt library' },
+        desc: {
+          ckb: 'پرۆمپتی پڕۆفیشناڵ و تاقیکراوە بۆ کۆد، فێربوون و پڕۆژە بە یەک کلیک.',
+          kmr: 'پرۆمپتێن تاقیکری بۆ کۆد و فێربوونێ ب ئێک کلیک د چاتێ دا.',
+          ar: 'أوامر برمجية وتعليمية عالية التأثير يمكن نسخها وتجربتها فوراً.',
+          en: 'Copy high-impact engineering prompts or run them right in AI Chat.',
+        },
+        cta: { ckb: 'بینینی پرۆمپتەکان', kmr: 'دیتنا پرۆمپتان', ar: 'عرض الأوامر', en: 'View Prompts' },
+      },
+      {
+        id: 'discover-hub',
+        view: 'discover',
+        badge: 'HUB',
+        toneClass: TONE_MAP.teal,
+        searchKeys: 'discover articles references docs projects templates',
+        icon: <Compass className="h-5 w-5" />,
+        title: { ckb: 'سەرچاوە و پڕۆژەکان', kmr: 'ژێدەر و پڕۆژە', ar: 'الاستكشاف والمشاريع', en: 'Discovery & References' },
+        subtitle: { ckb: 'وتار و ڕێنمایی خێرا', kmr: 'گۆتار و ڕێنما', ar: 'مقالات ومراجع تقنية', en: 'Articles, docs & projects' },
+        desc: {
+          ckb: 'وتاری فێرکاری، سەرچاوەی HTML/CSS/JS و پڕۆژە بەنرخەکانی فێرخوازان.',
+          kmr: 'گۆتارێن فێرکاری، ژێدەرێن خێرا و پڕۆژەیێن فێرخازان.',
+          ar: 'مقالات معرفية، مراجع فورية للوسوم والأكواد، ومشاريع جاهزة.',
+          en: 'Read curated articles, browse quick syntax docs, and inspect projects.',
+        },
+        cta: { ckb: 'کردنەوەی سەرچاوەکان', kmr: 'ڤەکرنا ژێدەران', ar: 'استكشف الآن', en: 'Open Discovery' },
+      },
+      {
+        id: 'dashboard-pro',
+        view: 'dashboard',
+        badge: 'PROGRESS & PRO',
+        toneClass: TONE_MAP.yellow,
+        searchKeys: 'dashboard profile progress certificate pro plan stats',
+        icon: <LayoutDashboard className="h-5 w-5" />,
+        title: { ckb: 'داشبۆرد و پلانی Pro', kmr: 'داشبۆرد و پلانا Pro', ar: 'لوحتي وخطة Pro', en: 'Dashboard & Pro Plan' },
+        subtitle: { ckb: 'پێشکەوتن و ئەندامێتی', kmr: 'پێشکەفتن و بەشداربوون', ar: 'تتبع التقدم والاشتراك', en: 'Track growth & unlock Pro' },
+        desc: {
+          ckb: 'بینینی ئاماری وانە تەواوکراوەکان، نمرەی تاقیکردنەوەکان و بەرزکردنەوەی هەژمار.',
+          kmr: 'دیتنا ئامارێن وانەیان، نمرەیێن ئەزموونان و بلندکرنا هەژمارێ.',
+          ar: 'تابع إنجازك في الدروس وسجل اختباراتك، أو ارتقِ لخطة Pro.',
+          en: 'Monitor completed lessons, quiz scores, notifications, and Pro status.',
+        },
+        cta: { ckb: 'چوونە داشبۆرد', kmr: 'ڤەکرنا داشبۆردێ', ar: 'عرض لوحتي', en: 'Open Dashboard' },
+      },
+    ],
+    []
+  );
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const filteredTracks = useMemo(() => {
+    if (!normalizedQuery) return FEATURED_TRACKS;
+    return FEATURED_TRACKS.filter((track) => {
+      const text = `${track.name} ${track.searchKeys} ${track.tags[locale]} ${track.descriptions[locale]}`.toLowerCase();
+      return text.includes(normalizedQuery);
+    });
+  }, [normalizedQuery, locale]);
+
+  const filteredFeatures = useMemo(() => {
+    if (!normalizedQuery) return platformFeatures;
+    return platformFeatures.filter((item) => {
+      const text = `${item.title[locale]} ${item.subtitle[locale]} ${item.desc[locale]} ${item.searchKeys}`.toLowerCase();
+      return text.includes(normalizedQuery);
+    });
+  }, [normalizedQuery, locale, platformFeatures]);
+
+  const totalMatches = filteredTracks.length + filteredFeatures.length;
+
+  const topicStripItems: { label: string; action: () => void }[] = [
+    { label: 'HTML', action: () => handleOpenCourse('html') },
+    { label: 'CSS', action: () => handleOpenCourse('css') },
+    { label: 'JavaScript', action: () => handleOpenCourse('js') },
+    { label: 'Python', action: () => handleOpenCourse('python') },
+    { label: 'React', action: () => handleOpenCourse('react') },
+    { label: 'Code Lab', action: () => setActiveView('editor') },
+    { label: 'AI Tutor', action: () => setActiveView('ai') },
+  ];
+
   return (
     <div>
-      {/* 1. Editorial Hero + Live Code Preview Card (dist.zip Aesthetic) */}
-      <section className="kj-hero-band">
-        <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
-          <div className="grid grid-cols-1 items-center gap-12 py-14 lg:grid-cols-2 lg:gap-16 lg:py-20">
-            {/* Hero Copy Side */}
-            <div className="text-start">
-              <div className="kj-eyebrow">
-                <span className="kj-eyebrow-dot" />
-                <span>{copy.heroEyebrow}</span>
-              </div>
+      {/* 0. Clean Compact Topic Ribbon */}
+      <nav aria-label="Popular tracks and tools" className="border-b border-[#20483b] bg-[#17372d] text-[#e0efe7] overflow-x-auto">
+        <div className="mx-auto flex min-h-[44px] max-w-[1200px] items-center justify-center gap-7 px-4 sm:px-6 whitespace-nowrap text-xs font-semibold">
+          {topicStripItems.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={item.action}
+              className="shrink-0 py-2 transition-colors hover:text-[#9cebc3] cursor-pointer"
+            >
+              <span dir="ltr">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
 
-              <h1 className="mt-5 text-4xl font-extrabold leading-[1.12] tracking-[-0.04em] text-[var(--kj-ink)] sm:text-5xl lg:text-[60px]">
-                {copy.heroTitle1}
-                <br />
-                <em className="not-italic text-[var(--kj-green)]">{copy.heroTitle2}</em>
-              </h1>
+      {/* 1. Minimal Deep Forest Hero */}
+      <section className="cn-hero border-b border-[#1d4438]">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_470px] lg:gap-14 lg:py-16">
+          {/* Left Hero Copy + Search */}
+          <div className="text-start">
+            <h1 className="text-[40px] font-extrabold leading-[1.15] tracking-[-0.04em] text-white sm:text-[50px] lg:text-[56px]">
+              {copy.heroTitle1}
+              <br />
+              <span className="text-[#9cebc3]">{copy.heroTitle2}</span>
+            </h1>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-[#c7ded2]">
+              {copy.heroDesc}
+            </p>
 
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--kj-muted-2)] sm:text-lg">
-                {copy.heroDesc}
-              </p>
-
-              {/* Actions */}
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={() => setActiveView('academy')}
-                  className="min-h-[48px] px-6 text-sm"
+            {/* Simple Search Pill */}
+            <form
+              onSubmit={handleHeroSearchSubmit}
+              role="search"
+              className="mt-7 flex max-w-[460px] items-center rounded-[12px] bg-white p-1.5 text-[#688279] shadow-lg"
+            >
+              <Search className="ms-3 me-2 h-4 w-4 shrink-0 text-[#688279]" aria-hidden="true" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={copy.searchPlaceholder}
+                aria-label={copy.searchPlaceholder}
+                className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 text-sm text-[#18362b] placeholder:text-[#8a9c93] focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label={copy.clearSearch}
+                  className="me-1 grid h-8 w-8 place-items-center rounded-lg text-[#688279] hover:bg-[#edf4ef] cursor-pointer"
                 >
-                  <span>{copy.ctaLessons}</span>
-                  <ArrowUpRight className="h-4 w-4" />
-                </Button>
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="shrink-0 rounded-[9px] bg-[#18a974] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#128b5f] cursor-pointer"
+              >
+                {copy.searchBtn}
+              </button>
+            </form>
 
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={() => setActiveView('editor')}
-                  className="min-h-[48px] px-5 text-sm"
-                >
-                  <Terminal className="h-4 w-4 text-[var(--kj-green)]" />
-                  <span>{copy.ctaEditor}</span>
-                </Button>
-
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={() => setActiveView('challenge')}
-                  className="min-h-[48px] px-4 text-sm"
-                >
-                  <Zap className="h-4 w-4 text-amber-500" />
-                  <span>{copy.ctaChallenge}</span>
-                </Button>
-              </div>
-
-              <div className="mt-6 flex items-center gap-2 text-xs text-[var(--kj-muted)]">
-                <Check className="h-4 w-4 text-[var(--kj-green)]" />
-                <span>{copy.heroNote}</span>
-              </div>
-            </div>
-
-            {/* Hero Code Preview Window (dist.zip .hero-editor signature) */}
-            <div className="kj-code-window shadow-2xl lg:rotate-[0.8deg]">
-              <div className="kj-code-bar flex items-center justify-between px-5 py-3 font-mono text-[11px]">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#72e2b5]" />
-                  <span className="h-2 w-2 rounded-full bg-[#62766b]" />
-                  <span className="h-2 w-2 rounded-full bg-[#62766b]" />
-                </div>
-                <span dir="ltr">hello-karejan.html</span>
-                <span className="text-[10px] tracking-widest opacity-80">{copy.yourFirstStep}</span>
-              </div>
-
-              <div className="p-6 sm:p-7" dir="ltr">
-                <div className="grid grid-cols-[28px_auto] gap-x-2 gap-y-1.5 font-mono text-xs leading-relaxed">
-                  <span className="text-[var(--kj-code-num)]">01</span>
-                  <code><span className="text-[var(--kj-code-kw)]">&lt;!DOCTYPE html&gt;</span></code>
-                  <span className="text-[var(--kj-code-num)]">02</span>
-                  <code><span className="text-[var(--kj-code-kw)]">&lt;html&gt;</span></code>
-                  <span className="text-[var(--kj-code-num)]">03</span>
-                  <code>{'  '}<span className="text-[var(--kj-code-kw)]">&lt;body&gt;</span></code>
-                  <span className="text-[var(--kj-code-num)]">04</span>
-                  <code>{'    '}<span className="text-[var(--kj-code-kw)]">&lt;h1&gt;</span>{copy.codeHeading}<span className="text-[var(--kj-code-kw)]">&lt;/h1&gt;</span></code>
-                  <span className="text-[var(--kj-code-num)]">05</span>
-                  <code>{'    '}<span className="text-[var(--kj-code-kw)]">&lt;p&gt;</span>{copy.codeSub}<span className="text-[var(--kj-code-kw)]">&lt;/p&gt;</span></code>
-                  <span className="text-[var(--kj-code-num)]">06</span>
-                  <code>{'  '}<span className="text-[var(--kj-code-kw)]">&lt;/body&gt;</span></code>
-                  <span className="text-[var(--kj-code-num)]">07</span>
-                  <code><span className="text-[var(--kj-code-kw)]">&lt;/html&gt;</span></code>
-                </div>
-
-                <div className="mt-6">
-                  <div className="mb-2 flex items-center gap-1.5 font-mono text-[10px] tracking-widest text-[#95a99a]">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--kj-emerald)]" />
-                    <span>{copy.livePreview}</span>
-                  </div>
-                  <div className="rounded-[4px] bg-[#f7fafc] p-4 text-[#1d2939] text-start" dir={isRtl ? 'rtl' : 'ltr'}>
-                    <strong className="block text-base font-bold">{copy.codeHeading}</strong>
-                    <p className="mt-1 text-xs text-[#46524d]">{copy.codeSub}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="kj-code-bar flex items-center justify-between px-5 py-2.5 font-mono text-[10px]">
-                <span>● HTML · CSS · JS · Python</span>
-                <span>{copy.codeWindowFooter}</span>
-              </div>
+            {/* 3 Quick Popular Shortcuts */}
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-[#9cb8a8]">
+              <span>{copy.popularLabel}</span>
+              <button type="button" onClick={() => handleOpenCourse('html')} className="font-semibold text-[#e5f6ec] hover:text-[#9cebc3] cursor-pointer">
+                HTML
+              </button>
+              <button type="button" onClick={() => handleOpenCourse('python')} className="font-semibold text-[#e5f6ec] hover:text-[#9cebc3] cursor-pointer">
+                Python
+              </button>
+              <button type="button" onClick={() => setActiveView('editor')} className="font-semibold text-[#9cebc3] hover:underline cursor-pointer">
+                Code Lab
+              </button>
             </div>
           </div>
 
-          {/* Hero Bottom Language Strip */}
-          <div className="kj-hero-foot flex flex-wrap items-center justify-between gap-6 py-5">
-            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--kj-muted)]">
-              {copy.tracksStripLabel}
-            </span>
-            <div className="flex flex-wrap items-center gap-6 font-mono text-xs font-semibold text-[var(--kj-muted)]">
-              {FEATURED_TRACKS.map((tr) => (
-                <button
-                  key={tr.id}
-                  type="button"
-                  onClick={() => handleOpenCourse(tr.id)}
-                  className="hover:text-[var(--kj-green)] transition-colors cursor-pointer"
-                >
-                  {tr.name}
-                </button>
-              ))}
+          {/* Minimal Clean Code Card */}
+          <div
+            aria-label="Example HTML code"
+            className="overflow-hidden rounded-[18px] bg-[#f3f8f4] text-[#187e5d] shadow-[0_20px_38px_rgba(0,24,15,0.4)] dark:border dark:border-[#244538] dark:bg-[#0f211b] dark:text-[#9cebc3]"
+          >
+            <div dir="ltr" className="flex h-[48px] items-center justify-between bg-[#e8f1eb] px-5 text-xs font-semibold text-[#799586] dark:bg-[#162e26] dark:text-[#98b4a6]">
+              <span className="tracking-widest">● &nbsp;● &nbsp;●</span>
+              <span className="font-mono">index.html</span>
+            </div>
+
+            <div className="grid grid-cols-[20px_1fr] gap-x-3 gap-y-3 px-6 py-6 font-mono text-[13px] sm:text-[14px]" dir="ltr">
+              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">1</span>
+              <code>&lt;!DOCTYPE html&gt;</code>
+              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">2</span>
+              <code>&lt;html&gt;</code>
+              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">3</span>
+              <code>&nbsp; &lt;body&gt;</code>
+              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">4</span>
+              <code>&nbsp; &nbsp; &lt;h1&gt;Hello, karejan!&lt;/h1&gt;</code>
+              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">5</span>
+              <code>&nbsp; &lt;/body&gt;</code>
+              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">6</span>
+              <code>&lt;/html&gt;</code>
+            </div>
+
+            <div className="px-6 pb-6">
+              <button
+                type="button"
+                onClick={handleHeroRunInLab}
+                className="inline-flex items-center gap-2 rounded-[10px] bg-[#087f5b] px-5 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#056949] cursor-pointer"
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                <span>{copy.runCodeBtn}</span>
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. Architectural 4-Column Track Grid (dist.zip .course-grid) */}
-      <section className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:py-20">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 text-start">
+      {/* 2. Clean 4-Column Benefits Bar matching CodeNest .benefits */}
+      <section aria-label="Why learn with karejan" className="border-b border-[var(--kj-border)] bg-[var(--kj-card)]">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-5 px-4 py-7 sm:px-6 lg:grid-cols-4">
+          <button
+            type="button"
+            onClick={() => setActiveView('academy')}
+            className="flex items-center gap-4 text-start group cursor-pointer"
+          >
+            <b className="text-xl text-[#087f5b] dark:text-[#7ce3b3] shrink-0">✦</b>
+            <p className="text-sm">
+              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+                {copy.b1Title}
+              </strong>
+              <span className="mt-1 block text-xs text-[var(--kj-muted)]">{copy.b1Sub}</span>
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveView('academy')}
+            className="flex items-center gap-4 text-start group cursor-pointer"
+          >
+            <b className="text-xl text-[#087f5b] dark:text-[#7ce3b3] shrink-0">◉</b>
+            <p className="text-sm">
+              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+                {copy.b2Title}
+              </strong>
+              <span className="mt-1 block text-xs text-[var(--kj-muted)]">{copy.b2Sub}</span>
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveView('editor')}
+            className="flex items-center gap-4 text-start group cursor-pointer"
+          >
+            <b className="text-xl text-[#087f5b] dark:text-[#7ce3b3] shrink-0">⌘</b>
+            <p className="text-sm">
+              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+                {copy.b3Title}
+              </strong>
+              <span className="mt-1 block text-xs text-[var(--kj-muted)]">{copy.b3Sub}</span>
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveView('challenge')}
+            className="flex items-center gap-4 text-start group cursor-pointer"
+          >
+            <b className="text-xl text-[#087f5b] dark:text-[#7ce3b3] shrink-0">✓</b>
+            <p className="text-sm">
+              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+                {copy.b4Title}
+              </strong>
+              <span className="mt-1 block text-xs text-[var(--kj-muted)]">{copy.b4Sub}</span>
+            </p>
+          </button>
+        </div>
+      </section>
+
+      {/* 3. Courses Grid (#tutorials) matching CodeNest .tutorials & .cards */}
+      <section ref={tutorialsRef} id="tutorials" className="mx-auto max-w-[1200px] px-4 pt-16 pb-12 sm:px-6">
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-5 text-start">
           <div>
-            <div className="kj-eyebrow">
-              <span className="kj-eyebrow-dot" />
-              <span>{copy.pathsEyebrow}</span>
-            </div>
-            <h2 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] text-[var(--kj-ink)] sm:text-4xl">
-              {copy.pathsHeading}
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+              {copy.coursesEyebrow}
+            </p>
+            <h2 className="mt-2.5 text-3xl font-extrabold tracking-[-0.035em] text-[var(--kj-ink)] sm:text-[36px] leading-[1.2]">
+              {copy.coursesHeading}
             </h2>
-            <p className="mt-2 max-w-xl text-sm text-[var(--kj-muted)]">
-              {copy.pathsSub}
+            <p className="mt-2 text-sm sm:text-base text-[var(--kj-muted)]">
+              {copy.coursesSub}
             </p>
           </div>
           <button
             type="button"
             onClick={() => setActiveView('academy')}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--kj-green)] hover:underline cursor-pointer"
+            className="inline-flex items-center justify-center rounded-[10px] bg-[#e4f2e9] px-5 py-3 text-sm font-bold text-[#126548] transition-colors hover:bg-[#d0ebda] dark:bg-[#173a2d] dark:text-[#9cebc3] dark:hover:bg-[#1f4d3c] cursor-pointer"
           >
-            <span>{copy.viewAllLessons}</span>
-            <ArrowUpRight className="h-3.5 w-3.5" />
+            {copy.viewAllCourses}
           </button>
         </div>
 
-        <div className="grid grid-cols-1 border-s border-t border-[var(--kj-border)] sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURED_TRACKS.map((track) => (
+        {normalizedQuery && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-[#cce3d4] bg-[#e9f5ee] px-4 py-3 text-xs font-semibold text-[#126548] dark:border-[#214538] dark:bg-[#132d24] dark:text-[#9cebc3]">
+            <span role="status" aria-live="polite">
+              {copy.foundResults(totalMatches, searchQuery.trim())}
+            </span>
             <button
-              key={track.id}
               type="button"
-              onClick={() => handleOpenCourse(track.id)}
-              className="group flex min-h-[190px] flex-col justify-between border-e border-b border-[var(--kj-border)] bg-[var(--kj-card)] p-6 text-start transition-colors hover:bg-[var(--kj-soft-alt)] dark:hover:bg-[#202938] cursor-pointer"
+              onClick={() => setSearchQuery('')}
+              className="rounded-md bg-white/80 px-2.5 py-1 font-bold text-[#087f5b] hover:bg-white dark:bg-[#1a3a2f] dark:text-[#9cebc3] cursor-pointer"
             >
-              <div>
-                <div className="flex items-start justify-between">
-                  <span className="kj-course-icon grid h-9 w-9 place-items-center text-xs font-bold">
-                    {track.codeGlyph}
+              {copy.clearSearch}
+            </button>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredTracks.map((track) => {
+            const stats = lessonCountsByTrack[track.id];
+            const totalCount = stats?.total || track.lessonsFallback;
+            const doneCount = stats?.done || 0;
+
+            return (
+              <button
+                key={track.id}
+                type="button"
+                onClick={() => handleOpenCourse(track.id)}
+                className="group flex min-h-[248px] flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-6 text-start transition-all hover:-translate-y-0.5 hover:border-[#77c99c] hover:shadow-md cursor-pointer"
+              >
+                <div className="flex w-full items-start justify-between">
+                  <span className={`grid h-[54px] w-[54px] place-items-center rounded-[14px] text-base font-extrabold ${track.toneClass}`}>
+                    {track.num}
                   </span>
-                  <span className="text-[var(--kj-muted)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--kj-green)]">
-                    ↗
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#438667] dark:text-[#7ce3b3]">
+                      {track.levelLabel[locale]}
+                    </span>
+                    {doneCount > 0 && (
+                      <span className="rounded-full bg-[#e4f6ea] px-2 py-0.5 text-[10px] font-bold text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3] tabular-nums">
+                        {doneCount}/{totalCount} {copy.completedLabel}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <h3 className="mt-4 text-base font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
+
+                <h3 className="mt-6 text-[24px] font-extrabold tracking-tight text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
                   {track.name}
                 </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-[var(--kj-muted)]">
-                  {track.descriptions[locale] || track.descriptions.en}
+                <h4 className="mt-1.5 text-sm font-bold text-[var(--kj-ink)]">
+                  {track.tags[locale]}
+                </h4>
+                <p className="mt-1.5 mb-5 text-xs leading-relaxed text-[var(--kj-muted)]">
+                  {track.descriptions[locale]}
                 </p>
+
+                <span className="mt-auto flex w-full items-center justify-between text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+                  <span>
+                    {copy.exploreCourse} ({totalCount} {copy.lessonsUnit})
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </span>
+              </button>
+            );
+          })}
+
+          {/* 9th Card (Completes clean 3x3 Grid unless filtered out) */}
+          {(!normalizedQuery ||
+            `${copy.practiceCardTitle} ${copy.practiceCardDesc} challenge quiz practice exercise`.toLowerCase().includes(normalizedQuery)) && (
+            <button
+              type="button"
+              onClick={() => setActiveView('challenge')}
+              className="group flex min-h-[248px] flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-6 text-start transition-all hover:-translate-y-0.5 hover:border-[#77c99c] hover:shadow-md cursor-pointer"
+            >
+              <div className="flex w-full items-start justify-between">
+                <span className={`grid h-[54px] w-[54px] place-items-center rounded-[14px] text-base font-extrabold ${TONE_MAP.green}`}>
+                  09
+                </span>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#438667] dark:text-[#7ce3b3]">
+                  {copy.practiceCardBadge}
+                </span>
               </div>
-              <small className="mt-4 block text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--kj-muted)]">
-                +{track.lessonsCount} {copy.lessonsUnit} · {track.tags[locale] || track.tags.en}
-              </small>
+
+              <h3 className="mt-6 text-[22px] font-extrabold tracking-tight text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+                {copy.practiceCardTitle}
+              </h3>
+              <h4 className="mt-1.5 text-sm font-bold text-[var(--kj-ink)]">
+                {copy.practiceCardSub}
+              </h4>
+              <p className="mt-1.5 mb-5 text-xs leading-relaxed text-[var(--kj-muted)]">
+                {copy.practiceCardDesc}
+              </p>
+
+              <span className="mt-auto flex w-full items-center justify-between text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+                <span>{copy.practiceCardCta}</span>
+                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </span>
             </button>
-          ))}
-        </div>
-
-        <div className="border-x border-b border-[var(--kj-border)] bg-[var(--kj-soft)] px-6 py-4 text-xs text-[var(--kj-muted)] text-start">
-          {copy.newToCoding}{' '}
-          <button
-            type="button"
-            onClick={() => handleOpenCourse('html')}
-            className="font-bold text-[var(--kj-green)] hover:underline cursor-pointer"
-          >
-            {copy.startFromHtml}
-          </button>
+          )}
         </div>
       </section>
 
-      {/* 3. Daily Code Challenge Band (dist.zip .why showcase band + code window) */}
-      <section className="kj-why-band py-16 lg:py-20">
-        <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
-          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-14">
-            <div className="text-start space-y-4">
-              <div className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#9af0c7]">
-                <span className="kj-eyebrow-dot" />
-                <span>{copy.dailyEyebrow}</span>
-              </div>
-
-              <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
-                {challengeTitle}
-              </h2>
-
-              <p className="text-sm leading-relaxed text-[#bdc8d6] sm:text-base">
-                {challengeDesc}
+      {/* 4. All karejan Website Features Ecosystem */}
+      {filteredFeatures.length > 0 && (
+        <section className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4 text-start">
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+                {copy.featuresEyebrow}
               </p>
-
-              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                <span className="rounded-[5px] bg-[#203b37] px-3 py-1 font-semibold text-[#9af0c7]">
-                  {todayChallenge.difficulty === 'easy' ? copy.diffEasy : copy.diffMedium}
-                </span>
-                <span className="rounded-[5px] bg-[#203b37] px-3 py-1 font-semibold text-[#9af0c7]">
-                  {copy.rewardPrefix} +{todayChallenge.points} {copy.pointsUnit}
-                </span>
-                <span className="rounded-[5px] bg-[#203b37] px-3 py-1 font-semibold text-[#9af0c7]">
-                  {copy.every24h}
-                </span>
-              </div>
-
-              <div className="pt-3">
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={() => setActiveView('challenge')}
-                  className="px-6"
-                >
-                  <Zap className="h-4 w-4" />
-                  <span>{copy.participateBtn}</span>
-                  <ArrowIcon className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="kj-code-window">
-              <div className="kj-code-bar flex items-center justify-between px-5 py-3 font-mono text-[11px]">
-                <span className="flex items-center gap-2">
-                  <Flame className="h-3.5 w-3.5 text-[#72e2b5]" />
-                  <span>{copy.todayChampsWindow}</span>
-                </span>
-                <span>daily-challenge.js</span>
-              </div>
-              <div className="p-6 space-y-2 font-mono text-xs" dir="ltr">
-                <div className="text-[#8796a9]">{copy.dailyTaskComment}</div>
-                <div className="text-[#9af0c7]">function findLargest(arr) {'{'} ... {'}'}</div>
-                <div className="text-[#b7e6d4]">findLargest([1, 5, 2, 9, 3]) ➜ 9</div>
-                <div className="pt-2 text-[11px] text-[#8796a9]">
-                  {copy.dailyCommentBottom}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Why KARÊJAN? 4-Column Editorial Showcase (dist.zip .benefits style) */}
-      <section className="kj-soft-band py-16 lg:py-20">
-        <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-start">
-            <div className="lg:col-span-5 text-start">
-              <div className="kj-eyebrow">
-                <span className="kj-eyebrow-dot" />
-                <span>{copy.whyEyebrow}</span>
-              </div>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-[-0.04em] text-[var(--kj-ink)] sm:text-4xl">
-                {copy.whyTitle1}
-                <br />
-                {copy.whyTitle2}
+              <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.03em] text-[var(--kj-ink)] sm:text-[32px]">
+                {copy.featuresHeading}
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-[var(--kj-muted)]">
-                {copy.whyDesc}
-              </p>
+              <p className="mt-1.5 text-sm text-[var(--kj-muted)]">{copy.featuresSub}</p>
             </div>
-
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:col-span-7 text-start">
+            {isStaff && (
               <button
                 type="button"
-                onClick={() => setActiveView('editor')}
-                className="border-t border-[var(--kj-border-strong)] pt-5 text-start group cursor-pointer"
+                onClick={() => setActiveView('admin')}
+                className="inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] px-4 py-2.5 text-xs font-bold text-[var(--kj-ink)] hover:border-[#087f5b] cursor-pointer"
               >
-                <div className="flex items-center justify-between font-mono text-xs font-bold text-[var(--kj-green)] mb-3">
-                  <span>01</span>
-                  <Code2 className="h-4 w-4" />
-                </div>
-                <strong className="block text-sm font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
-                  {copy.p1Title}
-                </strong>
-                <p className="mt-1.5 text-xs leading-relaxed text-[var(--kj-muted)]">
-                  {copy.p1Desc}
-                </p>
+                <Shield className="h-4 w-4 text-[#087f5b] dark:text-[#7ce3b3]" />
+                <span>{copy.adminShortcut}</span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveView('ai')}
-                className="border-t border-[var(--kj-border-strong)] pt-5 text-start group cursor-pointer"
-              >
-                <div className="flex items-center justify-between font-mono text-xs font-bold text-[var(--kj-green)] mb-3">
-                  <span>02</span>
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <strong className="block text-sm font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
-                  {copy.p2Title}
-                </strong>
-                <p className="mt-1.5 text-xs leading-relaxed text-[var(--kj-muted)]">
-                  {copy.p2Desc}
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveView('aitools')}
-                className="border-t border-[var(--kj-border-strong)] pt-5 text-start group cursor-pointer"
-              >
-                <div className="flex items-center justify-between font-mono text-xs font-bold text-[var(--kj-green)] mb-3">
-                  <span>03</span>
-                  <Bot className="h-4 w-4" />
-                </div>
-                <strong className="block text-sm font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
-                  {copy.p3Title}
-                </strong>
-                <p className="mt-1.5 text-xs leading-relaxed text-[var(--kj-muted)]">
-                  {copy.p3Desc}
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveView('academy')}
-                className="border-t border-[var(--kj-border-strong)] pt-5 text-start group cursor-pointer"
-              >
-                <div className="flex items-center justify-between font-mono text-xs font-bold text-[var(--kj-green)] mb-3">
-                  <span>04</span>
-                  <Award className="h-4 w-4" />
-                </div>
-                <strong className="block text-sm font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
-                  {copy.p4Title}
-                </strong>
-                <p className="mt-1.5 text-xs leading-relaxed text-[var(--kj-muted)]">
-                  {copy.p4Desc}
-                </p>
-              </button>
-            </div>
+            )}
           </div>
-        </div>
-      </section>
 
-      {/* 5. Final CTA Band (dist.zip .final-cta) */}
-      <section className="kj-final-cta py-16 text-center lg:py-20">
-        <div className="mx-auto max-w-2xl px-4 sm:px-6">
-          <div className="kj-eyebrow justify-center">
-            <span className="kj-eyebrow-dot" />
-            <span>{copy.finalEyebrow}</span>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredFeatures.map((feat) => (
+              <div
+                key={feat.id}
+                onClick={() => setActiveView(feat.view)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setActiveView(feat.view);
+                  }
+                }}
+                className="group flex flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-5 text-start transition-all hover:-translate-y-0.5 hover:border-[#77c99c] hover:shadow-md cursor-pointer"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className={`grid h-11 w-11 place-items-center rounded-[12px] ${feat.toneClass}`}>
+                    {feat.icon}
+                  </span>
+                  <span className="rounded-md bg-[var(--kj-soft)] px-2 py-1 font-mono text-[10px] font-bold text-[#438667] dark:text-[#9cebc3]">
+                    {feat.badge}
+                  </span>
+                </div>
+
+                <h3 className="mt-4 text-lg font-extrabold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+                  {feat.title[locale]}
+                </h3>
+                <p className="mt-0.5 text-xs font-bold text-[var(--kj-muted-2)]">{feat.subtitle[locale]}</p>
+                <p className="mt-2 mb-5 text-xs leading-relaxed text-[var(--kj-muted)]">
+                  {feat.desc[locale]}
+                </p>
+
+                <div className="mt-auto flex items-center justify-between gap-2 pt-2 border-t border-[var(--kj-border)]">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+                    <span>{feat.cta[locale]}</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </span>
+                  {feat.id === 'dashboard-pro' && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveView('pro');
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md bg-[#e4f6ea] px-2.5 py-1 text-[11px] font-bold text-[#087f5b] hover:bg-[#d0ebda] dark:bg-[#173a2d] dark:text-[#9cebc3] cursor-pointer"
+                    >
+                      <Crown className="h-3 w-3" />
+                      <span>PRO</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-          <h2 className="mt-4 text-3xl font-extrabold tracking-[-0.04em] text-[var(--kj-ink)] sm:text-4xl">
-            {copy.finalTitle}
-          </h2>
-          <p className="mt-3 text-sm text-[var(--kj-muted)] sm:text-base">
-            {copy.finalDesc}
-          </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <Button variant="primary" size="md" onClick={() => setActiveView('academy')} className="px-7">
+        </section>
+      )}
+
+      {/* 5. Real Integrated Practice & Daily Challenge Banner (Zero Demo Data) */}
+      <section id="practice" className="mx-auto max-w-[1200px] px-4 pt-6 pb-20 sm:px-6">
+        <div className="flex flex-col items-start justify-between gap-6 rounded-[22px] border border-[#cde8d8] bg-[#ddf2e6] p-7 sm:p-10 lg:flex-row lg:items-center dark:border-[#214538] dark:bg-[#132d24]">
+          <div className="text-start max-w-xl">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+              {copy.practiceEyebrow}
+            </p>
+            <h2 className="mt-2.5 text-2xl font-extrabold tracking-[-0.03em] leading-tight text-[var(--kj-ink)] sm:text-[32px]">
+              {copy.practiceTitle1}{' '}
+              <span className="text-[#087f5b] dark:text-[#9cebc3]">{copy.practiceTitle2}</span>
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[#416657] dark:text-[#c2dbd0]">
+              {copy.practiceDesc}
+            </p>
+            <p className="mt-2.5 inline-flex items-center gap-2 text-xs font-bold text-[#087f5b] dark:text-[#9cebc3]">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>
+                {copy.todayLiveChallenge} {challengeTitle} (+{todayChallenge.points} {copy.ptsUnit})
+              </span>
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveView('academy')}
+              className="inline-flex items-center gap-2 rounded-[10px] bg-[#087f5b] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#056949] cursor-pointer"
+            >
               <BookOpen className="h-4 w-4" />
-              <span>{copy.finalCta}</span>
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
+              <span>{copy.openAcademyBtn}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('challenge')}
+              className="inline-flex items-center gap-2 rounded-[10px] border border-[#b7dcc6] bg-white px-5 py-3 text-sm font-bold text-[#126548] transition-colors hover:bg-[#f2faf5] dark:border-[#274b3d] dark:bg-[#173a2d] dark:text-[#9cebc3] cursor-pointer"
+            >
+              <Zap className="h-4 w-4" />
+              <span>{copy.solveChallengeBtn}</span>
+            </button>
           </div>
         </div>
       </section>

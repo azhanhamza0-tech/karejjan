@@ -121,19 +121,18 @@ function isTrivialOrCommentOnly(code?: string): boolean {
 
 function pickPrimaryLessonCode(courseId: TrackId, lesson: Lesson): string {
   const sc = lesson.sharedCode || { syntax: '', html: '', css: '', js: '' };
+  const nonDemoHtml = !isTrivialOrCommentOnly(sc.html) && !sc.html.includes('track-demo') ? sc.html.trim() : '';
+  const nonDemoCss = !isTrivialOrCommentOnly(sc.css) && !sc.css.includes('#0f182e') ? sc.css.trim() : '';
+
   if (courseId === 'html') {
-    if (!isTrivialOrCommentOnly(sc.html) && !sc.html.includes('track-demo')) return sc.html.trim();
-    if (!isTrivialOrCommentOnly(sc.syntax)) return sc.syntax.trim();
-    return sc.html.trim() || sc.syntax.trim() || '<h1>Hello KARÊJAN</h1>';
+    return nonDemoHtml || sc.syntax?.trim() || '<h1>Hello karejan</h1>';
   }
   if (courseId === 'css') {
-    if (!isTrivialOrCommentOnly(sc.css) && !sc.css.includes('#0f182e')) return sc.css.trim();
-    if (!isTrivialOrCommentOnly(sc.syntax)) return sc.syntax.trim();
-    return sc.css.trim() || sc.syntax.trim() || '.card {\n  color: #10b981;\n}';
+    return nonDemoCss || sc.syntax?.trim() || '.card {\n  color: #087f5b;\n}';
   }
   if (courseId === 'cpp') {
     if (!isTrivialOrCommentOnly(sc.syntax)) return sc.syntax.trim();
-    return sc.js.trim() || 'std::cout << "Hello";';
+    return sc.js?.trim() || 'std::cout << "Hello";';
   }
   if (courseId === 'python') {
     if (!isTrivialOrCommentOnly(sc.js) && sc.js.trim().length > 10) return sc.js.trim();
@@ -141,12 +140,30 @@ function pickPrimaryLessonCode(courseId: TrackId, lesson: Lesson): string {
     return 'print("Hello Python")';
   }
   // js, react, tsx, vite
-  if (!isTrivialOrCommentOnly(sc.syntax) && sc.syntax.trim().length >= (sc.js?.trim().length || 0) * 0.6) {
+  if (!isTrivialOrCommentOnly(sc.syntax) && sc.syntax.trim().length >= (sc.js?.trim().length || 0) * 0.5) {
     return sc.syntax.trim();
   }
   if (!isTrivialOrCommentOnly(sc.js)) return sc.js.trim();
   if (!isTrivialOrCommentOnly(sc.syntax)) return sc.syntax.trim();
-  return 'const result = "KARÊJAN";\nconsole.log(result);';
+  return 'const result = "karejan";\nconsole.log(result);';
+}
+
+function isBoilerplateCopy(text?: string): boolean {
+  if (!text || !text.trim()) return true;
+  const t = text.trim();
+  return (
+    t.includes('Core instruction for ') ||
+    t.includes('builds foundational engineering competence') ||
+    t.includes('تێگەیشتنی تەواو لەم') ||
+    t.includes('شارەزابوونی تەواو لەم') ||
+    t.includes('فێربوونا بنەمایان ب دروستی') ||
+    t.includes('Experiment with the interactive code example') ||
+    t.includes('کۆدی تاقی بکە د نیشاندانێ دا') ||
+    t.includes('جرب تعديل الكود في نافذة المعاينة') ||
+    t.includes('Neglecting edge cases') ||
+    t.includes('ژبیرکرنا بنەمایێن پێوانەیی') ||
+    t.includes('إهمال معايير الأداء')
+  );
 }
 
 function trimSentence(text: string, maxLen = 135): string {
@@ -155,14 +172,27 @@ function trimSentence(text: string, maxLen = 135): string {
   return `${clean.slice(0, maxLen - 1).trim()}…`;
 }
 
+function getCompactSyntaxSnippet(courseId: TrackId, lesson: Lesson, maxLen = 95): string {
+  const syn = lesson.sharedCode?.syntax?.trim();
+  const raw = !isTrivialOrCommentOnly(syn) ? syn : pickPrimaryLessonCode(courseId, lesson);
+  const compact = raw
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0 && !l.startsWith('//') && !l.startsWith('/*'))
+    .slice(0, 2)
+    .join(' ');
+  return trimSentence(compact || raw, maxLen);
+}
+
 function getLessonSummaryLine(lesson: Lesson, loc: Locale, maxLen = 135): string {
   const tr = lesson.translations[loc] || lesson.translations.en;
-  const candidate =
-    tr?.objectives?.[0] ||
-    tr?.summary ||
-    tr?.intro ||
-    cleanTitle(tr?.title || lesson.id);
-  return trimSentence(candidate, maxLen);
+  const candidates = [tr?.summary, tr?.syntaxNotes, tr?.intro, tr?.objectives?.[0]];
+  for (const c of candidates) {
+    if (c && !isBoilerplateCopy(c)) {
+      return trimSentence(c, maxLen);
+    }
+  }
+  return cleanTitle(tr?.title || lesson.id);
 }
 
 function buildLocalizedRecord(
@@ -405,6 +435,54 @@ function createBuggyCodeVariant(
         en: `The TypeScript keyword interface is misspelled as interfce.`,
       },
     ],
+    [
+      /\btype\b/,
+      'tyep',
+      'type',
+      'tyep',
+      {
+        ckb: `وشەی type بە هەڵە نووسراوە (tyep). چاکی بکەرەوە بۆ type.`,
+        kmr: `Peyva type bi şaşî wek tyep hatiye nivîsîn.`,
+        ar: `كلمة type مكتوبة بشكل خاطئ (tyep).`,
+        en: `The keyword type is misspelled as tyep; fix it to type.`,
+      },
+    ],
+    [
+      /\basync\b/,
+      'asycn',
+      'async',
+      'asycn',
+      {
+        ckb: `وشەی async بە هەڵە نووسراوە (asycn).`,
+        kmr: `Peyva async bi şaşî wek asycn hatiye nivîsîn.`,
+        ar: `كلمة async مكتوبة بشكل خاطئ (asycn).`,
+        en: `Fix the misspelled keyword asycn back to async.`,
+      },
+    ],
+    [
+      /\buseState\b/,
+      'useStat',
+      'useState',
+      'useStat',
+      {
+        ckb: `هوکی React بریتییە لە useState نەک useStat.`,
+        kmr: `Hooka React useState ye ne useStat.`,
+        ar: `اسم خطاف الحالة الصحيح في React هو useState وليس useStat.`,
+        en: `The React hook is named useState, not useStat.`,
+      },
+    ],
+    [
+      /\bvite\b/,
+      'vtie',
+      'vite',
+      'vtie',
+      {
+        ckb: `ناوی ئامرازەکە بە هەڵە نووسراوە (vtie)؛ دەبێت (vite) بێت.`,
+        kmr: `Navê amrazê bi şaşî hatiye nivîsîn (vtie); divê (vite) be.`,
+        ar: `اسم الأداة مكتوب بشكل خاطئ (vtie)؛ يجب أن يكون (vite).`,
+        en: `The tool name is misspelled as vtie; restore vite.`,
+      },
+    ],
   ];
 
   for (const [rx, brokenTok, fixedTok, forbidden, reason] of replacements) {
@@ -418,15 +496,32 @@ function createBuggyCodeVariant(
     }
   }
 
+  // Last-resort realistic syntax fix: drop a valid identifier char safely rather than fake markers
+  const word = code.match(/\b([a-zA-Z]{3,})\b/)?.[1];
+  if (word) {
+    const brokenWord = `${word}_typ0`;
+    return {
+      buggyCode: code.replace(new RegExp(`\\b${word}\\b`), brokenWord),
+      brokenToken: brokenWord,
+      fixedToken: word,
+      reason: {
+        ckb: `هەڵەی تایپ (${brokenWord}) لەناو کۆدەکە چاک بکەرەوە بۆ (${word}).`,
+        kmr: `Şaşiya tîpî (${brokenWord}) rast bike bo (${word}).`,
+        ar: `صحّح الخطأ الإملائي (${brokenWord}) إلى (${word}).`,
+        en: `Fix the misspelled identifier (${brokenWord}) back to (${word}).`,
+      },
+    };
+  }
+
   return {
-    buggyCode: `${code}\n__FIX_SYNTAX_ERROR__`,
-    brokenToken: '__FIX_SYNTAX_ERROR__',
-    fixedToken: code.split(/\s+/)[0] || 'const',
+    buggyCode: `${code} ;?`,
+    brokenToken: ';?',
+    fixedToken: code.trim(),
     reason: {
-      ckb: `نیشانە هەڵەکەی (__FIX_SYNTAX_ERROR__) لاببە و کۆدەکە ڕێکبخەرەوە.`,
-      kmr: `Nîşana şaş (__FIX_SYNTAX_ERROR__) rake û kodê rast bike.`,
-      ar: `أزل العلامة الخاطئة (__FIX_SYNTAX_ERROR__) وتأكد من صحة الكود.`,
-      en: `Remove the invalid __FIX_SYNTAX_ERROR__ token so the snippet executes cleanly.`,
+      ckb: `هێمای زیادەی (;?) لە کۆتایی کۆدەکە لاببە.`,
+      kmr: `Nîşana zêde (;?) ji dawiya kodê rake.`,
+      ar: `أزل الرمز الزائد (;?) من نهاية الكود.`,
+      en: `Remove the invalid (;?) characters from the end of the snippet.`,
     },
   };
 }
@@ -666,51 +761,76 @@ export function buildCourseLearningModules(
     // Track curated quiz count safely (server holds official key vault, so adaptive MCQs keep client grading 100% accurate)
     void curatedQuizzes.length;
 
+    // Build genuine, non-duplicate MCQs grounded directly in syntax & lesson concepts
     while (questions.filter((q) => q.type === 'mcq').length < 2) {
       const mcqIdx = questions.filter((q) => q.type === 'mcq').length;
       const focusLesson = mcqIdx === 0 ? lesson0 : lesson1;
       const focusOrder = focusLesson.order;
+      const useSyntaxAsOptions = mcqIdx === 1;
 
+      const getOptionText = (lesson: Lesson, loc: Locale): string => {
+        if (useSyntaxAsOptions) {
+          return getCompactSyntaxSnippet(courseId, lesson, 82);
+        }
+        return cleanTitle(lesson.translations[loc]?.title || lesson.id);
+      };
+
+      const targetEnText = getOptionText(focusLesson, 'en').toLowerCase();
+      const usedKeys = new Set<string>([targetEnText]);
       const pickedDistractors: Lesson[] = [];
-      for (let d = 1; d <= 3; d++) {
-        const candidate =
-          distractorPool[(startIdx + mcqIdx * 3 + d * 5) % Math.max(1, distractorPool.length)] ||
-          allTrackLessons[(focusOrder + d) % allTrackLessons.length];
-        if (candidate && candidate.id !== focusLesson.id && !pickedDistractors.some((x) => x.id === candidate.id)) {
+
+      const searchCandidates = [...distractorPool, ...allTrackLessons];
+      for (let i = 0; i < searchCandidates.length && pickedDistractors.length < 3; i++) {
+        const candidate = searchCandidates[(startIdx + mcqIdx * 3 + i * 5) % searchCandidates.length];
+        if (!candidate || candidate.id === focusLesson.id) continue;
+        const candKey = getOptionText(candidate, 'en').toLowerCase();
+        if (!usedKeys.has(candKey)) {
+          usedKeys.add(candKey);
           pickedDistractors.push(candidate);
         }
       }
-      while (pickedDistractors.length < 3) {
-        pickedDistractors.push(focusLesson);
-      }
+
+      const fallbackCustomOptions: Record<Locale, string[]> = {
+        ckb: [
+          'فەرمانێکی هەڵەیە و لەم زمانەدا بوونی نییە.',
+          'بۆ سڕینەوەی زانیارییەکان لە بیرگەدا بەکاردێت.',
+          'تەنها بۆ ڕێکخستنی سێرڤەری دەرەکی بەکاردێت.',
+        ],
+        kmr: [
+          'Fermaneke şaş e û di vî zimanî de nîne.',
+          'Ji bo jêbirina daneyan tê bikaranîn.',
+          'Tenê ji bo servera derve tê bikaranîn.',
+        ],
+        ar: [
+          'صيغة غير صحيحة ولا تتبع قواعد هذا المسار.',
+          'تُستخدم فقط لإدارة قاعدة بيانات خارجية.',
+          'أمر قديم غير متوافق مع هذا الدرس.',
+        ],
+        en: [
+          'Invalid syntax not supported in this module.',
+          'Legacy server-only database directive.',
+          'Deprecated runtime helper outside this track.',
+        ],
+      };
 
       const correctSlot = (groupIndex + mcqIdx) % 4;
       const optionRecords: Record<Locale, string>[] = [];
       let distractorCursor = 0;
+      let fallbackCursor = 0;
 
       for (let slot = 0; slot < 4; slot++) {
         if (slot === correctSlot) {
-          optionRecords.push(
-            buildLocalizedRecord((loc) => getLessonSummaryLine(focusLesson, loc))
-          );
+          optionRecords.push(buildLocalizedRecord((loc) => getOptionText(focusLesson, loc)));
+        } else if (distractorCursor < pickedDistractors.length) {
+          const distLesson = pickedDistractors[distractorCursor++];
+          optionRecords.push(buildLocalizedRecord((loc) => getOptionText(distLesson, loc)));
         } else {
-          const distLesson = pickedDistractors[distractorCursor++] || focusLesson;
-          optionRecords.push(
-            buildLocalizedRecord((loc) => {
-              if (distLesson.id === focusLesson.id) {
-                return loc === 'ckb'
-                  ? 'بەکاردێت بۆ دیزاینکردنی داتابەیس لەسەر سێرڤەر بێ پەیوەندی بەم وانەیەوە.'
-                  : loc === 'kmr'
-                    ? 'Bo sêwirandina databêjê li ser serverê bê girêdan bi vê waneyê ve tê bikaranîn.'
-                    : loc === 'ar'
-                      ? 'يُستخدم لتصميم قواعد البيانات على الخادم دون علاقة بهذا الدرس.'
-                      : 'Used exclusively for unrelated low-level kernel driver installation.';
-              }
-              return getLessonSummaryLine(distLesson, loc);
-            })
-          );
+          const fbIdx = fallbackCursor++ % 3;
+          optionRecords.push(buildLocalizedRecord((loc) => fallbackCustomOptions[loc][fbIdx]));
         }
       }
+
+      const focusSyntaxPreview = getCompactSyntaxSnippet(courseId, focusLesson, 96);
 
       questions.push({
         id: `${moduleId}_mcq_${mcqIdx + 1}`,
@@ -721,54 +841,77 @@ export function buildCourseLearningModules(
         track: courseId,
         prompt: buildLocalizedRecord((loc) => {
           const topic = cleanTitle(focusLesson.translations[loc]?.title || focusLesson.id);
-          if (loc === 'ckb') {
-            return `بەپێی وانەی ${padNum(focusOrder)} (${topic})، کام لەم وەسفانە بە دروستی ئەرکی سەرەکی ئەم بابەتە دەردەخات؟`;
+          if (useSyntaxAsOptions) {
+            if (loc === 'ckb') return `بۆ جێبەجێکردنی وانەی ${padNum(focusOrder)} «${topic}»، کام کۆد یان ڕێزمانەی خوارەوە دروستە؟`;
+            if (loc === 'kmr') return `Ji bo waneya ${padNum(focusOrder)} «${topic}», kîjan kod yan rêzman durust e?`;
+            if (loc === 'ar') return `لتطبيق الدرس ${padNum(focusOrder)} «${topic}»، أي كود أو صياغة هي الصحيحة؟`;
+            return `Which syntax snippet applies Lesson ${padNum(focusOrder)}: "${topic}"?`;
           }
-          if (loc === 'kmr') {
-            return `Li gorî waneya ${padNum(focusOrder)} (${topic}), kîjan ji van şiroveyan bi durustî erkê sereke yê vê mijarê nîşan dide?`;
-          }
-          if (loc === 'ar') {
-            return `استناداً إلى الدرس ${padNum(focusOrder)} (${topic})، أي وصف يوضح الهدف الأساسي لهذا المفهوم بدقة؟`;
-          }
-          return `Based on Lesson ${padNum(focusOrder)} (${topic}), which description accurately states its core purpose?`;
+          if (loc === 'ckb') return `ئەم کۆد/ڕێزمانەی خوارەوە کام چەمک و وانەیە جێبەجێ دەکات؟\n${focusSyntaxPreview}`;
+          if (loc === 'kmr') return `Ev kod yan rêzman kîjan mijarê di vî kursî de pêk tîne?\n${focusSyntaxPreview}`;
+          if (loc === 'ar') return `أي درس ومفهوم يطبّقه هذا الكود أو الصياغة؟\n${focusSyntaxPreview}`;
+          return `Which topic does this syntax implement?\n${focusSyntaxPreview}`;
         }),
         options: optionRecords,
         correctOptionIndex: correctSlot,
         explanation: buildLocalizedRecord((loc) => {
           const topic = cleanTitle(focusLesson.translations[loc]?.title || focusLesson.id);
-          const summary = getLessonSummaryLine(focusLesson, loc, 180);
-          if (loc === 'ckb') return `لە وانەی "${topic}" دا فێر بووین: ${summary}`;
-          if (loc === 'kmr') return `Di waneya "${topic}" de em fêr bûn: ${summary}`;
-          if (loc === 'ar') return `في درس "${topic}" تعلمنا أن: ${summary}`;
-          return `In "${topic}", the verified principle is: ${summary}`;
+          const summary = getLessonSummaryLine(focusLesson, loc, 160);
+          const extra = summary.toLowerCase() !== topic.toLowerCase() ? ` — ${summary}` : '';
+          if (loc === 'ckb') return `وانەی "${topic}" ڕێزمانی (${focusSyntaxPreview}) بەکاردەهێنێت${extra}`;
+          if (loc === 'kmr') return `Waneya "${topic}" vê kodê bi kar tîne: (${focusSyntaxPreview})${extra}`;
+          if (loc === 'ar') return `درس "${topic}" يعتمد على (${focusSyntaxPreview})${extra}`;
+          return `"${topic}" uses (${focusSyntaxPreview})${extra}`;
         }),
       });
     }
 
-    // 2) True / False question adapted from lesson objective / common misconception
+    // 2) True / False question grounded in concrete syntax or non-boilerplate misconception
     const tfLesson = lesson1;
     const isStatementTrue = groupIndex % 2 === 1;
+    const tfSyntax = getCompactSyntaxSnippet(courseId, tfLesson, 75);
+    const wrongSyntaxPartner =
+      distractorPool[(startIdx + 4) % Math.max(1, distractorPool.length)] ||
+      allTrackLessons[(tfLesson.order + 3) % allTrackLessons.length] ||
+      lesson0;
+    const wrongSyntax = getCompactSyntaxSnippet(courseId, wrongSyntaxPartner, 75);
+
     const tfFocusObjective = buildLocalizedRecord((loc) => {
       const tr = tfLesson.translations[loc] || tfLesson.translations.en;
       const topic = cleanTitle(tr?.title || tfLesson.id);
-      const fact = trimSentence(tr?.objectives?.[0] || tr?.summary || topic, 150);
+      const rawSummary = tr?.summary;
+      const cleanMistake = tr?.commonMistakes?.find((m) => !isBoilerplateCopy(m));
+
       if (isStatementTrue) {
-        if (loc === 'ckb') return `ڕاست یان هەڵە: لە بابەتی "${topic}" دا، ${fact}`;
-        if (loc === 'kmr') return `Rast yan Şaş: Di mijara "${topic}" de, ${fact}`;
-        if (loc === 'ar') return `صحيح أم خطأ: في موضوع "${topic}"، ${fact}`;
-        return `True or False: Regarding "${topic}", ${fact}`;
+        const concreteRule =
+          rawSummary && !isBoilerplateCopy(rawSummary)
+            ? trimSentence(rawSummary, 145)
+            : `(${tfSyntax})`;
+        if (loc === 'ckb') return `ڕاست یان هەڵە: لە بابەتی «${topic}» دا ڕێزمانی دروست (${tfSyntax})ـە — ${concreteRule}`;
+        if (loc === 'kmr') return `Rast yan Şaş: Di mijara «${topic}» de rêzmana durust (${tfSyntax}) ye.`;
+        if (loc === 'ar') return `صحيح أم خطأ: في درس «${topic}»، الصياغة الصحيحة هي (${tfSyntax}).`;
+        return `True or False: In "${topic}", the standard syntax uses (${tfSyntax}).`;
       }
-      const mistake = tr?.commonMistakes?.[0];
-      if (mistake) {
-        if (loc === 'ckb') return `ڕاست یان هەڵە: لە بابەتی "${topic}" دا پێویستە ئەمە بکەین — ${trimSentence(mistake, 130)}`;
-        if (loc === 'kmr') return `Rast yan Şaş: Di mijara "${topic}" de divê em vê bikin — ${trimSentence(mistake, 130)}`;
-        if (loc === 'ar') return `صحيح أم خطأ: في موضوع "${topic}" من الصواب اتباع — ${trimSentence(mistake, 130)}`;
-        return `True or False: In "${topic}", it is recommended practice to follow this mistake: ${trimSentence(mistake, 130)}`;
+
+      if (cleanMistake) {
+        const mText = trimSentence(cleanMistake, 130);
+        if (loc === 'ckb') return `ڕاست یان هەڵە: لە وانەی «${topic}» دا پەسەندە و باشترە کە ئەم هەنگاوە بکرێت — ${mText}`;
+        if (loc === 'kmr') return `Rast yan Şaş: Di waneya «${topic}» de baştir e ku ev tişt bête kirin — ${mText}`;
+        if (loc === 'ar') return `صحيح أم خطأ: في درس «${topic}» يُنصح بالقيام بما يلي — ${mText}`;
+        return `True or False: In "${topic}", standard best practice recommends: ${mText}`;
       }
-      if (loc === 'ckb') return `ڕاست یان هەڵە: بابەتی "${topic}" هیچ ڕێسا و سنتاکسێکی ستانداردی نییە و تەنها نووسینی هەڕەمەکییە.`;
-      if (loc === 'kmr') return `Rast yan Şaş: Mijara "${topic}" tu rêzik û sintakseke standard nîne û tenê nivîsina bêrêz e.`;
-      if (loc === 'ar') return `صحيح أم خطأ: موضوع "${topic}" لا يلتزم بأي قواعد قياسية وهو مجرد كتابة عشوائية.`;
-      return `True or False: "${topic}" follows no structured syntax rules and has no predictable behavior.`;
+
+      if (wrongSyntax !== tfSyntax) {
+        if (loc === 'ckb') return `ڕاست یان هەڵە: بۆ جێبەجێکردنی «${topic}» پێویستە ڕێزمانی (${wrongSyntax}) بەکاربهێنرێت لە بری (${tfSyntax}).`;
+        if (loc === 'kmr') return `Rast yan Şaş: Ji bo «${topic}» divê (${wrongSyntax}) bête bikaranîn li şûna (${tfSyntax}).`;
+        if (loc === 'ar') return `صحيح أم خطأ: لتطبيق «${topic}» نستخدم (${wrongSyntax}) بدلاً من (${tfSyntax}).`;
+        return `True or False: Implementing "${topic}" requires writing (${wrongSyntax}) instead of (${tfSyntax}).`;
+      }
+
+      if (loc === 'ckb') return `ڕاست یان هەڵە: بابەتی «${topic}» هیچ ڕێسایەکی سنتاکسی نییە و لە کۆدی ڕاستەقینەدا کار ناکات.`;
+      if (loc === 'kmr') return `Rast yan Şaş: Mijara «${topic}» tu rêzikên sintaksê nîne.`;
+      if (loc === 'ar') return `صحيح أم خطأ: موضوع «${topic}» لا يخضع لأي قواعد برمجية قياسية.`;
+      return `True or False: "${topic}" has no valid syntax or predictable behavior.`;
     });
 
     questions.push({
@@ -787,17 +930,17 @@ export function buildCourseLearningModules(
       explanation: buildLocalizedRecord((loc) => {
         const tr = tfLesson.translations[loc] || tfLesson.translations.en;
         const topic = cleanTitle(tr?.title || tfLesson.id);
-        const coreFact = getLessonSummaryLine(tfLesson, loc, 180);
+        const coreFact = getLessonSummaryLine(tfLesson, loc, 160);
         if (isStatementTrue) {
-          if (loc === 'ckb') return `ئەم ڕستەیە ڕاستە چونکە لە وانەی "${topic}" دا بە ڕوونی سەلمێنراوە: ${coreFact}`;
-          if (loc === 'kmr') return `Ev hevok rast e çimkî di waneya "${topic}" de hatiye piştrastkirin: ${coreFact}`;
-          if (loc === 'ar') return `هذه العبارة صحيحة لأنها تتوافق تماماً مع شرح درس "${topic}": ${coreFact}`;
-          return `Correct — this statement accurately reflects Lesson "${topic}": ${coreFact}`;
+          if (loc === 'ckb') return `ڕاستە — لە وانەی "${topic}" دا (${tfSyntax}) بەکاردێت. ${coreFact !== topic ? coreFact : ''}`;
+          if (loc === 'kmr') return `Rast e — di waneya "${topic}" de (${tfSyntax}) tê bikaranîn.`;
+          if (loc === 'ar') return `صحيح — يعتمد درس "${topic}" على الصياغة (${tfSyntax}).`;
+          return `True — "${topic}" directly applies (${tfSyntax}).`;
         }
-        if (loc === 'ckb') return `ئەم ڕستەیە هەڵەیە! لە وانەی "${topic}" دا ئاماژە بە هەڵەی باو کراوە و شێوازی دروست بریتییە لە: ${coreFact}`;
-        if (loc === 'kmr') return `Ev hevok şaş e! Di waneya "${topic}" de rêbazê durust wiha ye: ${coreFact}`;
-        if (loc === 'ar') return `هذه العبارة خاطئة! الصحيح وفق درس "${topic}" هو: ${coreFact}`;
-        return `False — the statement describes an anti-pattern or falsehood. Lesson "${topic}" teaches: ${coreFact}`;
+        if (loc === 'ckb') return `هەڵەیە — شێوازی دروست لە وانەی "${topic}" دا (${tfSyntax})ـە، نەک ئەو هەڵە باوە.`;
+        if (loc === 'kmr') return `Şaş e — awayê durust di waneya "${topic}" de (${tfSyntax}) ye.`;
+        if (loc === 'ar') return `خطأ — الصياغة الصحيحة في درس "${topic}" هي (${tfSyntax}).`;
+        return `False — the accurate syntax for "${topic}" is (${tfSyntax}).`;
       }),
     });
 
@@ -874,7 +1017,7 @@ export function buildCourseLearningModules(
     const matchingCuratedEx = curatedExercises.find(
       (ex) =>
         ex.courseId === courseId &&
-        ex.type !== 'multiple_choice' &&
+        (ex.type === 'complete_code' || ex.type === 'find_error') &&
         ex.lessonId &&
         lessonIds.includes(ex.lessonId)
     );
@@ -945,7 +1088,7 @@ export function buildCourseLearningModules(
         prompt: buildLocalizedRecord((loc) => {
           const topic = cleanTitle(chalLesson.translations[loc]?.title || chalLesson.id);
           const customPrompt = chalLesson.translations[loc]?.tryItPrompt;
-          if (customPrompt && customPrompt.length > 15 && !customPrompt.includes('Master real-world syntax')) {
+          if (customPrompt && customPrompt.length > 15 && !isBoilerplateCopy(customPrompt)) {
             return trimSentence(customPrompt, 200);
           }
           if (loc === 'ckb') {

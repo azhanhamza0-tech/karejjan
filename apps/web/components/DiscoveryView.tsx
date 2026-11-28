@@ -301,24 +301,15 @@ export const DiscoveryView: React.FC = () => {
 
   return (
     <div>
-      {/* Editorial Hero Header Strip */}
+      {/* Compact Header Strip */}
       <section className="kj-hero-band">
-        <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="text-start">
-              <div className="kj-eyebrow">
-                <span className="kj-eyebrow-dot" />
-                <span>{pickLoc(locale, {
-  ckb: 'سەرچاوە و پڕۆژەکان · DISCOVERY HUB',
-  kmr: 'ژێدەر و پڕۆژە · DISCOVERY HUB',
-  ar: 'الموارد والمشاريع · DISCOVERY HUB',
-  en: 'Discovery Hub · Resources & Community',
-})}</span>
-              </div>
-              <h1 className="mt-1.5 text-2xl font-extrabold tracking-tight text-[var(--kj-ink)]">
+              <h1 className="text-xl font-extrabold tracking-tight text-[var(--kj-ink)] sm:text-2xl">
                 {copy.pageTitle}
               </h1>
-              <p className="mt-1 max-w-2xl text-sm text-[var(--kj-muted-2)]">
+              <p className="mt-0.5 text-xs text-[var(--kj-muted)]">
                 {copy.pageSubtitle}
               </p>
             </div>
