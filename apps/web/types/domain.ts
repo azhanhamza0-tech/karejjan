@@ -18,6 +18,7 @@ export type PaymentStatus = 'pending' | 'approved' | 'rejected' | 'requires_revi
 export type ActiveView =
   | 'home'
   | 'academy'
+  | 'videos'
   | 'editor'
   | 'ai'
   | 'practice'
@@ -655,4 +656,44 @@ export interface NewsSyncLog {
   startedAt: string;
   finishedAt: string;
   createdAt?: string;
+}
+
+export type VideoLessonCategory =
+  | 'tutorial'
+  | 'project'
+  | 'crash_course'
+  | 'tips'
+  | 'workshop'
+  | 'problem_solving';
+
+export interface VideoChapterMarker {
+  time: string;
+  seconds: number;
+  title: string;
+}
+
+export interface VideoLesson {
+  id: string;
+  muxPlaybackId: string;
+  title: string;
+  titles?: Partial<Record<Locale, string>>;
+  description: string;
+  track: TrackId;
+  lessonLanguage: Locale;
+  category: VideoLessonCategory;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  order: number;
+  durationLabel?: string;
+  posterTimeSec?: number;
+  instructor?: string;
+  accessPlan?: 'free' | 'pro';
+  chapterGroup?: string;
+  keyTakeaways?: string[];
+  chapters?: VideoChapterMarker[];
+  resourceCode?: string;
+  linkedLessonId?: string | null;
+  published: boolean;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

@@ -75,6 +75,7 @@ import type {
   ThemeMode,
   UserArticleState,
   UserProfile,
+  VideoLesson,
 } from '../types/domain';
 
 export interface EditorBuffer {
@@ -148,6 +149,20 @@ interface AppContextValue {
   signOut: () => Promise<void>;
   updateProfilePreferences: (patch: { displayName?: string; language?: Locale; theme?: ThemeMode }) => Promise<void>;
   refreshCatalog: () => Promise<void>;
+  videoLessons: VideoLesson[];
+  activeVideoId: string | null;
+  setActiveVideoId: (id: string | null) => void;
+  watchedVideoIds: Set<string>;
+  bookmarkedVideoIds: Set<string>;
+  toggleVideoWatched: (videoId: string) => void;
+  toggleVideoBookmark: (videoId: string) => void;
+  saveVideoLesson: (
+    video: Omit<VideoLesson, 'createdAt' | 'updatedAt'>
+  ) => Promise<{ video: VideoLesson; savedFirestore: boolean; savedServer: boolean }>;
+  deleteVideoLesson: (videoId: string) => Promise<{ deletedFirestore: boolean; deletedServer: boolean }>;
+  refreshVideos: () => Promise<void>;
+  adminRequestedTab: string | null;
+  setAdminRequestedTab: (tab: string | null) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -260,6 +275,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [courses, setCourses] = useState<Course[]>(SEED_COURSES);
   const [discoverSection, setDiscoverSection] = useState<DiscoverSection>('knowledge');
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [adminRequestedTab, setAdminRequestedTab] = useState<string | null>(null);
+  const [videoLessons, setVideoLessons] = useState<VideoLesson[]>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? window.localStorage.getItem('karejan_video_lessons_cache') : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { }
+    return [];
+  });
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+  const [watchedVideoIds, setWatchedVideoIds] = useState<Set<string>>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? window.localStorage.getItem('karejan_watched_videos') : null;
+      if (saved) return new Set(JSON.parse(saved));
+    } catch { }
+    return new Set();
+  });
+  const [bookmarkedVideoIds, setBookmarkedVideoIds] = useState<Set<string>>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? window.localStorage.getItem('karejan_bookmarked_videos') : null;
+      if (saved) return new Set(JSON.parse(saved));
+    } catch { }
+    return new Set();
+  });
 
   const initialPrefHydratedRef = useRef(false);
 
@@ -527,6 +568,201 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     void refreshCatalog();
   }, [refreshCatalog]);
+
+  const refreshVideos = useCallback(async () => {
+    const isAdminUser = staffRole === 'super_admin' || staffRole === 'admin';
+    const merged = new Map<string, VideoLesson>();
+    let anyNetworkOk = false;
+
+    try {
+      const headers: Record<string, string> = {};
+      if (isAdminUser && auth.currentUser) {
+        const token = await auth.currentUser.getIdToken();
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const res = await fetch(`/api/videos${isAdminUser ? '?includeDrafts=1' : ''}`, { headers });
+      if (res.ok) {
+        anyNetworkOk = true;
+        const json = await res.json();
+        if (Array.isArray(json?.videos)) {
+          (json.videos as VideoLesson[]).forEach((v) => {
+            if (v?.id && v?.muxPlaybackId) merged.set(v.id, v);
+          });
+        }
+      }
+    } catch { }
+
+    try {
+      const vidQuery = isAdminUser
+        ? collection(db, 'video_lessons')
+        : query(collection(db, 'video_lessons'), where('published', '==', true));
+      const snap = await getDocs(vidQuery);
+      anyNetworkOk = true;
+      snap.docs.forEach((d) => {
+        const v = d.data() as VideoLesson;
+        if (v?.id && v?.muxPlaybackId) merged.set(v.id, v);
+      });
+    } catch { }
+
+    if (!anyNetworkOk) return;
+
+    const list = Array.from(merged.values())
+      .filter((v) => isAdminUser || v.published)
+      .sort((a, b) => (a.order ?? 1) - (b.order ?? 1));
+
+    setVideoLessons(list);
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('karejan_video_lessons_cache', JSON.stringify(list));
+      }
+    } catch { }
+  }, [staffRole]);
+
+  useEffect(() => {
+    void refreshVideos();
+  }, [refreshVideos, firebaseUser?.uid]);
+
+  const toggleVideoWatched = useCallback((videoId: string) => {
+    setWatchedVideoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(videoId)) next.delete(videoId);
+      else next.add(videoId);
+      try {
+        window.localStorage.setItem('karejan_watched_videos', JSON.stringify(Array.from(next)));
+      } catch { }
+      return next;
+    });
+  }, []);
+
+  const toggleVideoBookmark = useCallback((videoId: string) => {
+    setBookmarkedVideoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(videoId)) next.delete(videoId);
+      else next.add(videoId);
+      try {
+        window.localStorage.setItem('karejan_bookmarked_videos', JSON.stringify(Array.from(next)));
+      } catch { }
+      return next;
+    });
+  }, []);
+
+  const saveVideoLesson = useCallback(
+    async (
+      videoInput: Omit<VideoLesson, 'createdAt' | 'updatedAt'>
+    ): Promise<{ video: VideoLesson; savedFirestore: boolean; savedServer: boolean }> => {
+      if (staffRole !== 'super_admin' && staffRole !== 'admin') {
+        throw new Error('Only administrators can create or edit video lessons.');
+      }
+
+      const nowIso = new Date().toISOString();
+      const nextVideo: VideoLesson = {
+        ...videoInput,
+        createdBy: videoInput.createdBy || firebaseUser?.uid || 'admin',
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
+
+      let savedServer = false;
+      let savedFirestore = false;
+
+      try {
+        const res = await apiFetch<{ ok: boolean; video: VideoLesson }>('/api/admin/videos', {
+          method: 'POST',
+          body: nextVideo,
+        });
+        if (res?.ok && res.video) {
+          Object.assign(nextVideo, res.video);
+          savedServer = true;
+        }
+      } catch { }
+
+      try {
+        const fsPayload: Record<string, unknown> = {
+          id: nextVideo.id,
+          muxPlaybackId: nextVideo.muxPlaybackId,
+          title: nextVideo.title,
+          description: nextVideo.description,
+          track: nextVideo.track,
+          lessonLanguage: nextVideo.lessonLanguage,
+          category: nextVideo.category,
+          difficulty: nextVideo.difficulty,
+          order: Math.round(nextVideo.order),
+          published: Boolean(nextVideo.published),
+          createdBy: nextVideo.createdBy || firebaseUser?.uid || 'admin',
+          updatedAt: serverTimestamp(),
+        };
+        if (nextVideo.titles && Object.keys(nextVideo.titles).length > 0) fsPayload.titles = nextVideo.titles;
+        if (nextVideo.durationLabel) fsPayload.durationLabel = nextVideo.durationLabel;
+        if (typeof nextVideo.posterTimeSec === 'number') fsPayload.posterTimeSec = Math.floor(nextVideo.posterTimeSec);
+        if (nextVideo.instructor) fsPayload.instructor = nextVideo.instructor;
+        if (nextVideo.accessPlan) fsPayload.accessPlan = nextVideo.accessPlan;
+        if (nextVideo.chapterGroup) fsPayload.chapterGroup = nextVideo.chapterGroup;
+        if (nextVideo.keyTakeaways && nextVideo.keyTakeaways.length > 0) fsPayload.keyTakeaways = nextVideo.keyTakeaways;
+        if (nextVideo.chapters && nextVideo.chapters.length > 0) fsPayload.chapters = nextVideo.chapters;
+        if (nextVideo.resourceCode) fsPayload.resourceCode = nextVideo.resourceCode;
+        if (nextVideo.linkedLessonId) fsPayload.linkedLessonId = nextVideo.linkedLessonId;
+
+        await setDoc(doc(db, 'video_lessons', nextVideo.id), fsPayload);
+        savedFirestore = true;
+      } catch (err) {
+        console.warn('Firestore video_lessons save notice (ensure rules are deployed):', err);
+      }
+
+      if (!savedServer && !savedFirestore) {
+        throw new Error('Could not save video lesson to backend or Firestore. Verify Admin sign-in.');
+      }
+
+      setVideoLessons((prev) => {
+        const map = new Map<string, VideoLesson>();
+        prev.forEach((v) => map.set(v.id, v));
+        map.set(nextVideo.id, nextVideo);
+        const sorted = Array.from(map.values()).sort((a, b) => (a.order ?? 1) - (b.order ?? 1));
+        try {
+          window.localStorage.setItem('karejan_video_lessons_cache', JSON.stringify(sorted));
+        } catch { }
+        return sorted;
+      });
+
+      return { video: nextVideo, savedFirestore, savedServer };
+    },
+    [staffRole, firebaseUser?.uid]
+  );
+
+  const deleteVideoLesson = useCallback(
+    async (videoId: string): Promise<{ deletedFirestore: boolean; deletedServer: boolean }> => {
+      if (staffRole !== 'super_admin' && staffRole !== 'admin') {
+        throw new Error('Only administrators can delete video lessons.');
+      }
+
+      let deletedServer = false;
+      let deletedFirestore = false;
+
+      try {
+        await apiFetch(`/api/admin/videos/${encodeURIComponent(videoId)}`, { method: 'DELETE' });
+        deletedServer = true;
+      } catch { }
+
+      try {
+        await deleteDoc(doc(db, 'video_lessons', videoId));
+        deletedFirestore = true;
+      } catch (err) {
+        console.warn('Firestore video_lessons delete notice:', err);
+      }
+
+      setVideoLessons((prev) => {
+        const next = prev.filter((v) => v.id !== videoId);
+        try {
+          window.localStorage.setItem('karejan_video_lessons_cache', JSON.stringify(next));
+        } catch { }
+        return next;
+      });
+
+      setActiveVideoId((prev) => (prev === videoId ? null : prev));
+
+      return { deletedFirestore, deletedServer };
+    },
+    [staffRole]
+  );
 
   // Global authoritative system settings & maintenance sync (public, unauthenticated-safe)
   useEffect(() => {
@@ -1370,6 +1606,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     signOut,
     updateProfilePreferences,
     refreshCatalog,
+    videoLessons,
+    activeVideoId,
+    setActiveVideoId,
+    watchedVideoIds,
+    bookmarkedVideoIds,
+    toggleVideoWatched,
+    toggleVideoBookmark,
+    saveVideoLesson,
+    deleteVideoLesson,
+    refreshVideos,
+    adminRequestedTab,
+    setAdminRequestedTab,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

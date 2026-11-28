@@ -15,7 +15,7 @@ export class ApiError extends Error {
 
 export async function apiFetch<T>(
   path: string,
-  options: { method?: 'GET' | 'POST'; body?: unknown; requireAuth?: boolean } = {}
+  options: { method?: 'GET' | 'POST' | 'DELETE'; body?: unknown; requireAuth?: boolean } = {}
 ): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

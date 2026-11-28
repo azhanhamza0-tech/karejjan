@@ -48,6 +48,9 @@ import {
   persistServerSettings,
   persistedPracticeProgress,
   persistPracticeProgress,
+  persistedVideoLessons,
+  upsertPersistedVideoLesson,
+  deletePersistedVideoLesson,
   type ServerModuleProgressRecord,
 } from './data/runtimeState.ts';
 
@@ -1354,6 +1357,52 @@ Expected JSON shape:
       activeChallengeId: challengeId,
       challenge: getCurrentDailyChallenge(),
     });
+  });
+
+  // =========================================================================
+  // MUX VIDEO ACADEMY LESSONS (Public Read + Strict Admin-Only Create/Delete)
+  // =========================================================================
+  app.get('/api/videos', async (req, res) => {
+    let isAdminCaller = false;
+    if (req.query.includeDrafts === '1' && req.headers.authorization) {
+      try {
+        const user = await verifyFirebaseIdToken(req.headers.authorization);
+        const role = getStaffRole(user.uid, user.email, user.emailVerified, BOOTSTRAP_SUPER_ADMIN_EMAIL);
+        isAdminCaller = role === 'super_admin' || role === 'admin';
+      } catch {
+        isAdminCaller = false;
+      }
+    }
+    const items = isAdminCaller
+      ? persistedVideoLessons
+      : persistedVideoLessons.filter((v) => v.published);
+    res.json({ ok: true, videos: items });
+  });
+
+  app.post('/api/admin/videos', requireAuth, (req: AuthedRequest, res) => {
+    const user = req.user!;
+    const role = getStaffRole(user.uid, user.email, user.emailVerified, BOOTSTRAP_SUPER_ADMIN_EMAIL);
+    if (role !== 'super_admin' && role !== 'admin') {
+      res.status(403).json({ error: 'Only Admin or Super Admin can create or edit video lessons.' });
+      return;
+    }
+    const result = upsertPersistedVideoLesson((req.body || {}) as Record<string, unknown>, user.uid);
+    if (!result.ok) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+    res.json({ ok: true, video: result.video });
+  });
+
+  app.delete('/api/admin/videos/:id', requireAuth, (req: AuthedRequest, res) => {
+    const user = req.user!;
+    const role = getStaffRole(user.uid, user.email, user.emailVerified, BOOTSTRAP_SUPER_ADMIN_EMAIL);
+    if (role !== 'super_admin' && role !== 'admin') {
+      res.status(403).json({ error: 'Only Admin or Super Admin can delete video lessons.' });
+      return;
+    }
+    const deleted = deletePersistedVideoLesson(req.params.id);
+    res.json({ ok: true, deleted, id: req.params.id });
   });
 
 

@@ -54,9 +54,10 @@ import { AdminDiscoveryPanel } from './AdminDiscoveryPanel';
 import { AdminCoursesPanel } from './AdminCoursesPanel';
 import { AdminMaintenancePanel } from './AdminMaintenancePanel';
 import { AdminDailyChallengePanel } from './AdminDailyChallengePanel';
+import { AdminVideosPanel } from './AdminVideosPanel';
 import { DISCOVERY_COPY } from '../i18n/discoveryCopy';
 
-type AdminTab = 'lessons' | 'courses' | 'studio' | 'challenge' | 'discovery' | 'maintenance' | 'payments' | 'settings' | 'audit';
+type AdminTab = 'lessons' | 'courses' | 'videos' | 'studio' | 'challenge' | 'discovery' | 'maintenance' | 'payments' | 'settings' | 'audit';
 
 function addOneMonth(base: Date): Date {
   const next = new Date(base.getTime());
@@ -78,6 +79,8 @@ export const AdminView: React.FC = () => {
     plans,
     refreshCatalog,
     refreshServerStatus,
+    adminRequestedTab,
+    setAdminRequestedTab,
   } = useApp();
 
   const isSuperAdmin = staffRole === 'super_admin';
@@ -85,6 +88,13 @@ export const AdminView: React.FC = () => {
   const isStaff = staffRole !== 'user';
 
   const [tab, setTab] = useState<AdminTab>('lessons');
+
+  useEffect(() => {
+    if (adminRequestedTab && (adminRequestedTab === 'videos' ? isPaymentAdmin : isStaff)) {
+      setTab(adminRequestedTab as AdminTab);
+      setAdminRequestedTab(null);
+    }
+  }, [adminRequestedTab, isPaymentAdmin, isStaff, setAdminRequestedTab]);
   const [banner, setBanner] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [seeding, setSeeding] = useState(false);
 
@@ -1045,6 +1055,7 @@ export const AdminView: React.FC = () => {
   const tabs: { id: AdminTab; label: string; visible: boolean }[] = [
     { id: 'lessons', label: t.admin.lessonsTab, visible: isStaff },
     { id: 'courses', label: locale === 'ckb' ? 'کەتەگۆری و کۆرسەکان' : locale === 'kmr' ? 'کەتەگۆری و کۆرس' : locale === 'ar' ? 'التصنيفات والدورات' : 'Categories & Courses', visible: isStaff },
+    { id: 'videos', label: locale === 'ckb' ? '🎬 وانە ڤیدیۆکان (Mux)' : locale === 'kmr' ? '🎬 وانەیێن ڤیدیۆ (Mux)' : locale === 'ar' ? '🎬 دروس الفيديو (Mux)' : '🎬 Video Lessons (Mux)', visible: isPaymentAdmin },
     { id: 'challenge', label: locale === 'ckb' ? '⚡ پرسیاری ڕۆژ' : locale === 'kmr' ? '⚡ پرسیارا ڕۆژێ' : locale === 'ar' ? '⚡ تحدي اليوم' : '⚡ Daily Challenge', visible: isStaff },
     { id: 'studio', label: t.admin.studioTab, visible: isStaff },
     { id: 'discovery', label: DISCOVERY_COPY[locale].admin.tabLabel, visible: isStaff },
@@ -1164,6 +1175,9 @@ export const AdminView: React.FC = () => {
 
       {/* ==================== CATEGORIES & COURSES CMS ==================== */}
       {tab === 'courses' && <AdminCoursesPanel onAudit={writeAuditLog} onBanner={notify} />}
+
+      {/* ==================== MUX VIDEO LESSONS CMS (ADMIN ONLY) ==================== */}
+      {tab === 'videos' && isPaymentAdmin && <AdminVideosPanel onAudit={writeAuditLog} onBanner={notify} />}
 
       {/* ==================== TAB 1: MANUAL LESSONS CMS ==================== */}
       {tab === 'lessons' && (

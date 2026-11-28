@@ -21,6 +21,7 @@ import {
   Home,
   Flame,
   Palette,
+  Film,
 } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -146,6 +147,22 @@ const CORE_TAB_METADATA: Record<ActiveView, TabMetadata> = {
     },
     icon: BookOpen,
   },
+  videos: {
+    id: 'videos',
+    names: {
+      ckb: 'وانە ڤیدیۆییەکان (Mux Video)',
+      kmr: 'وانەیێن ڤیدیۆیی (Mux Video)',
+      ar: 'دروس الفيديو التفاعلية (Mux)',
+      en: 'Video Lessons (Mux HD)',
+    },
+    descs: {
+      ckb: 'بەشی وانەی ڤیدیۆیی، پەخشی Mux Playback ID و لیستەکان',
+      kmr: 'بەشێ وانەیێن ڤیدیۆیی ب رێکا Mux Playback ID',
+      ar: 'قسم دروس الفيديو التعليمية عبر Mux Playback ID',
+      en: 'Video lessons theater hub streaming via Mux Playback IDs',
+    },
+    icon: Film,
+  },
   ai: {
     id: 'ai',
     names: {
@@ -267,6 +284,7 @@ function getDynamicManageableTabs(currentLockedTabs: ActiveView[] = []): TabMeta
     'prompts',
     'editor',
     'academy',
+    'videos',
     'ai',
     'discover',
     'appearance',

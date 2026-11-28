@@ -6,6 +6,7 @@ import { CursorGlow } from './components/CursorGlow';
 import { AuthModal } from './components/AuthModal';
 import { HomeView } from './components/HomeView';
 import { AcademyView } from './components/AcademyView';
+import { VideoLessonsView } from './components/VideoLessonsView';
 import { CodeEditorView } from './components/CodeEditorView';
 import { DailyChallengeRunner } from './components/DailyChallengeRunner';
 import { AiToolsHubView } from './components/AiToolsHubView';
@@ -26,6 +27,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
   ckb: {
     home: 'سەرەکی',
     academy: 'ئەکادیمیا',
+    videos: 'وانەی ڤیدیۆ',
     challenge: 'چاڵنجی ڕۆژ',
     aitools: 'ئامرازەکانی AI',
     prompts: 'پرۆمپتەکان',
@@ -41,6 +43,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
   kmr: {
     home: 'سەرەکی',
     academy: 'ئەکادیمیا',
+    videos: 'وانەیێن ڤیدیۆ',
     challenge: 'پرسیارا ڕۆژێ',
     aitools: 'ئامرازێن AI',
     prompts: 'پرۆمپت',
@@ -56,6 +59,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
   ar: {
     home: 'الرئيسية',
     academy: 'الأكاديمية',
+    videos: 'دروس الفيديو',
     challenge: 'تحدي اليوم',
     aitools: 'أدوات AI',
     prompts: 'الأوامر',
@@ -71,6 +75,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
   en: {
     home: 'Home',
     academy: 'Academy',
+    videos: 'Video Lessons',
     challenge: 'Challenge',
     aitools: 'AI Tools',
     prompts: 'Prompts',
@@ -86,7 +91,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
 };
 
 const QuickSearchDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
-  const { locale, courses, lessons, setActiveView, setActiveLessonId } = useApp();
+  const { locale, courses, lessons, videoLessons, setActiveView, setActiveLessonId, setActiveVideoId } = useApp();
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -118,6 +123,38 @@ const QuickSearchDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ o
       });
       return out;
     }
+
+    if (
+      q.includes('video') ||
+      q.includes('mux') ||
+      q.includes('ڤیدیۆ') ||
+      q.includes('فيديو')
+    ) {
+      out.push({
+        label: TAB_NAMES_LOC[locale].videos,
+        sub: 'Mux HD',
+        action: () => {
+          setActiveView('videos');
+          onClose();
+        },
+      });
+    }
+
+    videoLessons.forEach((v) => {
+      if (out.length >= 16 || !v.published) return;
+      const vTitle = v.titles?.[locale] || v.title;
+      if (vTitle.toLowerCase().includes(q) || v.track.toLowerCase().includes(q)) {
+        out.push({
+          label: `${vTitle} (${v.track.toUpperCase()})`,
+          sub: TAB_NAMES_LOC[locale].videos,
+          action: () => {
+            setActiveVideoId(v.id);
+            setActiveView('videos');
+            onClose();
+          },
+        });
+      }
+    });
 
     if (
       q.includes('theme') ||
@@ -217,7 +254,7 @@ const QuickSearchDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ o
     });
 
     return out.slice(0, 12);
-  }, [query, courses, lessons, locale, setActiveLessonId, setActiveView, onClose]);
+  }, [query, courses, lessons, videoLessons, locale, setActiveLessonId, setActiveVideoId, setActiveView, onClose]);
 
   if (!open) return null;
 
@@ -403,6 +440,7 @@ const KarejanShell: React.FC = () => {
           <>
             {activeView === 'home' && <HomeView />}
             {activeView === 'academy' && <AcademyView />}
+            {activeView === 'videos' && <VideoLessonsView />}
             {activeView === 'challenge' && <DailyChallengeRunner />}
             {activeView === 'aitools' && <AiToolsHubView />}
             {activeView === 'prompts' && <PromptsHubView />}
@@ -453,6 +491,9 @@ const KarejanShell: React.FC = () => {
               <div className="space-y-2.5 text-sm">
                 <button type="button" onClick={() => setActiveView('academy')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].academy}
+                </button>
+                <button type="button" onClick={() => setActiveView('videos')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
+                  {TAB_NAMES_LOC[locale].videos}
                 </button>
                 <button type="button" onClick={() => setActiveView('challenge')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].challenge}

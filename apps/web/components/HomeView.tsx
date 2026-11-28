@@ -16,6 +16,7 @@ import {
   Shield,
   ArrowUpRight,
   Palette,
+  Film,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { pickLoc } from '../i18n/translations';
@@ -660,6 +661,23 @@ export const HomeView: React.FC = () => {
           en: 'Monitor completed lessons, quiz scores, notifications, and Pro status.',
         },
         cta: { ckb: 'چوونە داشبۆرد', kmr: 'ڤەکرنا داشبۆردێ', ar: 'عرض لوحتي', en: 'Open Dashboard' },
+      },
+      {
+        id: 'video-academy',
+        view: 'videos',
+        badge: 'MUX HD',
+        toneClass: TONE_MAP.blue,
+        searchKeys: 'video lessons mux playback hd tutorials courses playlists',
+        icon: <Film className="h-5 w-5" />,
+        title: { ckb: 'وانە ڤیدیۆییەکان (Mux Video)', kmr: 'وانەیێن ڤیدیۆیی (Mux)', ar: 'أكاديمية الفيديو (Mux)', en: 'Video Lessons (Mux HD)' },
+        subtitle: { ckb: 'وانەی ڤیدیۆیی و پڕۆژە', kmr: 'وانەیێن ڤیدیۆیی', ar: 'دروس مرئية منظمة', en: 'Adaptive HD video courses' },
+        desc: {
+          ckb: 'سەیرکردنی وانە ڤیدیۆییەکان بە کوالێتی بەرز لەناو فرەیمێکی سینەمایی، پۆلێنکراو بەپێی زمان و جۆر.',
+          kmr: 'دیتنا وانەیێن ڤیدیۆیی ب کوالێتییا بلند د فرەیمەکێ سینەمایی دا.',
+          ar: 'شاهد دروس الفيديو التعليمية والمشاريع التطبيقية بجودة عالية وتنظيم حسب اللغة والنوع.',
+          en: 'Stream coding tutorials, workshops, and project builds inside a responsive theater player.',
+        },
+        cta: { ckb: 'کردنەوەی وانەی ڤیدیۆ', kmr: 'ڤەکرنا وانەیێن ڤیدیۆ', ar: 'مشاهدة الدروس', en: 'Watch Video Lessons' },
       },
       {
         id: 'appearance-themes',

@@ -79,6 +79,7 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
 
   const primaryNav: { id: ActiveView; label: string }[] = [
     { id: 'academy', label: t.nav.academy },
+    { id: 'videos', label: pickLoc(locale, { ckb: 'وانەی ڤیدیۆ', kmr: 'وانەیێن ڤیدیۆ', ar: 'دروس الفيديو', en: 'Videos' }) },
     { id: 'challenge', label: pickLoc(locale, { ckb: 'چاڵنجی ڕۆژ', kmr: 'پرسیارا ڕۆژێ', ar: 'تحدي اليوم', en: 'Exercises' }) },
     { id: 'editor', label: t.nav.editor },
     { id: 'ai', label: pickLoc(locale, { ckb: 'مامۆستای AI', kmr: 'مامۆستایێ AI', ar: 'المساعد AI', en: 'AI Tutor' }) },

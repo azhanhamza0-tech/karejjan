@@ -15453,17 +15453,13 @@ ${userCode}`, {
 }
 
 // server/data/runtimeState.ts
-import os from "node:os";
 import fs2 from "node:fs";
 import path2 from "node:path";
-var WRITABLE_DATA_DIR = process.env.VERCEL ? os.tmpdir() : path2.resolve(process.cwd(), "server/data");
-var SETTINGS_SEED_FILE = path2.resolve(process.cwd(), "server/data/persisted_settings.json");
-var SETTINGS_FILE = path2.join(WRITABLE_DATA_DIR, "persisted_settings.json");
+var SETTINGS_FILE = path2.resolve(process.cwd(), "server/data/persisted_settings.json");
 function loadPersistedSettings() {
   try {
-    const readTarget = fs2.existsSync(SETTINGS_FILE) ? SETTINGS_FILE : SETTINGS_SEED_FILE;
-    if (fs2.existsSync(readTarget)) {
-      const raw = fs2.readFileSync(readTarget, "utf8");
+    if (fs2.existsSync(SETTINGS_FILE)) {
+      const raw = fs2.readFileSync(SETTINGS_FILE, "utf8");
       return JSON.parse(raw);
     }
   } catch {
@@ -15471,7 +15467,7 @@ function loadPersistedSettings() {
   return {};
 }
 var initialSettings = loadPersistedSettings();
-var PRACTICE_PROGRESS_FILE = path2.join(WRITABLE_DATA_DIR, "persisted_practice_progress.json");
+var PRACTICE_PROGRESS_FILE = path2.resolve(process.cwd(), "server/data/persisted_practice_progress.json");
 function loadPersistedPracticeProgress() {
   try {
     if (fs2.existsSync(PRACTICE_PROGRESS_FILE)) {
@@ -15642,6 +15638,126 @@ function hasApprovedReference(normalizedRef) {
 }
 function lockApprovedReference(normalizedRef) {
   approvedReferences.add(normalizedRef);
+}
+var VIDEOS_FILE = path2.resolve(process.cwd(), "server/data/persisted_videos.json");
+function loadPersistedVideos() {
+  try {
+    if (fs2.existsSync(VIDEOS_FILE)) {
+      const raw = fs2.readFileSync(VIDEOS_FILE, "utf8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {
+    console.warn("Failed to load persisted videos:", err);
+  }
+  return [];
+}
+var persistedVideoLessons = loadPersistedVideos();
+function persistVideoLessonsToDisk() {
+  try {
+    fs2.writeFileSync(VIDEOS_FILE, JSON.stringify(persistedVideoLessons, null, 2), "utf8");
+  } catch (err) {
+    console.warn("Failed to persist video lessons to disk:", err);
+  }
+}
+var VALID_VIDEO_CATEGORIES = /* @__PURE__ */ new Set([
+  "tutorial",
+  "project",
+  "crash_course",
+  "tips",
+  "workshop",
+  "problem_solving"
+]);
+var VALID_VIDEO_LOCALES = /* @__PURE__ */ new Set(["ckb", "kmr", "ar", "en"]);
+var VALID_DIFFICULTIES = /* @__PURE__ */ new Set(["beginner", "intermediate", "advanced"]);
+var MUX_ID_REGEX = /^[a-zA-Z0-9_-]{8,80}$/;
+function extractServerMuxPlaybackId(raw) {
+  if (typeof raw !== "string") return "";
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  if (MUX_ID_REGEX.test(trimmed)) return trimmed;
+  try {
+    const u = new URL(trimmed);
+    const seg = u.pathname.split("/").filter(Boolean)[0]?.replace(/\.(m3u8|mp4|jpg|jpeg|png|webp|gif)$/i, "");
+    if (seg && u.hostname.toLowerCase().includes("mux") && MUX_ID_REGEX.test(seg)) return seg;
+  } catch {
+  }
+  return "";
+}
+function upsertPersistedVideoLesson(rawBody, actorUid) {
+  const playbackId = extractServerMuxPlaybackId(rawBody?.muxPlaybackId);
+  if (!playbackId) {
+    return { ok: false, error: "Valid Mux Playback ID is required (8-80 alphanumeric chars or Mux URL)." };
+  }
+  const title = typeof rawBody?.title === "string" ? rawBody.title.trim().slice(0, 200) : "";
+  if (!title) {
+    return { ok: false, error: "Video lesson title is required." };
+  }
+  const trackRaw = typeof rawBody?.track === "string" ? rawBody.track.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : "";
+  const track = trackRaw.length >= 2 && trackRaw.length <= 32 ? trackRaw : "html";
+  const rawId = typeof rawBody?.id === "string" ? rawBody.id.trim().replace(/[^a-zA-Z0-9_-]/g, "") : "";
+  const id = rawId && rawId.length >= 2 ? rawId.slice(0, 96) : `vid-${track}-${Date.now().toString(36)}`;
+  const existing = persistedVideoLessons.find((v) => v.id === id);
+  const lessonLanguage = typeof rawBody?.lessonLanguage === "string" && VALID_VIDEO_LOCALES.has(rawBody.lessonLanguage) ? rawBody.lessonLanguage : "ckb";
+  const category = typeof rawBody?.category === "string" && VALID_VIDEO_CATEGORIES.has(rawBody.category) ? rawBody.category : "tutorial";
+  const difficulty = typeof rawBody?.difficulty === "string" && VALID_DIFFICULTIES.has(rawBody.difficulty) ? rawBody.difficulty : "beginner";
+  const titlesInput = rawBody?.titles && typeof rawBody.titles === "object" ? rawBody.titles : void 0;
+  const cleanTitles = titlesInput ? {
+    ...typeof titlesInput.ckb === "string" && titlesInput.ckb.trim() ? { ckb: titlesInput.ckb.trim().slice(0, 200) } : {},
+    ...typeof titlesInput.kmr === "string" && titlesInput.kmr.trim() ? { kmr: titlesInput.kmr.trim().slice(0, 200) } : {},
+    ...typeof titlesInput.ar === "string" && titlesInput.ar.trim() ? { ar: titlesInput.ar.trim().slice(0, 200) } : {},
+    ...typeof titlesInput.en === "string" && titlesInput.en.trim() ? { en: titlesInput.en.trim().slice(0, 200) } : {}
+  } : void 0;
+  const takeaways = Array.isArray(rawBody?.keyTakeaways) ? rawBody.keyTakeaways.filter((x) => typeof x === "string" && x.trim().length > 0).map((x) => x.trim().slice(0, 220)).slice(0, 25) : void 0;
+  const chapters = Array.isArray(rawBody?.chapters) ? rawBody.chapters.filter((c) => Boolean(c && typeof c === "object" && typeof c.time === "string" && typeof c.title === "string")).map((c) => ({
+    time: c.time.trim().slice(0, 16),
+    seconds: Math.max(0, Math.min(36e3, Number(c.seconds) || 0)),
+    title: c.title.trim().slice(0, 120)
+  })).slice(0, 60) : void 0;
+  const nowIso = (/* @__PURE__ */ new Date()).toISOString();
+  const nextVideo = {
+    id,
+    muxPlaybackId: playbackId,
+    title,
+    ...cleanTitles && Object.keys(cleanTitles).length > 0 ? { titles: cleanTitles } : {},
+    description: typeof rawBody?.description === "string" ? rawBody.description.trim().slice(0, 4e3) : "",
+    track,
+    lessonLanguage,
+    category,
+    difficulty,
+    order: typeof rawBody?.order === "number" && Number.isFinite(rawBody.order) ? Math.max(0, Math.min(5e3, Math.round(rawBody.order))) : 1,
+    ...typeof rawBody?.durationLabel === "string" && rawBody.durationLabel.trim() ? { durationLabel: rawBody.durationLabel.trim().slice(0, 24) } : {},
+    ...typeof rawBody?.posterTimeSec === "number" && Number.isFinite(rawBody.posterTimeSec) && rawBody.posterTimeSec >= 0 ? { posterTimeSec: Math.min(36e3, Math.floor(rawBody.posterTimeSec)) } : {},
+    ...typeof rawBody?.instructor === "string" && rawBody.instructor.trim() ? { instructor: rawBody.instructor.trim().slice(0, 100) } : {},
+    accessPlan: rawBody?.accessPlan === "pro" ? "pro" : "free",
+    ...typeof rawBody?.chapterGroup === "string" && rawBody.chapterGroup.trim() ? { chapterGroup: rawBody.chapterGroup.trim().slice(0, 120) } : {},
+    ...takeaways && takeaways.length > 0 ? { keyTakeaways: takeaways } : {},
+    ...chapters && chapters.length > 0 ? { chapters } : {},
+    ...typeof rawBody?.resourceCode === "string" && rawBody.resourceCode.trim() ? { resourceCode: rawBody.resourceCode.slice(0, 3e4) } : {},
+    ...typeof rawBody?.linkedLessonId === "string" && rawBody.linkedLessonId.trim() ? { linkedLessonId: rawBody.linkedLessonId.trim().slice(0, 96) } : {},
+    published: typeof rawBody?.published === "boolean" ? rawBody.published : true,
+    createdBy: existing?.createdBy || actorUid,
+    createdAt: existing?.createdAt || nowIso,
+    updatedAt: nowIso
+  };
+  const idx = persistedVideoLessons.findIndex((v) => v.id === id);
+  if (idx >= 0) {
+    persistedVideoLessons[idx] = nextVideo;
+  } else {
+    persistedVideoLessons.push(nextVideo);
+  }
+  persistedVideoLessons.sort((a, b) => a.order - b.order);
+  persistVideoLessonsToDisk();
+  return { ok: true, video: nextVideo };
+}
+function deletePersistedVideoLesson(videoId) {
+  const before = persistedVideoLessons.length;
+  persistedVideoLessons = persistedVideoLessons.filter((v) => v.id !== videoId);
+  if (persistedVideoLessons.length !== before) {
+    persistVideoLessonsToDisk();
+    return true;
+  }
+  return false;
 }
 function runExpirySweep() {
   const downgraded = [];
@@ -16783,6 +16899,44 @@ ${JSON.stringify({ quizQuestions: lesson.quizQuestions, exercises: lesson.exerci
       activeChallengeId: challengeId,
       challenge: getCurrentDailyChallenge()
     });
+  });
+  app2.get("/api/videos", async (req, res) => {
+    let isAdminCaller = false;
+    if (req.query.includeDrafts === "1" && req.headers.authorization) {
+      try {
+        const user = await verifyFirebaseIdToken(req.headers.authorization);
+        const role = getStaffRole(user.uid, user.email, user.emailVerified, BOOTSTRAP_SUPER_ADMIN_EMAIL);
+        isAdminCaller = role === "super_admin" || role === "admin";
+      } catch {
+        isAdminCaller = false;
+      }
+    }
+    const items = isAdminCaller ? persistedVideoLessons : persistedVideoLessons.filter((v) => v.published);
+    res.json({ ok: true, videos: items });
+  });
+  app2.post("/api/admin/videos", requireAuth, (req, res) => {
+    const user = req.user;
+    const role = getStaffRole(user.uid, user.email, user.emailVerified, BOOTSTRAP_SUPER_ADMIN_EMAIL);
+    if (role !== "super_admin" && role !== "admin") {
+      res.status(403).json({ error: "Only Admin or Super Admin can create or edit video lessons." });
+      return;
+    }
+    const result = upsertPersistedVideoLesson(req.body || {}, user.uid);
+    if (!result.ok) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+    res.json({ ok: true, video: result.video });
+  });
+  app2.delete("/api/admin/videos/:id", requireAuth, (req, res) => {
+    const user = req.user;
+    const role = getStaffRole(user.uid, user.email, user.emailVerified, BOOTSTRAP_SUPER_ADMIN_EMAIL);
+    if (role !== "super_admin" && role !== "admin") {
+      res.status(403).json({ error: "Only Admin or Super Admin can delete video lessons." });
+      return;
+    }
+    const deleted = deletePersistedVideoLesson(req.params.id);
+    res.json({ ok: true, deleted, id: req.params.id });
   });
   return app2;
 }

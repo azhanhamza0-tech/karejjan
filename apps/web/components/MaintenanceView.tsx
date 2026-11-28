@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Globe,
   ArrowUpRight,
+  Film,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { APPEARANCE_THEMES } from '../data/themesCatalog';
@@ -54,6 +55,10 @@ const VIEW_METADATA: Record<
   academy: {
     names: { ckb: 'ئەکادیمیا و وانەکان', kmr: 'ئەکادیمیا و وانە', ar: 'الأكاديمية والدروس', en: 'Academy & Courses' },
     icon: BookOpen,
+  },
+  videos: {
+    names: { ckb: 'وانە ڤیدیۆییەکان (Mux)', kmr: 'وانەیێن ڤیدیۆ (Mux)', ar: 'دروس الفيديو (Mux)', en: 'Video Lessons' },
+    icon: Film,
   },
   editor: {
     names: { ckb: 'تاقیگەی کۆد (Code Lab)', kmr: 'تاقیگەها کۆدی (Code Lab)', ar: 'مختبر الكود المباشر', en: 'Live Code Lab' },
@@ -225,7 +230,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   const homeUnlocked = !isGlobal && !lockedTabs.includes('home');
 
   const availableViews: ActiveView[] = (
-    ['home', 'academy', 'editor', 'ai', 'challenge', 'aitools', 'prompts', 'discover', 'pro', 'dashboard'] as ActiveView[]
+    ['home', 'academy', 'videos', 'editor', 'ai', 'challenge', 'aitools', 'prompts', 'discover', 'appearance', 'pro', 'dashboard'] as ActiveView[]
   ).filter((v) => v !== view && !lockedTabs.includes(v));
 
   const displayMessage = (message && message.trim()) || copy.defaultMessage;

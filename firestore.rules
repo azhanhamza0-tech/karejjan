@@ -516,6 +516,33 @@ service cloud.firestore {
         && data.createdAt is timestamp;
     }
 
+    function isValidVideoLesson(data, videoId) {
+      return data.keys().hasAll(['id', 'muxPlaybackId', 'title', 'description', 'track', 'lessonLanguage', 'category', 'difficulty', 'order', 'published', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'muxPlaybackId', 'title', 'titles', 'description', 'track', 'lessonLanguage', 'category', 'difficulty', 'order', 'durationLabel', 'posterTimeSec', 'instructor', 'accessPlan', 'chapterGroup', 'keyTakeaways', 'chapters', 'resourceCode', 'linkedLessonId', 'published', 'createdBy', 'createdAt', 'updatedAt'])
+        && data.id == videoId
+        && isValidId(data.id)
+        && data.muxPlaybackId is string && data.muxPlaybackId.size() >= 8 && data.muxPlaybackId.size() <= 80 && data.muxPlaybackId.matches('^[a-zA-Z0-9_-]+$')
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 200
+        && (!('titles' in data) || data.titles is map)
+        && data.description is string && data.description.size() <= 4000
+        && isValidTrack(data.track)
+        && isValidLocale(data.lessonLanguage)
+        && data.category is string && data.category in ['tutorial', 'project', 'crash_course', 'tips', 'workshop', 'problem_solving']
+        && data.difficulty is string && data.difficulty in ['beginner', 'intermediate', 'advanced']
+        && data.order is int && data.order >= 0 && data.order <= 5000
+        && (!('durationLabel' in data) || data.durationLabel == null || (data.durationLabel is string && data.durationLabel.size() <= 24))
+        && (!('posterTimeSec' in data) || data.posterTimeSec == null || (data.posterTimeSec is int && data.posterTimeSec >= 0 && data.posterTimeSec <= 36000))
+        && (!('instructor' in data) || data.instructor == null || (data.instructor is string && data.instructor.size() <= 100))
+        && (!('accessPlan' in data) || data.accessPlan in ['free', 'pro'])
+        && (!('chapterGroup' in data) || data.chapterGroup == null || (data.chapterGroup is string && data.chapterGroup.size() <= 120))
+        && (!('keyTakeaways' in data) || (data.keyTakeaways is list && data.keyTakeaways.size() <= 25))
+        && (!('chapters' in data) || (data.chapters is list && data.chapters.size() <= 60))
+        && (!('resourceCode' in data) || data.resourceCode == null || (data.resourceCode is string && data.resourceCode.size() <= 30000))
+        && (!('linkedLessonId' in data) || data.linkedLessonId == null || isValidId(data.linkedLessonId))
+        && data.published is bool
+        && data.updatedAt is timestamp;
+    }
+
     // -------------------------------------------------------------------------
     // Collection Rules
     // -------------------------------------------------------------------------
@@ -827,6 +854,16 @@ service cloud.firestore {
       allow list: if isStaff();
       allow create: if isValidId(logId) && isStaff() && isValidNewsSyncLog(incoming(), logId);
       allow update, delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Video Academy Collection (Mux Playback ID) — Admin Only Create/Edit/Delete
+    // -------------------------------------------------------------------------
+    match /video_lessons/{videoId} {
+      allow get: if isValidId(videoId) && (existing().published == true || isPaymentAdmin());
+      allow list: if resource.data.published == true || isPaymentAdmin();
+      allow create, update: if isValidId(videoId) && isPaymentAdmin() && isValidVideoLesson(incoming(), videoId);
+      allow delete: if isValidId(videoId) && isPaymentAdmin();
     }
   }
 }
