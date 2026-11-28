@@ -333,8 +333,8 @@ export const DailyChallengeRunner: React.FC = () => {
                 onClick={() => selectChallenge(item)}
                 className={`rounded-[10px] border px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
                   active
-                    ? 'border-[#087f5b] bg-[#087f5b] text-white'
-                    : 'border-[var(--kj-border)] bg-[var(--kj-card)] text-[var(--kj-ink)] hover:border-[#087f5b]'
+                    ? 'border-[var(--kj-green)] bg-[var(--kj-green)] text-[var(--kj-btn-primary-ink)]'
+                    : 'border-[var(--kj-border)] bg-[var(--kj-card)] text-[var(--kj-ink)] hover:border-[var(--kj-green)]'
                 }`}
               >
                 <span dir="ltr">{item.functionName}()</span>

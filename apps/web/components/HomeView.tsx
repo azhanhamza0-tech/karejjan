@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Shield,
   ArrowUpRight,
+  Palette,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { pickLoc } from '../i18n/translations';
@@ -660,6 +661,23 @@ export const HomeView: React.FC = () => {
         },
         cta: { ckb: 'چوونە داشبۆرد', kmr: 'ڤەکرنا داشبۆردێ', ar: 'عرض لوحتي', en: 'Open Dashboard' },
       },
+      {
+        id: 'appearance-themes',
+        view: 'appearance',
+        badge: '6 THEMES',
+        toneClass: TONE_MAP.green,
+        searchKeys: 'appearance themes colors light dark forest ocean sunset lavender personalize',
+        icon: <Palette className="h-5 w-5" />,
+        title: { ckb: 'ڕووکار و ڕەنگەکان (٦ شێواز)', kmr: 'ڕووکار و ڕەنگ (٦ شێواز)', ar: 'المظهر والألوان (٦ ثيمات)', en: 'Appearance & 6 Themes' },
+        subtitle: { ckb: 'بۆشایی خۆت بڕازێنەوە', kmr: 'جهێ خۆ بشێوازە', ar: 'خصّص ألوان مساحتك', en: 'Personalize your space' },
+        desc: {
+          ckb: 'شەش ڕووکاری هێمن و مۆدێرن: Light، Dark، Forest، Ocean، Sunset و Lavender بۆ هەموو ماڵپەڕەکە.',
+          kmr: 'شەش ڕووکارێن هێمن: Light، Dark، Forest، Ocean، Sunset و Lavender بۆ هەمی مالپەڕی.',
+          ar: 'ستة ثيمات مريحة للعين: الفاتح والداكن والغابة والمحيط والغروب والخزامى لكامل المنصة.',
+          en: 'Switch between Light, Dark, Forest, Ocean, Sunset, and Lavender across the whole site.',
+        },
+        cta: { ckb: 'گۆڕینی ڕووکار', kmr: 'گوهۆڕینا ڕووکاری', ar: 'تخصيص المظهر', en: 'Customize Appearance' },
+      },
     ],
     []
   );
@@ -697,14 +715,14 @@ export const HomeView: React.FC = () => {
   return (
     <div>
       {/* 0. Clean Compact Topic Ribbon */}
-      <nav aria-label="Popular tracks and tools" className="border-b border-[#20483b] bg-[#17372d] text-[#e0efe7] overflow-x-auto">
+      <nav aria-label="Popular tracks and tools" className="border-b border-[var(--kj-ribbon-border)] bg-[var(--kj-ribbon-bg)] text-[var(--kj-ribbon-ink)] overflow-x-auto transition-colors duration-250">
         <div className="mx-auto flex min-h-[44px] max-w-[1200px] items-center justify-center gap-7 px-4 sm:px-6 whitespace-nowrap text-xs font-semibold">
           {topicStripItems.map((item) => (
             <button
               key={item.label}
               type="button"
               onClick={item.action}
-              className="shrink-0 py-2 transition-colors hover:text-[#9cebc3] cursor-pointer"
+              className="shrink-0 py-2 transition-colors hover:text-[var(--kj-band-accent)] cursor-pointer"
             >
               <span dir="ltr">{item.label}</span>
             </button>
@@ -712,17 +730,17 @@ export const HomeView: React.FC = () => {
         </div>
       </nav>
 
-      {/* 1. Minimal Deep Forest Hero */}
-      <section className="cn-hero border-b border-[#1d4438]">
+      {/* 1. Minimal Theme-Adaptive Hero */}
+      <section className="cn-hero border-b border-[var(--kj-band-border)]">
         <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_470px] lg:gap-14 lg:py-16">
           {/* Left Hero Copy + Search */}
           <div className="text-start">
             <h1 className="text-[40px] font-extrabold leading-[1.15] tracking-[-0.04em] text-white sm:text-[50px] lg:text-[56px]">
               {copy.heroTitle1}
               <br />
-              <span className="text-[#9cebc3]">{copy.heroTitle2}</span>
+              <span className="text-[var(--kj-band-accent)]">{copy.heroTitle2}</span>
             </h1>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-[#c7ded2]">
+            <p className="mt-4 max-w-md text-base leading-relaxed text-[var(--kj-band-muted)]">
               {copy.heroDesc}
             </p>
 
@@ -730,45 +748,45 @@ export const HomeView: React.FC = () => {
             <form
               onSubmit={handleHeroSearchSubmit}
               role="search"
-              className="mt-7 flex max-w-[460px] items-center rounded-[12px] bg-white p-1.5 text-[#688279] shadow-lg"
+              className="mt-7 flex max-w-[460px] items-center rounded-[12px] bg-[var(--kj-card)] p-1.5 text-[var(--kj-muted)] shadow-lg border border-[var(--kj-border)]"
             >
-              <Search className="ms-3 me-2 h-4 w-4 shrink-0 text-[#688279]" aria-hidden="true" />
+              <Search className="ms-3 me-2 h-4 w-4 shrink-0 text-[var(--kj-muted)]" aria-hidden="true" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={copy.searchPlaceholder}
                 aria-label={copy.searchPlaceholder}
-                className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 text-sm text-[#18362b] placeholder:text-[#8a9c93] focus:outline-none"
+                className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 text-sm text-[var(--kj-ink)] placeholder:text-[var(--kj-muted)] focus:outline-none"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
                   aria-label={copy.clearSearch}
-                  className="me-1 grid h-8 w-8 place-items-center rounded-lg text-[#688279] hover:bg-[#edf4ef] cursor-pointer"
+                  className="me-1 grid h-8 w-8 place-items-center rounded-lg text-[var(--kj-muted)] hover:bg-[var(--kj-soft)] cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
               <button
                 type="submit"
-                className="shrink-0 rounded-[9px] bg-[#18a974] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#128b5f] cursor-pointer"
+                className="shrink-0 rounded-[9px] bg-[var(--kj-green)] px-5 py-2.5 text-sm font-bold text-[var(--kj-btn-primary-ink)] transition-colors hover:bg-[var(--kj-accent-hover)] cursor-pointer"
               >
                 {copy.searchBtn}
               </button>
             </form>
 
-            {/* 3 Quick Popular Shortcuts */}
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-[#9cb8a8]">
+            {/* Quick Popular Shortcuts */}
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-[var(--kj-band-muted)]">
               <span>{copy.popularLabel}</span>
-              <button type="button" onClick={() => handleOpenCourse('html')} className="font-semibold text-[#e5f6ec] hover:text-[#9cebc3] cursor-pointer">
+              <button type="button" onClick={() => handleOpenCourse('html')} className="font-semibold text-white/90 hover:text-[var(--kj-band-accent)] cursor-pointer">
                 HTML
               </button>
-              <button type="button" onClick={() => handleOpenCourse('python')} className="font-semibold text-[#e5f6ec] hover:text-[#9cebc3] cursor-pointer">
+              <button type="button" onClick={() => handleOpenCourse('python')} className="font-semibold text-white/90 hover:text-[var(--kj-band-accent)] cursor-pointer">
                 Python
               </button>
-              <button type="button" onClick={() => setActiveView('editor')} className="font-semibold text-[#9cebc3] hover:underline cursor-pointer">
+              <button type="button" onClick={() => setActiveView('editor')} className="font-semibold text-[var(--kj-band-accent)] hover:underline cursor-pointer">
                 Code Lab
               </button>
             </div>
@@ -777,25 +795,25 @@ export const HomeView: React.FC = () => {
           {/* Minimal Clean Code Card */}
           <div
             aria-label="Example HTML code"
-            className="overflow-hidden rounded-[18px] bg-[#f3f8f4] text-[#187e5d] shadow-[0_20px_38px_rgba(0,24,15,0.4)] dark:border dark:border-[#244538] dark:bg-[#0f211b] dark:text-[#9cebc3]"
+            className="overflow-hidden rounded-[18px] border border-[var(--kj-code-surface-border)] bg-[var(--kj-code-surface)] text-[var(--kj-code-surface-ink)] shadow-[0_20px_38px_rgba(0,24,15,0.38)]"
           >
-            <div dir="ltr" className="flex h-[48px] items-center justify-between bg-[#e8f1eb] px-5 text-xs font-semibold text-[#799586] dark:bg-[#162e26] dark:text-[#98b4a6]">
+            <div dir="ltr" className="flex h-[48px] items-center justify-between bg-[var(--kj-soft)] px-5 text-xs font-semibold text-[var(--kj-muted)]">
               <span className="tracking-widest">● &nbsp;● &nbsp;●</span>
               <span className="font-mono">index.html</span>
             </div>
 
             <div className="grid grid-cols-[20px_1fr] gap-x-3 gap-y-3 px-6 py-6 font-mono text-[13px] sm:text-[14px]" dir="ltr">
-              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">1</span>
+              <span className="text-[var(--kj-muted)]">1</span>
               <code>&lt;!DOCTYPE html&gt;</code>
-              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">2</span>
+              <span className="text-[var(--kj-muted)]">2</span>
               <code>&lt;html&gt;</code>
-              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">3</span>
+              <span className="text-[var(--kj-muted)]">3</span>
               <code>&nbsp; &lt;body&gt;</code>
-              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">4</span>
+              <span className="text-[var(--kj-muted)]">4</span>
               <code>&nbsp; &nbsp; &lt;h1&gt;Hello, karejan!&lt;/h1&gt;</code>
-              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">5</span>
+              <span className="text-[var(--kj-muted)]">5</span>
               <code>&nbsp; &lt;/body&gt;</code>
-              <span className="text-[#9bac9f] dark:text-[#6e8c7e]">6</span>
+              <span className="text-[var(--kj-muted)]">6</span>
               <code>&lt;/html&gt;</code>
             </div>
 
@@ -803,7 +821,7 @@ export const HomeView: React.FC = () => {
               <button
                 type="button"
                 onClick={handleHeroRunInLab}
-                className="inline-flex items-center gap-2 rounded-[10px] bg-[#087f5b] px-5 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#056949] cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--kj-green)] px-5 py-2.5 text-xs font-bold text-[var(--kj-btn-primary-ink)] transition-colors hover:bg-[var(--kj-accent-hover)] cursor-pointer"
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
                 <span>{copy.runCodeBtn}</span>
@@ -813,7 +831,7 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. Clean 4-Column Benefits Bar matching CodeNest .benefits */}
+      {/* 2. Clean 4-Column Benefits Bar */}
       <section aria-label="Why learn with karejan" className="border-b border-[var(--kj-border)] bg-[var(--kj-card)]">
         <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-5 px-4 py-7 sm:px-6 lg:grid-cols-4">
           <button
@@ -821,9 +839,9 @@ export const HomeView: React.FC = () => {
             onClick={() => setActiveView('academy')}
             className="flex items-center gap-4 text-start group cursor-pointer"
           >
-            <b className="text-xl text-[#087f5b] dark:text-[#7ce3b3] shrink-0">✦</b>
+            <b className="text-xl text-[var(--kj-green)] shrink-0">✦</b>
             <p className="text-sm">
-              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
                 {copy.b1Title}
               </strong>
               <span className="mt-1 block text-xs text-[var(--kj-muted)]">{copy.b1Sub}</span>
@@ -835,9 +853,9 @@ export const HomeView: React.FC = () => {
             onClick={() => setActiveView('academy')}
             className="flex items-center gap-4 text-start group cursor-pointer"
           >
-            <b className="text-xl text-[#087f5b] dark:text-[#7ce3b3] shrink-0">◉</b>
+            <b className="text-xl text-[var(--kj-green)] shrink-0">◉</b>
             <p className="text-sm">
-              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
                 {copy.b2Title}
               </strong>
               <span className="mt-1 block text-xs text-[var(--kj-muted)]">{copy.b2Sub}</span>
@@ -849,9 +867,9 @@ export const HomeView: React.FC = () => {
             onClick={() => setActiveView('editor')}
             className="flex items-center gap-4 text-start group cursor-pointer"
           >
-            <b className="text-xl text-[#087f5b] dark:text-[#7ce3b3] shrink-0">⌘</b>
+            <b className="text-xl text-[var(--kj-green)] shrink-0">⌘</b>
             <p className="text-sm">
-              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
                 {copy.b3Title}
               </strong>
               <span className="mt-1 block text-xs text-[var(--kj-muted)]">{copy.b3Sub}</span>
@@ -863,9 +881,9 @@ export const HomeView: React.FC = () => {
             onClick={() => setActiveView('challenge')}
             className="flex items-center gap-4 text-start group cursor-pointer"
           >
-            <b className="text-xl text-[#087f5b] dark:text-[#7ce3b3] shrink-0">✓</b>
+            <b className="text-xl text-[var(--kj-green)] shrink-0">✓</b>
             <p className="text-sm">
-              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+              <strong className="block font-bold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
                 {copy.b4Title}
               </strong>
               <span className="mt-1 block text-xs text-[var(--kj-muted)]">{copy.b4Sub}</span>
@@ -874,11 +892,11 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Courses Grid (#tutorials) matching CodeNest .tutorials & .cards */}
+      {/* 3. Courses Grid (#tutorials) */}
       <section ref={tutorialsRef} id="tutorials" className="mx-auto max-w-[1200px] px-4 pt-16 pb-12 sm:px-6">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-5 text-start">
           <div>
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
               {copy.coursesEyebrow}
             </p>
             <h2 className="mt-2.5 text-3xl font-extrabold tracking-[-0.035em] text-[var(--kj-ink)] sm:text-[36px] leading-[1.2]">
@@ -891,21 +909,21 @@ export const HomeView: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveView('academy')}
-            className="inline-flex items-center justify-center rounded-[10px] bg-[#e4f2e9] px-5 py-3 text-sm font-bold text-[#126548] transition-colors hover:bg-[#d0ebda] dark:bg-[#173a2d] dark:text-[#9cebc3] dark:hover:bg-[#1f4d3c] cursor-pointer"
+            className="inline-flex items-center justify-center rounded-[10px] bg-[var(--kj-badge-bg)] px-5 py-3 text-sm font-bold text-[var(--kj-badge-ink)] transition-colors hover:bg-[var(--kj-elevated)] cursor-pointer"
           >
             {copy.viewAllCourses}
           </button>
         </div>
 
         {normalizedQuery && (
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-[#cce3d4] bg-[#e9f5ee] px-4 py-3 text-xs font-semibold text-[#126548] dark:border-[#214538] dark:bg-[#132d24] dark:text-[#9cebc3]">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-[var(--kj-border-strong)] bg-[var(--kj-badge-bg)] px-4 py-3 text-xs font-semibold text-[var(--kj-badge-ink)]">
             <span role="status" aria-live="polite">
               {copy.foundResults(totalMatches, searchQuery.trim())}
             </span>
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="rounded-md bg-white/80 px-2.5 py-1 font-bold text-[#087f5b] hover:bg-white dark:bg-[#1a3a2f] dark:text-[#9cebc3] cursor-pointer"
+              className="rounded-md bg-[var(--kj-card)] px-2.5 py-1 font-bold text-[var(--kj-green)] hover:opacity-90 cursor-pointer"
             >
               {copy.clearSearch}
             </button>
@@ -923,25 +941,25 @@ export const HomeView: React.FC = () => {
                 key={track.id}
                 type="button"
                 onClick={() => handleOpenCourse(track.id)}
-                className="group flex min-h-[248px] flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-6 text-start transition-all hover:-translate-y-0.5 hover:border-[#77c99c] hover:shadow-md cursor-pointer"
+                className="group flex min-h-[248px] flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-6 text-start transition-all hover:-translate-y-0.5 hover:border-[var(--kj-green)] hover:shadow-md cursor-pointer"
               >
                 <div className="flex w-full items-start justify-between">
                   <span className={`grid h-[54px] w-[54px] place-items-center rounded-[14px] text-base font-extrabold ${track.toneClass}`}>
                     {track.num}
                   </span>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#438667] dark:text-[#7ce3b3]">
+                    <span className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                       {track.levelLabel[locale]}
                     </span>
                     {doneCount > 0 && (
-                      <span className="rounded-full bg-[#e4f6ea] px-2 py-0.5 text-[10px] font-bold text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3] tabular-nums">
+                      <span className="rounded-full bg-[var(--kj-badge-bg)] px-2 py-0.5 text-[10px] font-bold text-[var(--kj-badge-ink)] tabular-nums">
                         {doneCount}/{totalCount} {copy.completedLabel}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <h3 className="mt-6 text-[24px] font-extrabold tracking-tight text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+                <h3 className="mt-6 text-[24px] font-extrabold tracking-tight text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
                   {track.name}
                 </h3>
                 <h4 className="mt-1.5 text-sm font-bold text-[var(--kj-ink)]">
@@ -951,7 +969,7 @@ export const HomeView: React.FC = () => {
                   {track.descriptions[locale]}
                 </p>
 
-                <span className="mt-auto flex w-full items-center justify-between text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+                <span className="mt-auto flex w-full items-center justify-between text-xs font-bold text-[var(--kj-green)]">
                   <span>
                     {copy.exploreCourse} ({totalCount} {copy.lessonsUnit})
                   </span>
@@ -961,24 +979,24 @@ export const HomeView: React.FC = () => {
             );
           })}
 
-          {/* 9th Card (Completes clean 3x3 Grid unless filtered out) */}
+          {/* 9th Card */}
           {(!normalizedQuery ||
             `${copy.practiceCardTitle} ${copy.practiceCardDesc} challenge quiz practice exercise`.toLowerCase().includes(normalizedQuery)) && (
             <button
               type="button"
               onClick={() => setActiveView('challenge')}
-              className="group flex min-h-[248px] flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-6 text-start transition-all hover:-translate-y-0.5 hover:border-[#77c99c] hover:shadow-md cursor-pointer"
+              className="group flex min-h-[248px] flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-6 text-start transition-all hover:-translate-y-0.5 hover:border-[var(--kj-green)] hover:shadow-md cursor-pointer"
             >
               <div className="flex w-full items-start justify-between">
                 <span className={`grid h-[54px] w-[54px] place-items-center rounded-[14px] text-base font-extrabold ${TONE_MAP.green}`}>
                   09
                 </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#438667] dark:text-[#7ce3b3]">
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                   {copy.practiceCardBadge}
                 </span>
               </div>
 
-              <h3 className="mt-6 text-[22px] font-extrabold tracking-tight text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+              <h3 className="mt-6 text-[22px] font-extrabold tracking-tight text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
                 {copy.practiceCardTitle}
               </h3>
               <h4 className="mt-1.5 text-sm font-bold text-[var(--kj-ink)]">
@@ -988,7 +1006,7 @@ export const HomeView: React.FC = () => {
                 {copy.practiceCardDesc}
               </p>
 
-              <span className="mt-auto flex w-full items-center justify-between text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+              <span className="mt-auto flex w-full items-center justify-between text-xs font-bold text-[var(--kj-green)]">
                 <span>{copy.practiceCardCta}</span>
                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </span>
@@ -1002,7 +1020,7 @@ export const HomeView: React.FC = () => {
         <section className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4 text-start">
             <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                 {copy.featuresEyebrow}
               </p>
               <h2 className="mt-2 text-2xl font-extrabold tracking-[-0.03em] text-[var(--kj-ink)] sm:text-[32px]">
@@ -1014,9 +1032,9 @@ export const HomeView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveView('admin')}
-                className="inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] px-4 py-2.5 text-xs font-bold text-[var(--kj-ink)] hover:border-[#087f5b] cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] px-4 py-2.5 text-xs font-bold text-[var(--kj-ink)] hover:border-[var(--kj-green)] cursor-pointer"
               >
-                <Shield className="h-4 w-4 text-[#087f5b] dark:text-[#7ce3b3]" />
+                <Shield className="h-4 w-4 text-[var(--kj-green)]" />
                 <span>{copy.adminShortcut}</span>
               </button>
             )}
@@ -1035,18 +1053,18 @@ export const HomeView: React.FC = () => {
                     setActiveView(feat.view);
                   }
                 }}
-                className="group flex flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-5 text-start transition-all hover:-translate-y-0.5 hover:border-[#77c99c] hover:shadow-md cursor-pointer"
+                className="group flex flex-col rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-5 text-start transition-all hover:-translate-y-0.5 hover:border-[var(--kj-green)] hover:shadow-md cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-3">
                   <span className={`grid h-11 w-11 place-items-center rounded-[12px] ${feat.toneClass}`}>
                     {feat.icon}
                   </span>
-                  <span className="rounded-md bg-[var(--kj-soft)] px-2 py-1 font-mono text-[10px] font-bold text-[#438667] dark:text-[#9cebc3]">
+                  <span className="rounded-md bg-[var(--kj-soft)] px-2 py-1 font-mono text-[10px] font-bold text-[var(--kj-badge-ink)]">
                     {feat.badge}
                   </span>
                 </div>
 
-                <h3 className="mt-4 text-lg font-extrabold text-[var(--kj-ink)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3] transition-colors">
+                <h3 className="mt-4 text-lg font-extrabold text-[var(--kj-ink)] group-hover:text-[var(--kj-green)] transition-colors">
                   {feat.title[locale]}
                 </h3>
                 <p className="mt-0.5 text-xs font-bold text-[var(--kj-muted-2)]">{feat.subtitle[locale]}</p>
@@ -1055,7 +1073,7 @@ export const HomeView: React.FC = () => {
                 </p>
 
                 <div className="mt-auto flex items-center justify-between gap-2 pt-2 border-t border-[var(--kj-border)]">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[var(--kj-green)]">
                     <span>{feat.cta[locale]}</span>
                     <ArrowUpRight className="h-3.5 w-3.5" />
                   </span>
@@ -1066,7 +1084,7 @@ export const HomeView: React.FC = () => {
                         e.stopPropagation();
                         setActiveView('pro');
                       }}
-                      className="inline-flex items-center gap-1 rounded-md bg-[#e4f6ea] px-2.5 py-1 text-[11px] font-bold text-[#087f5b] hover:bg-[#d0ebda] dark:bg-[#173a2d] dark:text-[#9cebc3] cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-md bg-[var(--kj-badge-bg)] px-2.5 py-1 text-[11px] font-bold text-[var(--kj-badge-ink)] hover:bg-[var(--kj-elevated)] cursor-pointer"
                     >
                       <Crown className="h-3 w-3" />
                       <span>PRO</span>
@@ -1079,21 +1097,21 @@ export const HomeView: React.FC = () => {
         </section>
       )}
 
-      {/* 5. Real Integrated Practice & Daily Challenge Banner (Zero Demo Data) */}
+      {/* 5. Real Integrated Practice & Daily Challenge Banner */}
       <section id="practice" className="mx-auto max-w-[1200px] px-4 pt-6 pb-20 sm:px-6">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-[22px] border border-[#cde8d8] bg-[#ddf2e6] p-7 sm:p-10 lg:flex-row lg:items-center dark:border-[#214538] dark:bg-[#132d24]">
+        <div className="flex flex-col items-start justify-between gap-6 rounded-[22px] border border-[var(--kj-border-strong)] bg-[var(--kj-final-bg)] p-7 sm:p-10 lg:flex-row lg:items-center">
           <div className="text-start max-w-xl">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
               {copy.practiceEyebrow}
             </p>
             <h2 className="mt-2.5 text-2xl font-extrabold tracking-[-0.03em] leading-tight text-[var(--kj-ink)] sm:text-[32px]">
               {copy.practiceTitle1}{' '}
-              <span className="text-[#087f5b] dark:text-[#9cebc3]">{copy.practiceTitle2}</span>
+              <span className="text-[var(--kj-green)]">{copy.practiceTitle2}</span>
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-[#416657] dark:text-[#c2dbd0]">
+            <p className="mt-3 text-sm leading-relaxed text-[var(--kj-muted-2)]">
               {copy.practiceDesc}
             </p>
-            <p className="mt-2.5 inline-flex items-center gap-2 text-xs font-bold text-[#087f5b] dark:text-[#9cebc3]">
+            <p className="mt-2.5 inline-flex items-center gap-2 text-xs font-bold text-[var(--kj-green)]">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
               <span>
                 {copy.todayLiveChallenge} {challengeTitle} (+{todayChallenge.points} {copy.ptsUnit})
@@ -1105,7 +1123,7 @@ export const HomeView: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveView('academy')}
-              className="inline-flex items-center gap-2 rounded-[10px] bg-[#087f5b] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#056949] cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--kj-green)] px-5 py-3 text-sm font-bold text-[var(--kj-btn-primary-ink)] transition-colors hover:bg-[var(--kj-accent-hover)] cursor-pointer"
             >
               <BookOpen className="h-4 w-4" />
               <span>{copy.openAcademyBtn}</span>
@@ -1113,7 +1131,7 @@ export const HomeView: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveView('challenge')}
-              className="inline-flex items-center gap-2 rounded-[10px] border border-[#b7dcc6] bg-white px-5 py-3 text-sm font-bold text-[#126548] transition-colors hover:bg-[#f2faf5] dark:border-[#274b3d] dark:bg-[#173a2d] dark:text-[#9cebc3] cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-[10px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] px-5 py-3 text-sm font-bold text-[var(--kj-green)] transition-colors hover:bg-[var(--kj-soft)] cursor-pointer"
             >
               <Zap className="h-4 w-4" />
               <span>{copy.solveChallengeBtn}</span>

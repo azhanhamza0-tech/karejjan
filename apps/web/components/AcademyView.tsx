@@ -435,8 +435,8 @@ export const AcademyView: React.FC = () => {
 
   return (
     <div>
-      {/* 1. Deep Forest Course Ribbon matching academy.html .topics */}
-      <nav aria-label={t.academy.coursesLabel} className="border-b border-[#20483b] bg-[#17372d] text-[#e0efe7] overflow-x-auto">
+      {/* 1. Theme-Adaptive Course Ribbon */}
+      <nav aria-label={t.academy.coursesLabel} className="border-b border-[var(--kj-ribbon-border)] bg-[var(--kj-ribbon-bg)] text-[var(--kj-ribbon-ink)] overflow-x-auto transition-colors duration-250">
         <div className="mx-auto flex min-h-[48px] max-w-[1600px] items-center gap-6 px-4 sm:px-8 whitespace-nowrap">
           {availableCourses.map((course) => {
             const courseLessons = lessons.filter((l) => l.courseId === course.id);
@@ -451,8 +451,8 @@ export const AcademyView: React.FC = () => {
                 onClick={() => handleTrackSwitch(course.id)}
                 className={`inline-flex items-center gap-2 border-b-2 py-3 text-[11px] font-bold uppercase tracking-[0.04em] transition-colors shrink-0 cursor-pointer ${
                   active
-                    ? 'border-[#7ce3b3] text-[#9cebc3]'
-                    : 'border-transparent text-[#e0efe7]/85 hover:text-[#9cebc3]'
+                    ? 'border-[var(--kj-band-accent)] text-[var(--kj-band-accent)]'
+                    : 'border-transparent text-[var(--kj-ribbon-ink)]/85 hover:text-[var(--kj-band-accent)]'
                 }`}
               >
                 <span>{course.id === 'tsx' ? 'TYPESCRIPT' : course.id.toUpperCase()}</span>
@@ -465,21 +465,21 @@ export const AcademyView: React.FC = () => {
         </div>
       </nav>
 
-      {/* 2. Clean White Breadcrumb Bar matching academy.css .breadcrumb */}
+      {/* 2. Clean Breadcrumb Bar */}
       <div className="border-b border-[var(--kj-border)] bg-[var(--kj-card)]">
-        <div className="mx-auto flex min-h-[58px] max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-8 text-[13px] text-[#789185] dark:text-[var(--kj-muted)]">
+        <div className="mx-auto flex min-h-[58px] max-w-[1600px] flex-wrap items-center justify-between gap-3 px-4 py-2 sm:px-8 text-[13px] text-[var(--kj-muted)]">
           <div className="flex flex-wrap items-center gap-2.5 min-w-0">
-            <button type="button" onClick={() => setActiveView('home')} className="hover:text-[#087f5b] dark:hover:text-[#9cebc3] cursor-pointer">
+            <button type="button" onClick={() => setActiveView('home')} className="hover:text-[var(--kj-green)] cursor-pointer">
               {copy.home}
             </button>
             <span aria-hidden="true">/</span>
-            <button type="button" onClick={() => setAcademyViewMode('lesson')} className="hover:text-[#087f5b] dark:hover:text-[#9cebc3] cursor-pointer">
+            <button type="button" onClick={() => setAcademyViewMode('lesson')} className="hover:text-[var(--kj-green)] cursor-pointer">
               {copy.academy}
             </button>
             <span aria-hidden="true">/</span>
             <span className="font-semibold text-[var(--kj-ink)]">{selectedTrack.toUpperCase()}</span>
             <span aria-hidden="true">/</span>
-            <span className="truncate font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+            <span className="truncate font-bold text-[var(--kj-green)]">
               {academyViewMode === 'assessment' && activePracticeModule
                 ? pickLoc(locale, activePracticeModule.title)
                 : cleanTitle(content.title)}
@@ -487,7 +487,7 @@ export const AcademyView: React.FC = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-4 shrink-0">
-            <strong className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+            <strong className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
               {copy.learningSpace}
             </strong>
             {nextIncompleteLesson && (
@@ -498,7 +498,7 @@ export const AcademyView: React.FC = () => {
                   setActiveLessonId(nextIncompleteLesson.id);
                   setAcademyViewMode('lesson');
                 }}
-                className="inline-flex items-center gap-1.5 rounded-[9px] bg-[#e4f2e9] px-3 py-1.5 text-xs font-bold text-[#126548] hover:bg-[#d0ebda] dark:bg-[#173a2d] dark:text-[#9cebc3] cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-[9px] bg-[var(--kj-badge-bg)] px-3 py-1.5 text-xs font-bold text-[var(--kj-badge-ink)] hover:bg-[var(--kj-elevated)] cursor-pointer"
               >
                 <BookOpen className="h-3.5 w-3.5" />
                 <span>{t.common.continueLearning}</span>
@@ -508,14 +508,14 @@ export const AcademyView: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Two-Column Academy Shell matching academy.css .academy-layout */}
+      {/* 3. Two-Column Academy Shell */}
       <div className="mx-auto grid max-w-[1600px] grid-cols-1 lg:grid-cols-[296px_minmax(0,1fr)]">
-        {/* Left Course Sidebar matching academy.css .sidebar */}
+        {/* Left Course Sidebar */}
         <aside
           aria-label={t.academy.coursesLabel}
           className="border-b border-[var(--kj-border)] bg-[var(--kj-card)] p-6 text-start lg:border-b-0 lg:border-e lg:px-6 lg:py-8"
         >
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
             {isRtl ? `${copy.courseSuffix} ${selectedTrack.toUpperCase()}` : `${selectedTrack.toUpperCase()} ${copy.courseSuffix}`}
           </p>
           <h2 className="mt-2.5 text-[22px] font-extrabold tracking-tight text-[var(--kj-ink)]">
@@ -524,9 +524,9 @@ export const AcademyView: React.FC = () => {
           <p className="mt-2 text-xs leading-relaxed text-[var(--kj-muted)]">
             {copy.progressLabel(doneInTrack, trackLessons.length)}
           </p>
-          <div className="mt-3 h-[7px] w-full overflow-hidden rounded-full bg-[#dcece1] dark:bg-[#1a3c2f]" aria-hidden="true">
+          <div className="mt-3 h-[7px] w-full overflow-hidden rounded-full bg-[var(--kj-soft)]" aria-hidden="true">
             <span
-              className="block h-full rounded-full bg-[#10a775] transition-all duration-300"
+              className="block h-full rounded-full bg-[var(--kj-emerald)] transition-all duration-300"
               style={{ width: `${trackPercent}%` }}
             />
           </div>
@@ -538,7 +538,7 @@ export const AcademyView: React.FC = () => {
               className="inline-flex w-full items-center justify-between rounded-[10px] border border-[var(--kj-border)] bg-[var(--kj-soft)] px-3.5 py-2.5 text-xs font-bold text-[var(--kj-ink)] cursor-pointer"
             >
               <span className="inline-flex items-center gap-2">
-                <ListTree className="h-4 w-4 text-[#087f5b] dark:text-[#7ce3b3]" />
+                <ListTree className="h-4 w-4 text-[var(--kj-green)]" />
                 <span>{mobileCurriculumOpen ? copy.hideMenu : copy.showMenu}</span>
               </span>
               <ChevronDown className={`h-4 w-4 transition-transform ${mobileCurriculumOpen ? 'rotate-180' : ''}`} />
@@ -546,7 +546,7 @@ export const AcademyView: React.FC = () => {
           </div>
 
           <div className={`${mobileCurriculumOpen ? 'block' : 'hidden'} lg:block`}>
-            <p className="mt-7 mb-3 text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#8c9f94]">
+            <p className="mt-7 mb-3 text-[10px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-muted)]">
               {copy.curriculumLabel}
             </p>
 
@@ -560,7 +560,7 @@ export const AcademyView: React.FC = () => {
                 ar: 'ابحث في الدروس...',
                 en: 'Search lessons...',
               })}
-              className="mb-4 w-full rounded-[9px] border border-[var(--kj-border)] bg-[var(--kj-soft)] px-3 py-2 text-xs text-[var(--kj-ink)] placeholder:text-[var(--kj-muted)] outline-none focus:border-[#087f5b]"
+              className="mb-4 w-full rounded-[9px] border border-[var(--kj-border)] bg-[var(--kj-soft)] px-3 py-2 text-xs text-[var(--kj-ink)] placeholder:text-[var(--kj-muted)] outline-none focus:border-[var(--kj-green)]"
             />
 
             <div className="max-h-[580px] overflow-y-auto pe-1">
@@ -580,10 +580,10 @@ export const AcademyView: React.FC = () => {
                           onClick={() => ownerMod && handleSelectLessonFromNav(lesson.id, ownerMod)}
                           className={`flex w-full items-start justify-between gap-2 rounded-[8px] px-2.5 py-2.5 text-start text-xs transition-colors cursor-pointer ${
                             active
-                              ? 'bg-[#e5f5eb] font-bold text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]'
+                              ? 'bg-[var(--kj-badge-bg)] font-bold text-[var(--kj-badge-ink)]'
                               : !unlocked
                                 ? 'text-[var(--kj-muted)] opacity-60 hover:bg-[var(--kj-soft)]'
-                                : 'text-[#60786b] hover:bg-[#f1f8f3] hover:text-[#18362b] dark:text-[var(--kj-muted-2)] dark:hover:bg-[var(--kj-soft)]'
+                                : 'text-[var(--kj-muted-2)] hover:bg-[var(--kj-soft)] hover:text-[var(--kj-ink)]'
                           }`}
                         >
                           <span className="leading-snug">
@@ -616,7 +616,7 @@ export const AcademyView: React.FC = () => {
                         key={mod.moduleId}
                         className={`rounded-[12px] border p-2.5 transition-colors ${
                           containsActive
-                            ? 'border-[#9ad4b5] bg-[#f7fbf8] dark:border-[#245743] dark:bg-[#142c24]'
+                            ? 'border-[var(--kj-border-strong)] bg-[var(--kj-soft)]/70'
                             : 'border-[var(--kj-border)] bg-[var(--kj-card)]'
                         }`}
                       >
@@ -626,7 +626,7 @@ export const AcademyView: React.FC = () => {
                           className="flex w-full items-center justify-between px-1.5 py-1 text-[12px] font-bold text-[var(--kj-ink)] cursor-pointer"
                         >
                           <span className="inline-flex items-center gap-1.5">
-                            <Layers className="h-3.5 w-3.5 text-[#087f5b] dark:text-[#7ce3b3]" />
+                            <Layers className="h-3.5 w-3.5 text-[var(--kj-green)]" />
                             {pickLoc(locale, {
                               ckb: `گڕوپی ${pad2(mod.groupIndex)}`,
                               kmr: `Koma ${pad2(mod.groupIndex)}`,
@@ -634,7 +634,7 @@ export const AcademyView: React.FC = () => {
                               en: `Group ${pad2(mod.groupIndex)}`,
                             })}
                           </span>
-                          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-[#93a69a] tabular-nums">
+                          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-[var(--kj-muted)] tabular-nums">
                             <span>{groupUnlocked ? `${modDoneCount}/${mod.lessons.length}` : '🔒'}</span>
                             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
                           </span>
@@ -655,10 +655,10 @@ export const AcademyView: React.FC = () => {
                                       onClick={() => handleSelectLessonFromNav(lesson.id, mod)}
                                       className={`flex w-full items-start justify-between gap-2 rounded-[8px] px-2.5 py-2.5 text-start text-xs transition-colors cursor-pointer ${
                                         active
-                                          ? 'bg-[#e5f5eb] font-bold text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]'
+                                          ? 'bg-[var(--kj-badge-bg)] font-bold text-[var(--kj-badge-ink)]'
                                           : !groupUnlocked
-                                            ? 'text-[var(--kj-muted)] opacity-60 hover:bg-[#f1f8f3] dark:hover:bg-[var(--kj-soft)]'
-                                            : 'text-[#60786b] hover:bg-[#f1f8f3] hover:text-[#18362b] dark:text-[var(--kj-muted-2)] dark:hover:bg-[var(--kj-soft)]'
+                                            ? 'text-[var(--kj-muted)] opacity-60 hover:bg-[var(--kj-soft)]'
+                                            : 'text-[var(--kj-muted-2)] hover:bg-[var(--kj-soft)] hover:text-[var(--kj-ink)]'
                                       }`}
                                     >
                                       <span className="leading-snug">
@@ -681,19 +681,19 @@ export const AcademyView: React.FC = () => {
                                   onClick={() => handleOpenModuleAssessment(mod)}
                                   className={`flex w-full items-center justify-between gap-2 rounded-[8px] border px-2.5 py-2 text-start text-xs font-semibold transition-all cursor-pointer ${
                                     isAssessingThisMod
-                                      ? 'border-[#087f5b] bg-[#e5f5eb] text-[#087f5b] dark:border-[#7ce3b3] dark:bg-[#173a2d] dark:text-[#9cebc3]'
+                                      ? 'border-[var(--kj-green)] bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
                                       : savedModProgress?.passed
-                                        ? 'border-[#9ad4b5] bg-[#e9f7ee] text-[#087f5b] dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-300'
+                                        ? 'border-[var(--kj-border-strong)] bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
                                         : practiceReady
-                                          ? 'border-[#77c99c] bg-[#f2faf5] text-[var(--kj-ink)] hover:border-[#087f5b] dark:bg-[#162f25]'
-                                          : 'border-[var(--kj-border)] bg-[var(--kj-soft)] text-[var(--kj-muted)]'
+                                          ? 'border-[var(--kj-border-strong)] bg-[var(--kj-soft)] text-[var(--kj-ink)] hover:border-[var(--kj-green)]'
+                                          : 'border-[var(--kj-border)] bg-[var(--kj-soft)]/50 text-[var(--kj-muted)]'
                                   }`}
                                 >
                                   <span className="flex items-center gap-1.5 min-w-0">
                                     {savedModProgress?.passed ? (
-                                      <Award className="h-3.5 w-3.5 shrink-0 text-[#087f5b] dark:text-emerald-400" />
+                                      <Award className="h-3.5 w-3.5 shrink-0 text-[var(--kj-green)]" />
                                     ) : practiceReady ? (
-                                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#087f5b] dark:text-[#7ce3b3]" />
+                                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-[var(--kj-green)]" />
                                     ) : (
                                       <Lock className="h-3.5 w-3.5 shrink-0 opacity-75" />
                                     )}
@@ -725,13 +725,13 @@ export const AcademyView: React.FC = () => {
               )}
             </div>
 
-            {/* Bottom Sidebar Help Card matching academy.css .help-card */}
-            <div className="mt-8 rounded-[12px] bg-[#f1f8f3] p-4.5 text-start dark:bg-[#152e25]">
+            {/* Bottom Sidebar Help Card */}
+            <div className="mt-8 rounded-[12px] bg-[var(--kj-soft)] p-4.5 text-start">
               <h3 className="text-sm font-bold text-[var(--kj-ink)]">{copy.needHandTitle}</h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#789084] dark:text-[var(--kj-muted)]">
+              <p className="mt-1.5 text-xs leading-relaxed text-[var(--kj-muted)]">
                 {copy.needHandDesc}
               </p>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-bold text-[var(--kj-green)]">
                 <button type="button" onClick={() => setActiveView('ai')} className="hover:underline cursor-pointer">
                   {copy.askAiLink} ↗
                 </button>
@@ -743,7 +743,7 @@ export const AcademyView: React.FC = () => {
           </div>
         </aside>
 
-        {/* Main Lesson & Assessment Area matching academy.css .lesson-main */}
+        {/* Main Lesson & Assessment Area */}
         <main id="lesson" className="min-w-0 px-4 py-8 sm:px-8 lg:px-14 lg:py-11">
           {/* Connected Group Stepper Pill Bar */}
           {currentLessonModule && (
@@ -768,9 +768,9 @@ export const AcademyView: React.FC = () => {
                       onClick={() => handleSelectLessonFromNav(l.id, modRef)}
                       className={`inline-flex items-center gap-1 rounded-[8px] border px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
                         isThisActive
-                          ? 'border-[#087f5b] bg-[#e5f5eb] text-[#087f5b] dark:border-[#7ce3b3] dark:bg-[#173a2d] dark:text-[#9cebc3]'
+                          ? 'border-[var(--kj-green)] bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
                           : isDone
-                            ? 'border-[#9ad4b5] bg-[#e9f7ee] text-[#087f5b] dark:border-emerald-500/35 dark:bg-emerald-500/15 dark:text-emerald-300'
+                            ? 'border-[var(--kj-border-strong)] bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
                             : 'border-[var(--kj-border)] bg-[var(--kj-soft)] text-[var(--kj-muted-2)] hover:text-[var(--kj-ink)]'
                       }`}
                     >
@@ -791,9 +791,9 @@ export const AcademyView: React.FC = () => {
                       }
                       className={`inline-flex items-center gap-1.5 rounded-[8px] border px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
                         academyViewMode === 'assessment'
-                          ? 'border-[#087f5b] bg-[#087f5b] text-white shadow-xs'
+                          ? 'border-[var(--kj-green)] bg-[var(--kj-green)] text-[var(--kj-btn-primary-ink)] shadow-xs'
                           : isPracticeReady(currentLessonModule)
-                            ? 'border-[#77c99c] bg-[#e9f7ee] text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]'
+                            ? 'border-[var(--kj-border-strong)] bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
                             : 'border-[var(--kj-border)] bg-[var(--kj-soft)] text-[var(--kj-muted)]'
                       }`}
                     >
@@ -878,8 +878,8 @@ export const AcademyView: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 {justUnlockedModuleId === activePracticeModule.moduleId && (
-                  <div className="flex items-center gap-3 rounded-[14px] border border-[#9ad4b5] bg-[#e9f7ee] px-5 py-4 text-sm text-[#0b5c42] dark:border-emerald-500/40 dark:bg-emerald-500/12 dark:text-emerald-200">
-                    <CheckCircle2 className="h-5 w-5 shrink-0 text-[#087f5b] dark:text-emerald-400" />
+                  <div className="flex items-center gap-3 rounded-[14px] border border-[var(--kj-border-strong)] bg-[var(--kj-badge-bg)] px-5 py-4 text-sm text-[var(--kj-badge-ink)]">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-[var(--kj-green)]" />
                     <div>
                       <strong className="font-bold">
                         {pickLoc(locale, {
@@ -966,9 +966,9 @@ export const AcademyView: React.FC = () => {
             </Surface>
           ) : (
             <>
-              {/* Lesson Heading matching academy.css .lesson-heading */}
+              {/* Lesson Heading */}
               <div className="mb-8 text-start">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                   {selectedTrack.toUpperCase()}
                   {currentChapter ? ` / ${cleanTitle(currentChapter.titles[locale] || currentChapter.titles.en)}` : ''}
                 </p>
@@ -979,8 +979,8 @@ export const AcademyView: React.FC = () => {
                   {content.summary}
                 </p>
 
-                <div className="mt-6 flex flex-wrap items-center gap-5 text-xs text-[#789084] dark:text-[var(--kj-muted)]">
-                  <span className="rounded-full bg-[#ddf2e6] px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]">
+                <div className="mt-6 flex flex-wrap items-center gap-5 text-xs text-[var(--kj-muted)]">
+                  <span className="rounded-full bg-[var(--kj-badge-bg)] px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[var(--kj-badge-ink)]">
                     {currentLesson.difficulty}
                   </span>
                   <span className="inline-flex items-center gap-1.5">
@@ -991,34 +991,34 @@ export const AcademyView: React.FC = () => {
                     ▤ &nbsp;{copy.lessonLabel} #{String(currentLesson.order).padStart(2, '0')}
                   </span>
                   {isCompleted && (
-                    <span className="font-bold text-[#087f5b] dark:text-[#7ce3b3]">
+                    <span className="font-bold text-[var(--kj-green)]">
                       {copy.completedBadge}
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Lesson 2-Column Editorial Grid matching academy.css .lesson-grid */}
+              {/* Lesson 2-Column Editorial Grid */}
               <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,724px)_256px] xl:items-start">
-                {/* Main White Editorial Article matching academy.css .lesson-article */}
+                {/* Main Editorial Article */}
                 <article className="rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-6 sm:p-8 text-start">
-                  {/* Section 1: Welcome / Intro + Mint Objective Box */}
+                  {/* Section 1: Welcome / Intro + Objective Box */}
                   <section id="welcome">
                     <h2 className="text-[22px] font-extrabold tracking-[-0.025em] text-[var(--kj-ink)]">
                       {t.academy.intro}
                     </h2>
-                    <p className="mt-3 text-[14.5px] leading-[1.78] text-[#5f796b] dark:text-[var(--kj-muted-2)] whitespace-pre-line">
+                    <p className="mt-3 text-[14.5px] leading-[1.78] text-[var(--kj-muted-2)] whitespace-pre-line">
                       {content.intro}
                     </p>
 
                     {content.objectives.length > 0 && (
-                      <div className="mt-7 flex gap-4 rounded-[12px] bg-[#e9f7ee] p-5 dark:bg-[#153428]">
-                        <span className="text-xl leading-none text-[#087f5b] dark:text-[#7ce3b3] shrink-0">✦</span>
+                      <div className="mt-7 flex gap-4 rounded-[12px] bg-[var(--kj-soft)] p-5">
+                        <span className="text-xl leading-none text-[var(--kj-green)] shrink-0">✦</span>
                         <div>
-                          <strong className="block text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+                          <strong className="block text-[10px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                             {copy.whatYouLearn}
                           </strong>
-                          <ul className="mt-2.5 list-disc space-y-1.5 ps-4 text-[13px] leading-relaxed text-[#315748] dark:text-[#d7efe3]">
+                          <ul className="mt-2.5 list-disc space-y-1.5 ps-4 text-[13px] leading-relaxed text-[var(--kj-ink)]/85">
                             {content.objectives.map((obj, i) => (
                               <li key={i}>{obj}</li>
                             ))}
@@ -1033,49 +1033,49 @@ export const AcademyView: React.FC = () => {
                     <h2 className="text-[22px] font-extrabold tracking-[-0.025em] text-[var(--kj-ink)]">
                       {t.academy.explanation}
                     </h2>
-                    <p className="mt-3 text-[14.5px] leading-[1.78] text-[#5f796b] dark:text-[var(--kj-muted-2)] whitespace-pre-line">
+                    <p className="mt-3 text-[14.5px] leading-[1.78] text-[var(--kj-muted-2)] whitespace-pre-line">
                       {content.explanation}
                     </p>
                   </section>
 
-                  {/* Section 3: Syntax in CodeNest Soft Mint .example */}
+                  {/* Section 3: Syntax */}
                   <section id="syntax" className="mt-10">
                     <h3 className="text-[17px] font-bold text-[var(--kj-ink)]">
                       {t.academy.syntax}
                     </h3>
                     {content.syntaxNotes && (
-                      <p className="mt-2 text-sm leading-relaxed text-[#5f796b] dark:text-[var(--kj-muted-2)] whitespace-pre-line">
+                      <p className="mt-2 text-sm leading-relaxed text-[var(--kj-muted-2)] whitespace-pre-line">
                         {content.syntaxNotes}
                       </p>
                     )}
-                    <div className="mt-4 rounded-[12px] bg-[#f2f7f3] p-5 dark:border dark:border-[#244538] dark:bg-[#0f211b]">
-                      <div className="flex items-center justify-between border-b border-[#dcebe0] pb-3.5 text-[11px] text-[#8a9e92] dark:border-[#224336]">
-                        <strong className="font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+                    <div className="mt-4 rounded-[12px] border border-[var(--kj-code-surface-border)] bg-[var(--kj-code-surface)] p-5">
+                      <div className="flex items-center justify-between border-b border-[var(--kj-border)] pb-3.5 text-[11px] text-[var(--kj-muted)]">
+                        <strong className="font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                           {copy.syntaxTag}
                         </strong>
                         <button
                           type="button"
                           onClick={() => void copyCode('syntax', currentLesson.sharedCode.syntax)}
-                          className="inline-flex items-center gap-1 font-semibold hover:text-[#087f5b] dark:hover:text-[#9cebc3] cursor-pointer"
+                          className="inline-flex items-center gap-1 font-semibold hover:text-[var(--kj-green)] cursor-pointer"
                         >
                           <Copy className="h-3.5 w-3.5" />
                           <span>{copiedBlock === 'syntax' ? t.common.copied : t.common.copy}</span>
                         </button>
                       </div>
-                      <pre dir="ltr" className="mt-4 overflow-x-auto font-mono text-[13px] leading-[1.85] text-[#247456] dark:text-[#9cebc3]">
+                      <pre dir="ltr" className="mt-4 overflow-x-auto font-mono text-[13px] leading-[1.85] text-[var(--kj-code-surface-ink)]">
                         <code>{currentLesson.sharedCode.syntax}</code>
                       </pre>
                     </div>
                   </section>
 
-                  {/* Section 4: Code Examples in CodeNest .example boxes */}
+                  {/* Section 4: Code Examples */}
                   <section id="example" className="mt-10 space-y-5">
                     <div>
                       <h3 className="text-[17px] font-bold text-[var(--kj-ink)]">
                         {t.academy.codeExample}
                       </h3>
                       {content.tryItPrompt && (
-                        <p className="mt-1.5 text-sm leading-relaxed text-[#5f796b] dark:text-[var(--kj-muted-2)] whitespace-pre-line">
+                        <p className="mt-1.5 text-sm leading-relaxed text-[var(--kj-muted-2)] whitespace-pre-line">
                           {content.tryItPrompt}
                         </p>
                       )}
@@ -1090,27 +1090,27 @@ export const AcademyView: React.FC = () => {
                     )
                       .filter((b) => b.code.trim().length > 0)
                       .map((block) => (
-                        <div key={block.key} className="rounded-[12px] bg-[#f2f7f3] p-5 dark:border dark:border-[#244538] dark:bg-[#0f211b]">
-                          <div className="flex items-center justify-between border-b border-[#dcebe0] pb-3.5 text-[11px] text-[#8a9e92] dark:border-[#224336]">
-                            <strong className="font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+                        <div key={block.key} className="rounded-[12px] border border-[var(--kj-code-surface-border)] bg-[var(--kj-code-surface)] p-5">
+                          <div className="flex items-center justify-between border-b border-[var(--kj-border)] pb-3.5 text-[11px] text-[var(--kj-muted)]">
+                            <strong className="font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                               {copy.exampleTag} · {block.label}
                             </strong>
                             <button
                               type="button"
                               onClick={() => void copyCode(block.key, block.code)}
-                              className="inline-flex items-center gap-1 font-semibold hover:text-[#087f5b] dark:hover:text-[#9cebc3] cursor-pointer"
+                              className="inline-flex items-center gap-1 font-semibold hover:text-[var(--kj-green)] cursor-pointer"
                             >
                               <Copy className="h-3.5 w-3.5" />
                               <span>{copiedBlock === block.key ? t.common.copied : t.common.copy}</span>
                             </button>
                           </div>
-                          <pre dir="ltr" className="my-5 overflow-x-auto font-mono text-[13px] leading-[1.85] text-[#247456] dark:text-[#9cebc3]">
+                          <pre dir="ltr" className="my-5 overflow-x-auto font-mono text-[13px] leading-[1.85] text-[var(--kj-code-surface-ink)]">
                             <code>{block.code}</code>
                           </pre>
                           <button
                             type="button"
                             onClick={() => openLessonInEditor(currentLesson)}
-                            className="inline-flex items-center gap-2 rounded-[10px] bg-[#087f5b] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#056949] cursor-pointer"
+                            className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--kj-green)] px-4 py-2.5 text-xs font-bold text-[var(--kj-btn-primary-ink)] transition-colors hover:bg-[var(--kj-accent-hover)] cursor-pointer"
                           >
                             <Play className="h-3.5 w-3.5 fill-current" />
                             <span>{t.academy.tryItYourself}</span>
@@ -1125,7 +1125,7 @@ export const AcademyView: React.FC = () => {
                       <h3 className="text-[17px] font-bold text-[var(--kj-ink)]">
                         {t.academy.commonMistakes}
                       </h3>
-                      <ul className="mt-3 list-disc space-y-2 ps-5 text-[14px] leading-relaxed text-[#5f796b] dark:text-[var(--kj-muted-2)]">
+                      <ul className="mt-3 list-disc space-y-2 ps-5 text-[14px] leading-relaxed text-[var(--kj-muted-2)]">
                         {content.commonMistakes.map((m, i) => (
                           <li key={i}>{m}</li>
                         ))}
@@ -1133,12 +1133,12 @@ export const AcademyView: React.FC = () => {
                     </section>
                   )}
 
-                  {/* Section 6: Take a Moment / Complete & Actions matching academy.css .lesson-actions */}
+                  {/* Section 6: Summary & Actions */}
                   <section id="try" className="mt-10 border-t border-[var(--kj-border)] pt-7">
                     <h3 className="text-[17px] font-bold text-[var(--kj-ink)]">
                       {t.academy.summary}
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[#5f796b] dark:text-[var(--kj-muted-2)]">
+                    <p className="mt-2 text-sm leading-relaxed text-[var(--kj-muted-2)]">
                       {content.summary}
                     </p>
 
@@ -1149,8 +1149,8 @@ export const AcademyView: React.FC = () => {
                         aria-pressed={isCompleted}
                         className={`inline-flex items-center gap-2 rounded-[10px] px-5 py-3 text-sm font-bold transition-colors cursor-pointer ${
                           isCompleted
-                            ? 'border border-[#77c99c] bg-[#e4f6ea] text-[#087f5b] dark:border-emerald-500/40 dark:bg-[#173a2d] dark:text-[#9cebc3]'
-                            : 'bg-[#087f5b] text-white hover:bg-[#056949]'
+                            ? 'border border-[var(--kj-border-strong)] bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
+                            : 'bg-[var(--kj-green)] text-[var(--kj-btn-primary-ink)] hover:bg-[var(--kj-accent-hover)]'
                         }`}
                       >
                         <Check className="h-4 w-4" />
@@ -1166,7 +1166,7 @@ export const AcademyView: React.FC = () => {
                               if (prevMod) handleSelectLessonFromNav(prevLesson.id, prevMod);
                               else setActiveLessonId(prevLesson.id);
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--kj-border)] bg-[var(--kj-soft)] px-4 py-3 text-sm font-bold text-[var(--kj-ink)] hover:border-[#087f5b] cursor-pointer"
+                            className="inline-flex items-center gap-1.5 rounded-[10px] border border-[var(--kj-border)] bg-[var(--kj-soft)] px-4 py-3 text-sm font-bold text-[var(--kj-ink)] hover:border-[var(--kj-green)] cursor-pointer"
                           >
                             {isRtl ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
                             <span>{t.academy.previousLesson}</span>
@@ -1178,7 +1178,7 @@ export const AcademyView: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenModuleAssessment(currentLessonModule)}
-                              className="inline-flex items-center gap-2 rounded-[10px] bg-[#e4f2e9] px-5 py-3 text-sm font-bold text-[#126548] hover:bg-[#d0ebda] dark:bg-[#173a2d] dark:text-[#9cebc3] cursor-pointer"
+                              className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--kj-badge-bg)] px-5 py-3 text-sm font-bold text-[var(--kj-badge-ink)] hover:bg-[var(--kj-elevated)] cursor-pointer"
                             >
                               <Sparkles className="h-4 w-4" />
                               <span>{copy.startPracticeBtn} ↗</span>
@@ -1190,7 +1190,7 @@ export const AcademyView: React.FC = () => {
                                 if (nextModForNextLesson) handleSelectLessonFromNav(nextLesson.id, nextModForNextLesson);
                                 else setActiveLessonId(nextLesson.id);
                               }}
-                              className="inline-flex items-center gap-1.5 rounded-[10px] bg-[#e4f2e9] px-5 py-3 text-sm font-bold text-[#126548] hover:bg-[#d0ebda] dark:bg-[#173a2d] dark:text-[#9cebc3] cursor-pointer"
+                              className="inline-flex items-center gap-1.5 rounded-[10px] bg-[var(--kj-badge-bg)] px-5 py-3 text-sm font-bold text-[var(--kj-badge-ink)] hover:bg-[var(--kj-elevated)] cursor-pointer"
                             >
                               <span>{t.academy.nextLesson}</span>
                               <ArrowUpRight className="h-4 w-4" />
@@ -1200,7 +1200,7 @@ export const AcademyView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleOpenModuleAssessment(currentLessonModule)}
-                            className="inline-flex items-center gap-2 rounded-[10px] bg-[#e4f2e9] px-5 py-3 text-sm font-bold text-[#126548] hover:bg-[#d0ebda] dark:bg-[#173a2d] dark:text-[#9cebc3] cursor-pointer"
+                            className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--kj-badge-bg)] px-5 py-3 text-sm font-bold text-[var(--kj-badge-ink)] hover:bg-[var(--kj-elevated)] cursor-pointer"
                           >
                             <Sparkles className="h-4 w-4" />
                             <span>{copy.startPracticeBtn} ↗</span>
@@ -1210,7 +1210,7 @@ export const AcademyView: React.FC = () => {
                     </div>
 
                     {completionFeedback && (
-                      <p className="mt-3 text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3]" aria-live="polite">
+                      <p className="mt-3 text-xs font-bold text-[var(--kj-green)]" aria-live="polite">
                         {completionFeedback}
                       </p>
                     )}
@@ -1218,7 +1218,7 @@ export const AcademyView: React.FC = () => {
 
                   {/* Connected Integrated Module Practice Callout */}
                   {effectivePracticeConfig.enabled && currentLessonModule && (
-                    <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[14px] border border-[#9ad4b5] bg-[#f1faf4] p-5 dark:border-[#255743] dark:bg-[#142c24]">
+                    <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-[14px] border border-[var(--kj-border-strong)] bg-[var(--kj-soft)] p-5">
                       {(() => {
                         const modDone = currentLessonModule.lessons.filter((l) =>
                           completedLessonIds.has(l.id)
@@ -1235,7 +1235,7 @@ export const AcademyView: React.FC = () => {
                           <>
                             <div className="space-y-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="inline-flex items-center gap-1 rounded-full bg-[#e4f2e9] px-2.5 py-0.5 text-[11px] font-bold text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--kj-badge-bg)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--kj-badge-ink)]">
                                   <Sparkles className="h-3 w-3" />
                                   {pickLoc(locale, {
                                     ckb: `گڕوپی ${modPad} · ${modDone}/${modTotal} وانە تەواو بووە`,
@@ -1245,7 +1245,7 @@ export const AcademyView: React.FC = () => {
                                   })}
                                 </span>
                                 {modSaved?.passed && (
-                                  <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                                  <span className="rounded-full bg-[var(--kj-badge-bg)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--kj-green)]">
                                     {modSaved.bestScorePercent}% ✓
                                   </span>
                                 )}
@@ -1316,63 +1316,63 @@ export const AcademyView: React.FC = () => {
                   )}
                 </article>
 
-                {/* Right Aside matching academy.css .lesson-aside (.on-page + .progress-card) */}
+                {/* Right Aside (.on-page + .progress-card) */}
                 <aside className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-1 xl:sticky xl:top-24 text-start">
                   {/* On This Page TOC */}
                   <div className="hidden xl:block rounded-[16px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-5">
-                    <h2 className="mb-4 text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#8b9e93]">
+                    <h2 className="mb-4 text-[10px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-muted)]">
                       {copy.onThisPage}
                     </h2>
                     <div className="space-y-1 text-xs">
                       <a
                         href="#welcome"
-                        className="block border-s-[3px] border-[#087f5b] px-3 py-2.5 font-bold text-[#087f5b] dark:border-[#7ce3b3] dark:text-[#9cebc3]"
+                        className="block border-s-[3px] border-[var(--kj-green)] px-3 py-2.5 font-bold text-[var(--kj-green)]"
                       >
                         {t.academy.intro}
                       </a>
-                      <a href="#explanation" className="block px-3 py-2.5 text-[#70877a] hover:text-[#087f5b] dark:text-[var(--kj-muted)] dark:hover:text-[#9cebc3]">
+                      <a href="#explanation" className="block px-3 py-2.5 text-[var(--kj-muted)] hover:text-[var(--kj-green)]">
                         {t.academy.explanation}
                       </a>
-                      <a href="#syntax" className="block px-3 py-2.5 text-[#70877a] hover:text-[#087f5b] dark:text-[var(--kj-muted)] dark:hover:text-[#9cebc3]">
+                      <a href="#syntax" className="block px-3 py-2.5 text-[var(--kj-muted)] hover:text-[var(--kj-green)]">
                         {t.academy.syntax}
                       </a>
-                      <a href="#example" className="block px-3 py-2.5 text-[#70877a] hover:text-[#087f5b] dark:text-[var(--kj-muted)] dark:hover:text-[#9cebc3]">
+                      <a href="#example" className="block px-3 py-2.5 text-[var(--kj-muted)] hover:text-[var(--kj-green)]">
                         {t.academy.codeExample}
                       </a>
-                      <a href="#try" className="block px-3 py-2.5 text-[#70877a] hover:text-[#087f5b] dark:text-[var(--kj-muted)] dark:hover:text-[#9cebc3]">
+                      <a href="#try" className="block px-3 py-2.5 text-[var(--kj-muted)] hover:text-[var(--kj-green)]">
                         {t.academy.tryItYourself}
                       </a>
                     </div>
                   </div>
 
-                  {/* Mint Progress Card */}
-                  <div className="rounded-[16px] border border-[#cde8d8] bg-[#e5f5eb] p-5 dark:border-[#214538] dark:bg-[#153428]">
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+                  {/* Theme-Aware Progress Card */}
+                  <div className="rounded-[16px] border border-[var(--kj-border-strong)] bg-[var(--kj-soft)] p-5">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                       {copy.keepItUp}
                     </p>
                     <h2 className="mt-2 text-[17px] font-extrabold text-[var(--kj-ink)]">
                       {copy.yourProgress}
                     </h2>
-                    <p className="mt-2 text-xs leading-relaxed text-[#678274] dark:text-[#c2dbd0]">
+                    <p className="mt-2 text-xs leading-relaxed text-[var(--kj-muted-2)]">
                       {copy.yourProgressDesc}
                     </p>
-                    <div className="my-5 h-[7px] w-full overflow-hidden rounded-full bg-[#c9e5d3] dark:bg-[#214d3c]">
+                    <div className="my-5 h-[7px] w-full overflow-hidden rounded-full bg-[var(--kj-card)]">
                       <span
-                        className="block h-full rounded-full bg-[#10a775] transition-all duration-300"
+                        className="block h-full rounded-full bg-[var(--kj-emerald)] transition-all duration-300"
                         style={{ width: `${trackPercent}%` }}
                       />
                     </div>
-                    <strong className="block text-[11px] font-bold text-[#4b7860] dark:text-[#9cebc3]">
+                    <strong className="block text-[11px] font-bold text-[var(--kj-badge-ink)]">
                       {copy.progressLabel(doneInTrack, trackLessons.length)}
                     </strong>
-                    <span className="mt-2 block text-[11px] text-[#678274] dark:text-[#98b4a6] tabular-nums">
+                    <span className="mt-2 block text-[11px] text-[var(--kj-muted)] tabular-nums">
                       {copy.overallProgress} {overallPercent}% ({totalCompleted}/{lessons.length})
                     </span>
 
                     <button
                       type="button"
                       onClick={() => openLessonInEditor(currentLesson)}
-                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-white px-3.5 py-2.5 text-xs font-bold text-[#087f5b] border border-[#c6e2d0] hover:bg-[#f5fbf7] dark:border-[#274b3d] dark:bg-[#11261e] dark:text-[#9cebc3] cursor-pointer"
+                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[10px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] px-3.5 py-2.5 text-xs font-bold text-[var(--kj-green)] hover:bg-[var(--kj-elevated)] cursor-pointer"
                     >
                       <Code2 className="h-3.5 w-3.5" />
                       <span>{t.academy.openInEditor}</span>
@@ -1381,7 +1381,7 @@ export const AcademyView: React.FC = () => {
                 </aside>
               </div>
 
-              {/* Bottom Continue Learning Card matching academy.css .continue & .next-card */}
+              {/* Bottom Continue Learning Card */}
               {(nextLesson || (currentLessonModule && effectivePracticeConfig.enabled)) && (
                 <section className="mt-14 max-w-[1014px] text-start">
                   <h2 className="text-[23px] font-extrabold tracking-tight text-[var(--kj-ink)]">
@@ -1397,7 +1397,7 @@ export const AcademyView: React.FC = () => {
                         ✦
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+                        <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                           {copy.upNextPractice}
                         </p>
                         <h3 className="mt-2 text-lg font-extrabold text-[var(--kj-ink)]">
@@ -1415,7 +1415,7 @@ export const AcademyView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleOpenModuleAssessment(currentLessonModule)}
-                        className="inline-flex items-center gap-2 rounded-[10px] bg-[#087f5b] px-5 py-3 text-sm font-bold text-white hover:bg-[#056949] cursor-pointer"
+                        className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--kj-green)] px-5 py-3 text-sm font-bold text-[var(--kj-btn-primary-ink)] hover:bg-[var(--kj-accent-hover)] cursor-pointer"
                       >
                         <span>{copy.startPracticeBtn}</span>
                         <ArrowUpRight className="h-4 w-4" />
@@ -1427,7 +1427,7 @@ export const AcademyView: React.FC = () => {
                         {String(nextLesson.order).padStart(2, '0')}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[#087f5b] dark:text-[#7ce3b3]">
+                        <p className="text-[11px] font-extrabold uppercase tracking-[0.06em] text-[var(--kj-green)]">
                           {copy.upNextLesson}
                         </p>
                         <h3 className="mt-2 text-lg font-extrabold text-[var(--kj-ink)]">
@@ -1443,7 +1443,7 @@ export const AcademyView: React.FC = () => {
                           if (nextModForNextLesson) handleSelectLessonFromNav(nextLesson.id, nextModForNextLesson);
                           else setActiveLessonId(nextLesson.id);
                         }}
-                        className="inline-flex items-center gap-2 rounded-[10px] bg-[#087f5b] px-5 py-3 text-sm font-bold text-white hover:bg-[#056949] cursor-pointer"
+                        className="inline-flex items-center gap-2 rounded-[10px] bg-[var(--kj-green)] px-5 py-3 text-sm font-bold text-[var(--kj-btn-primary-ink)] hover:bg-[var(--kj-accent-hover)] cursor-pointer"
                       >
                         <span>{copy.continueBtn}</span>
                         <ArrowUpRight className="h-4 w-4" />

@@ -12,6 +12,7 @@ import { AiToolsHubView } from './components/AiToolsHubView';
 import { PromptsHubView } from './components/PromptsHubView';
 import { AiChatView } from './components/AiChatView';
 import { DiscoveryView } from './components/DiscoveryView';
+import { AppearanceView } from './components/AppearanceView';
 import { ProPurchaseView } from './components/ProPurchaseView';
 import { DashboardView } from './components/DashboardView';
 import { AdminView } from './components/AdminView';
@@ -32,6 +33,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
     ai: 'چاتی AI',
     practice: 'ڕاهێنان',
     discover: 'سەرچاوەکان',
+    appearance: 'ڕووکار و ڕەنگ',
     pro: 'پلانی Pro',
     dashboard: 'داشبۆرد',
     admin: 'ئەدمین',
@@ -46,6 +48,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
     ai: 'چاتا AI',
     practice: 'ڕاهێنان',
     discover: 'ژێدەر',
+    appearance: 'ڕووکار و ڕەنگ',
     pro: 'پلانا Pro',
     dashboard: 'داشبۆرد',
     admin: 'ڕێڤەبەر',
@@ -60,6 +63,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
     ai: 'مساعد AI',
     practice: 'التمارين',
     discover: 'الموارد',
+    appearance: 'المظهر والألوان',
     pro: 'خطة Pro',
     dashboard: 'لوحتي',
     admin: 'الإدارة',
@@ -74,6 +78,7 @@ const TAB_NAMES_LOC: Record<Locale, Record<ActiveView, string>> = {
     ai: 'AI Tutor',
     practice: 'Practice',
     discover: 'Resources',
+    appearance: 'Appearance',
     pro: 'Pro Plan',
     dashboard: 'Dashboard',
     admin: 'Admin',
@@ -112,6 +117,35 @@ const QuickSearchDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ o
         });
       });
       return out;
+    }
+
+    if (
+      q.includes('theme') ||
+      q.includes('appear') ||
+      q.includes('color') ||
+      q.includes('ڕووکار') ||
+      q.includes('ڕەنگ') ||
+      q.includes('المظهر') ||
+      q.includes('dark') ||
+      q.includes('light') ||
+      q.includes('forest') ||
+      q.includes('ocean') ||
+      q.includes('sunset') ||
+      q.includes('lavender')
+    ) {
+      out.push({
+        label: TAB_NAMES_LOC[locale].appearance,
+        sub: pickLoc(locale, {
+          ckb: '٦ ڕووکاری جیاواز',
+          kmr: '٦ شێوازێن جودا',
+          ar: '٦ مظاهر وألوان',
+          en: '6 Visual Themes',
+        }),
+        action: () => {
+          setActiveView('appearance');
+          onClose();
+        },
+      });
     }
 
     courses.forEach((c) => {
@@ -376,6 +410,7 @@ const KarejanShell: React.FC = () => {
             {activeView === 'ai' && <AiChatView />}
             {activeView === 'practice' && <AcademyView />}
             {activeView === 'discover' && <DiscoveryView />}
+            {activeView === 'appearance' && <AppearanceView />}
             {activeView === 'pro' && <ProPurchaseView />}
             {activeView === 'dashboard' && <DashboardView />}
             {activeView === 'admin' && <AdminView />}
@@ -383,8 +418,8 @@ const KarejanShell: React.FC = () => {
         )}
       </main>
 
-      {/* Deep Forest Footer matching CodeNest layout while preserving CREATOR attribution */}
-      <footer className="border-t border-[#1c4236] bg-[#102d25] px-4 pb-9 pt-14 text-[#d7eadf] sm:px-6">
+      {/* Theme-aware Deep Surface Footer */}
+      <footer className="border-t border-[var(--kj-footer-border)] bg-[var(--kj-footer-bg)] px-4 pb-9 pt-14 text-[var(--kj-footer-ink)] sm:px-6 transition-colors duration-250">
         <div className="mx-auto max-w-[1200px]">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-[2.2fr_1fr_1fr_1fr]">
             <div className="col-span-2 md:col-span-1 text-start">
@@ -395,10 +430,10 @@ const KarejanShell: React.FC = () => {
               >
                 <span className="kj-codenest-mark" dir="ltr">&lt;/&gt;</span>
                 <span dir="ltr" className="text-2xl font-extrabold tracking-[-0.04em] text-white">
-                  kare<strong className="font-extrabold text-[#9cebc3]">jan</strong>
+                  kare<strong className="font-extrabold text-[var(--kj-footer-accent)]">jan</strong>
                 </span>
               </button>
-              <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#b2cfc0]">
+              <p className="mt-3 max-w-xs text-sm leading-relaxed text-[var(--kj-footer-muted)]">
                 {pickLoc(locale, {
                   ckb: 'فێربە، ڕاهێنان بکە، و پڕۆژەی ڕاستەقینە بنیات بنێ بە ٤ زمان.',
                   kmr: 'فێرببە، ڕاهێنان بکە، و پڕۆژەیێن ڕاستەقینە ئاڤا بکە ب ٤ زمانان.',
@@ -406,64 +441,67 @@ const KarejanShell: React.FC = () => {
                   en: 'Learn, practice, and build something great in 4 languages.',
                 })}
               </p>
-              <span className="mt-4 inline-flex items-center rounded-[8px] border border-[#2a5948] bg-[#17372d] px-3 py-1 text-[11px] font-bold text-[#9cebc3]">
+              <span className="mt-4 inline-flex items-center rounded-[8px] border border-[var(--kj-footer-border)] bg-[var(--kj-ribbon-bg)] px-3 py-1 text-[11px] font-bold text-[var(--kj-footer-accent)]">
                 CREATOR: AZHAN HAMMZA
               </span>
             </div>
 
             <div className="text-start">
-              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#80cba3]">
+              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[var(--kj-footer-accent)]">
                 {pickLoc(locale, { ckb: 'فێربوون', kmr: 'فێربوون', ar: 'تعلّم', en: 'LEARN' })}
               </h3>
               <div className="space-y-2.5 text-sm">
-                <button type="button" onClick={() => setActiveView('academy')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('academy')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].academy}
                 </button>
-                <button type="button" onClick={() => setActiveView('challenge')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('challenge')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].challenge}
                 </button>
-                <button type="button" onClick={() => setActiveView('practice')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('practice')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].practice}
                 </button>
-                <button type="button" onClick={() => setActiveView('discover')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('discover')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].discover}
                 </button>
               </div>
             </div>
 
             <div className="text-start">
-              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#80cba3]">
+              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[var(--kj-footer-accent)]">
                 {pickLoc(locale, { ckb: 'ئامرازەکان', kmr: 'ئامراز', ar: 'الأدوات', en: 'TOOLS' })}
               </h3>
               <div className="space-y-2.5 text-sm">
-                <button type="button" onClick={() => setActiveView('editor')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('editor')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].editor}
                 </button>
-                <button type="button" onClick={() => setActiveView('ai')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('ai')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].ai}
                 </button>
-                <button type="button" onClick={() => setActiveView('aitools')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('aitools')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].aitools}
                 </button>
-                <button type="button" onClick={() => setActiveView('prompts')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('prompts')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].prompts}
                 </button>
               </div>
             </div>
 
             <div className="text-start">
-              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#80cba3]">
+              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[var(--kj-footer-accent)]">
                 {pickLoc(locale, { ckb: 'پلاتفۆرم', kmr: 'پلاتفۆرم', ar: 'المنصة', en: 'PLATFORM' })}
               </h3>
               <div className="space-y-2.5 text-sm">
-                <button type="button" onClick={() => setActiveView('pro')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('appearance')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
+                  {TAB_NAMES_LOC[locale].appearance}
+                </button>
+                <button type="button" onClick={() => setActiveView('pro')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].pro}
                 </button>
-                <button type="button" onClick={() => setActiveView('dashboard')} className="block hover:text-[#9cebc3] cursor-pointer">
+                <button type="button" onClick={() => setActiveView('dashboard')} className="block hover:text-[var(--kj-footer-accent)] cursor-pointer">
                   {TAB_NAMES_LOC[locale].dashboard}
                 </button>
                 {isStaff && (
-                  <button type="button" onClick={() => setActiveView('admin')} className="block text-[#9cebc3] hover:underline cursor-pointer">
+                  <button type="button" onClick={() => setActiveView('admin')} className="block text-[var(--kj-footer-accent)] hover:underline cursor-pointer">
                     {TAB_NAMES_LOC[locale].admin}
                   </button>
                 )}
@@ -471,7 +509,7 @@ const KarejanShell: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs text-[#8aab99]">
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs text-[var(--kj-footer-muted)]">
             <span>© 2026 karejan · CREATOR: AZHAN HAMMZA</span>
             <div className="flex flex-wrap items-center gap-3">
               {(['ckb', 'kmr', 'ar', 'en'] as Locale[]).map((code) => (
@@ -480,7 +518,7 @@ const KarejanShell: React.FC = () => {
                   type="button"
                   onClick={() => setLocale(code)}
                   className={`cursor-pointer transition-colors ${
-                    locale === code ? 'font-bold text-[#9cebc3]' : 'hover:text-white'
+                    locale === code ? 'font-bold text-[var(--kj-footer-accent)]' : 'hover:text-white'
                   }`}
                 >
                   {code === 'ckb' ? 'سۆرانی' : code === 'kmr' ? 'بادینی' : code === 'ar' ? 'العربية' : 'English'}

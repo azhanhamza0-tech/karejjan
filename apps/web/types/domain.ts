@@ -1,5 +1,5 @@
 export type Locale = 'ckb' | 'kmr' | 'ar' | 'en';
-export type ThemeMode = 'dark' | 'light';
+export type ThemeMode = 'light' | 'dark' | 'forest' | 'ocean' | 'sunset' | 'lavender';
 export type TrackId =
   | 'html'
   | 'css'
@@ -25,6 +25,7 @@ export type ActiveView =
   | 'aitools'
   | 'prompts'
   | 'discover'
+  | 'appearance'
   | 'pro'
   | 'dashboard'
   | 'admin';

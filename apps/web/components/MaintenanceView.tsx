@@ -18,6 +18,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { APPEARANCE_THEMES } from '../data/themesCatalog';
 import { LOCALE_META, pickLoc } from '../i18n/translations';
 import type { ActiveView, Locale } from '../types/domain';
 
@@ -69,6 +70,10 @@ const VIEW_METADATA: Record<
   discover: {
     names: { ckb: 'سەرچاوە و پڕۆژەکان', kmr: 'ژێدەر و پڕۆژە', ar: 'الاستكشاف والمشاريع', en: 'Discovery Hub' },
     icon: Compass,
+  },
+  appearance: {
+    names: { ckb: 'ڕووکار و ڕەنگ', kmr: 'ڕووکار و ڕەنگ', ar: 'المظهر والألوان', en: 'Appearance' },
+    icon: Sparkles,
   },
   pro: {
     names: { ckb: 'پلانی Pro', kmr: 'پلانا Pro', ar: 'خطة Pro', en: 'Pro Subscription' },
@@ -209,7 +214,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
   message,
   estimatedReturn,
 }) => {
-  const { locale, setLocale, setActiveView, systemSettings, firebaseUser, staffRole, setAuthModalOpen } = useApp();
+  const { locale, setLocale, theme, setTheme, setActiveView, systemSettings, firebaseUser, staffRole, setAuthModalOpen } = useApp();
   const copy = pickLoc(locale, MAINT_COPY);
   const currentMeta = VIEW_METADATA[view] || VIEW_METADATA.academy;
   const sectionName = pickLoc(locale, currentMeta.names);
@@ -239,98 +244,98 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
           >
             <div className="relative flex h-[480px] w-[540px] shrink-0 items-center justify-center scale-[0.7] sm:scale-[0.9] lg:scale-100">
               {/* Outer Orbit */}
-              <div className="absolute h-[466px] w-[466px] rounded-full border border-[#dcefe2] dark:border-[#1e3d31]" />
+              <div className="absolute h-[466px] w-[466px] rounded-full border border-[var(--kj-border)]" />
               {/* Middle Orbit */}
-              <div className="absolute h-[376px] w-[376px] rounded-full border border-[#cde9d7] dark:border-[#244a3b]" />
+              <div className="absolute h-[376px] w-[376px] rounded-full border border-[var(--kj-border-strong)]" />
               {/* Soft Halo */}
-              <div className="relative flex h-[296px] w-[296px] items-center justify-center rounded-full bg-[#e7f7ed] dark:bg-[#143025]">
-                <div className="h-[236px] w-[236px] rounded-full bg-[#d2f0de] dark:bg-[#193c2e]" />
+              <div className="relative flex h-[296px] w-[296px] items-center justify-center rounded-full bg-[var(--kj-soft)]">
+                <div className="h-[236px] w-[236px] rounded-full bg-[var(--kj-elevated)]" />
               </div>
 
-              {/* Twinkle Sparks & Emerald Orb */}
-              <span className="kj-maint-twinkle absolute left-[78px] top-[125px] text-2xl text-[#28b981] select-none">
+              {/* Twinkle Sparks & Theme Orb */}
+              <span className="kj-maint-twinkle absolute left-[78px] top-[125px] text-2xl text-[var(--kj-emerald)] select-none">
                 ✦
               </span>
-              <span className="kj-maint-twinkle-delay absolute bottom-[125px] right-[78px] text-2xl text-[#28b981] select-none">
+              <span className="kj-maint-twinkle-delay absolute bottom-[125px] right-[78px] text-2xl text-[var(--kj-emerald)] select-none">
                 ✧
               </span>
-              <div className="absolute right-[115px] top-[95px] h-3 w-3 rounded-full bg-[#77d7a6] dark:bg-[#36d399]" />
+              <div className="absolute right-[115px] top-[95px] h-3 w-3 rounded-full bg-[var(--kj-green)]" />
 
               {/* Central Floating Window Card */}
-              <div className="kj-maint-float relative z-10 h-[248px] w-[370px] overflow-hidden rounded-[18px] border border-[#dcebe1] bg-[var(--kj-card)] shadow-[0_18px_38px_rgba(12,84,48,0.16)] dark:border-[#25493b]">
-                <div className="flex h-[51px] items-center gap-12 bg-[#eaf4ed] px-[18px] text-[10px] text-[#9ebcaf] dark:bg-[#162f26] dark:text-[#86a697]">
+              <div className="kj-maint-float relative z-10 h-[248px] w-[370px] overflow-hidden rounded-[18px] border border-[var(--kj-border)] bg-[var(--kj-card)] shadow-[0_18px_38px_rgba(16,41,28,0.16)]">
+                <div className="flex h-[51px] items-center gap-12 bg-[var(--kj-soft)] px-[18px] text-[10px] text-[var(--kj-muted)]">
                   <span className="tracking-widest">● ● ●</span>
-                  <span className="rounded-full bg-[#f9fcfa] px-5 py-1.5 font-mono text-[11px] font-semibold text-[#8fa79a] dark:bg-[#11251d] dark:text-[#9cebc3]">
+                  <span className="rounded-full bg-[var(--kj-card)] px-5 py-1.5 font-mono text-[11px] font-semibold text-[var(--kj-muted-2)]">
                     karejan / update
                   </span>
                 </div>
 
                 <div className="px-6 text-center">
-                  <div className="mt-6 font-mono text-[38px] font-extrabold leading-none tracking-[-3px] text-[#087f5b] dark:text-[#7ce3b3]">
+                  <div className="mt-6 font-mono text-[38px] font-extrabold leading-none tracking-[-3px] text-[var(--kj-green)]">
                     &lt;/&gt;
                   </div>
-                  <strong className="mt-3.5 block text-[13px] font-bold text-[#2b5440] dark:text-[#edf6f1]">
+                  <strong className="mt-3.5 block text-[13px] font-bold text-[var(--kj-ink)]">
                     {copy.windowTitle}
                   </strong>
-                  <p className="mt-1.5 mb-5 text-xs text-[#86a192] dark:text-[#98b4a6]">
+                  <p className="mt-1.5 mb-5 text-xs text-[var(--kj-muted)]">
                     {copy.windowSub}
                   </p>
-                  <div className="kj-maint-loading-bar mx-auto h-[7px] w-[242px] overflow-hidden rounded-full bg-[#e1f0e5] dark:bg-[#1a3a2d]" />
+                  <div className="kj-maint-loading-bar mx-auto h-[7px] w-[242px] overflow-hidden rounded-full bg-[var(--kj-soft)]" />
                 </div>
               </div>
 
-              {/* Floating Dark Forest Badge: UPDATING */}
-              <div className="kj-maint-float-reverse absolute right-[48px] top-[72px] z-20 flex items-center gap-3 rounded-[14px] bg-[#17372b] px-4 py-3.5 text-[11px] font-extrabold tracking-[0.03em] text-white shadow-[0_8px_16px_rgba(12,84,48,0.16)] dark:border dark:border-[#2a5948]">
-                <span className="text-base text-[#a3ebc0]">✦</span>
+              {/* Floating Deep Surface Badge: UPDATING */}
+              <div className="kj-maint-float-reverse absolute right-[48px] top-[72px] z-20 flex items-center gap-3 rounded-[14px] border border-[var(--kj-band-border)] bg-[var(--kj-band-bg)] px-4 py-3.5 text-[11px] font-extrabold tracking-[0.03em] text-white shadow-[0_8px_16px_rgba(16,41,28,0.18)]">
+                <span className="text-base text-[var(--kj-band-accent)]">✦</span>
                 <span>{copy.badgeUpdating}</span>
               </div>
 
-              {/* Floating Light Surface Badge: IN PROGRESS */}
-              <div className="kj-maint-float absolute bottom-[85px] left-[28px] z-20 flex items-center gap-3 rounded-[14px] border border-[#e1ece4] bg-[var(--kj-card)] px-4 py-3.5 text-[11px] font-extrabold tracking-[0.03em] text-[#638572] shadow-[0_8px_16px_rgba(12,84,48,0.14)] dark:border-[#25493b] dark:text-[#c2dbd0]">
-                <span className="font-mono text-base text-[#087f5b] dark:text-[#7ce3b3]">{'{ }'}</span>
+              {/* Floating Surface Badge: IN PROGRESS */}
+              <div className="kj-maint-float absolute bottom-[85px] left-[28px] z-20 flex items-center gap-3 rounded-[14px] border border-[var(--kj-border)] bg-[var(--kj-card)] px-4 py-3.5 text-[11px] font-extrabold tracking-[0.03em] text-[var(--kj-muted-2)] shadow-[0_8px_16px_rgba(16,41,28,0.14)]">
+                <span className="font-mono text-base text-[var(--kj-green)]">{'{ }'}</span>
                 <span>{copy.badgeInProgress}</span>
               </div>
             </div>
           </div>
 
-          {/* Copy, Status, Notice, Language Switcher & Actions Column */}
+          {/* Copy, Status, Notice, Language & Theme Switcher Column */}
           <div className="order-2 lg:order-1 text-center lg:text-start">
-            <div className="inline-flex items-center gap-2.5 rounded-full bg-[#e4f4e9] px-4 py-2 text-[10.5px] font-extrabold uppercase tracking-[0.05em] text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]">
-              <span className="kj-maint-pulse h-2 w-2 rounded-full bg-[#0da473]" />
+            <div className="inline-flex items-center gap-2.5 rounded-full bg-[var(--kj-badge-bg)] px-4 py-2 text-[10.5px] font-extrabold uppercase tracking-[0.05em] text-[var(--kj-badge-ink)]">
+              <span className="kj-maint-pulse h-2 w-2 rounded-full bg-[var(--kj-emerald)]" />
               <span>{isGlobal ? copy.statusGlobal : `${copy.statusSection} · ${sectionName}`}</span>
             </div>
 
             <h1 className="my-7 text-[36px] font-extrabold leading-[1.18] tracking-[-0.04em] text-[var(--kj-ink)] sm:text-[48px] lg:text-[54px]">
               {isGlobal ? copy.headlineLine1 : sectionName}
               <br />
-              <span className="text-[#087f5b] dark:text-[#7ce3b3]">
+              <span className="text-[var(--kj-green)]">
                 {isGlobal ? copy.headlineLine2 : copy.sectionHeadline2}
               </span>
             </h1>
 
-            <p className="mx-auto max-w-lg text-[15px] leading-[1.8] text-[#678174] sm:text-base lg:mx-0 dark:text-[#c2dbd0]">
+            <p className="mx-auto max-w-lg text-[15px] leading-[1.8] text-[var(--kj-muted-2)] sm:text-base lg:mx-0">
               {displayMessage}
             </p>
 
             {/* Status & ETA Card (.notice) */}
             <div
               role="status"
-              className="mx-auto mt-8 flex max-w-[530px] items-center gap-4 rounded-[14px] border border-[#e1ece4] bg-[var(--kj-card)] p-4.5 text-start shadow-xs lg:mx-0 dark:border-[#214538]"
+              className="mx-auto mt-8 flex max-w-[530px] items-center gap-4 rounded-[14px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-4.5 text-start shadow-xs lg:mx-0"
             >
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[13px] bg-[#e5f5eb] text-xl text-[#087f5b] dark:bg-[#173a2d] dark:text-[#7ce3b3]">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[13px] bg-[var(--kj-badge-bg)] text-xl text-[var(--kj-green)]">
                 ✦
               </span>
               <div className="min-w-0 flex-1">
                 <strong className="block text-sm font-bold text-[var(--kj-ink)]">
                   {copy.makingBetterTitle}
                 </strong>
-                <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-[#789084] dark:text-[var(--kj-muted)]">
-                  <Clock className="h-3.5 w-3.5 text-[#087f5b] dark:text-[#7ce3b3] shrink-0" />
+                <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-[var(--kj-muted)]">
+                  <Clock className="h-3.5 w-3.5 text-[var(--kj-green)] shrink-0" />
                   <span className="font-semibold text-[var(--kj-ink)]">{copy.estimatedLabel}</span>{' '}
                   <span>{displayReturn}</span>
                 </p>
               </div>
-              <span className="kj-maint-pulse text-lg tracking-widest text-[#0ba373] shrink-0" aria-hidden="true">
+              <span className="kj-maint-pulse text-lg tracking-widest text-[var(--kj-emerald)] shrink-0" aria-hidden="true">
                 •••
               </span>
             </div>
@@ -338,7 +343,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
             {/* All 4 Website Language Dictionaries Switcher */}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--kj-muted)] me-1">
-                <Globe className="h-3.5 w-3.5 text-[#087f5b] dark:text-[#7ce3b3]" />
+                <Globe className="h-3.5 w-3.5 text-[var(--kj-green)]" />
                 <span>{copy.languagesLabel}</span>
               </span>
               {LOCALES.map((code) => (
@@ -348,13 +353,39 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                   onClick={() => setLocale(code)}
                   className={`rounded-full border px-3 py-1 text-xs font-bold transition-colors cursor-pointer ${
                     locale === code
-                      ? 'border-[#087f5b] bg-[#087f5b] text-white'
-                      : 'border-[var(--kj-border)] bg-[var(--kj-card)] text-[var(--kj-ink)] hover:border-[#087f5b]'
+                      ? 'border-[var(--kj-green)] bg-[var(--kj-green)] text-[var(--kj-btn-primary-ink)]'
+                      : 'border-[var(--kj-border)] bg-[var(--kj-card)] text-[var(--kj-ink)] hover:border-[var(--kj-green)]'
                   }`}
                 >
                   {LOCALE_META[code].nativeLabel}
                 </button>
               ))}
+            </div>
+
+            {/* Quick 6-Theme Swatch Switcher */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+              {APPEARANCE_THEMES.map((item) => {
+                const active = theme === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setTheme(item.id)}
+                    aria-pressed={active}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors cursor-pointer ${
+                      active
+                        ? 'border-[var(--kj-green)] bg-[var(--kj-soft)] text-[var(--kj-ink)]'
+                        : 'border-[var(--kj-border)] bg-[var(--kj-card)] text-[var(--kj-muted)] hover:text-[var(--kj-ink)]'
+                    }`}
+                  >
+                    <span
+                      className="h-2.5 w-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: item.accent }}
+                    />
+                    <span>{pickLoc(locale, item.names).split(' (')[0]}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Primary & Secondary Action Buttons */}
@@ -363,7 +394,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveView('home')}
-                  className="inline-flex min-h-[48px] items-center gap-2 rounded-[10px] bg-[#087f5b] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#056b4c] cursor-pointer"
+                  className="inline-flex min-h-[48px] items-center gap-2 rounded-[10px] bg-[var(--kj-green)] px-6 py-3 text-sm font-bold text-[var(--kj-btn-primary-ink)] transition-colors hover:bg-[var(--kj-accent-hover)] cursor-pointer"
                 >
                   <span>{copy.backHome}</span>
                   <ArrowUpRight className="h-4 w-4" />
@@ -372,7 +403,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 <button
                   type="button"
                   onClick={() => window.location.reload()}
-                  className="inline-flex min-h-[48px] items-center gap-2 rounded-[10px] bg-[#087f5b] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#056b4c] cursor-pointer"
+                  className="inline-flex min-h-[48px] items-center gap-2 rounded-[10px] bg-[var(--kj-green)] px-6 py-3 text-sm font-bold text-[var(--kj-btn-primary-ink)] transition-colors hover:bg-[var(--kj-accent-hover)] cursor-pointer"
                 >
                   <RefreshCw className="h-4 w-4" />
                   <span>{copy.reloadBtn}</span>
@@ -383,7 +414,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveView('admin')}
-                  className="inline-flex min-h-[48px] items-center gap-2 rounded-[10px] border border-[#cde1d3] bg-[var(--kj-card)] px-6 py-3 text-sm font-bold text-[#32604a] transition-colors hover:bg-[#e9f5ec] dark:border-[#284f40] dark:text-[#9cebc3] dark:hover:bg-[#162f26] cursor-pointer"
+                  className="inline-flex min-h-[48px] items-center gap-2 rounded-[10px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] px-6 py-3 text-sm font-bold text-[var(--kj-green)] transition-colors hover:bg-[var(--kj-soft)] cursor-pointer"
                 >
                   <ShieldAlert className="h-4 w-4" />
                   <span>{copy.adminPanel}</span>
@@ -392,7 +423,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setAuthModalOpen(true)}
-                  className="inline-flex min-h-[48px] items-center gap-2 rounded-[10px] border border-[#cde1d3] bg-[var(--kj-card)] px-6 py-3 text-sm font-bold text-[#32604a] transition-colors hover:bg-[#e9f5ec] dark:border-[#284f40] dark:text-[#9cebc3] dark:hover:bg-[#162f26] cursor-pointer"
+                  className="inline-flex min-h-[48px] items-center gap-2 rounded-[10px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] px-6 py-3 text-sm font-bold text-[var(--kj-green)] transition-colors hover:bg-[var(--kj-soft)] cursor-pointer"
                 >
                   <span>{copy.staffSignIn}</span>
                 </button>
@@ -403,7 +434,7 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
 
         {/* Unlocked Platform Sections Grid during Partial Maintenance */}
         {!isGlobal && availableViews.length > 0 && (
-          <section className="mt-14 rounded-[18px] border border-[#e1ece4] bg-[var(--kj-card)] p-6 sm:p-8 text-start dark:border-[#214538]">
+          <section className="mt-14 rounded-[18px] border border-[var(--kj-border)] bg-[var(--kj-card)] p-6 sm:p-8 text-start">
             <h2 className="text-base font-extrabold text-[var(--kj-ink)]">
               {copy.availableTitle}
             </h2>
@@ -420,15 +451,15 @@ export const MaintenanceView: React.FC<MaintenanceViewProps> = ({
                     key={altView}
                     type="button"
                     onClick={() => setActiveView(altView)}
-                    className="group flex items-center justify-between gap-3 rounded-[12px] border border-[var(--kj-border)] bg-[var(--kj-soft)] px-4 py-3 text-start text-xs font-bold text-[var(--kj-ink)] transition-colors hover:border-[#087f5b] hover:bg-[#e9f7ee] dark:hover:bg-[#173a2d] cursor-pointer"
+                    className="group flex items-center justify-between gap-3 rounded-[12px] border border-[var(--kj-border)] bg-[var(--kj-soft)] px-4 py-3 text-start text-xs font-bold text-[var(--kj-ink)] transition-colors hover:border-[var(--kj-green)] hover:bg-[var(--kj-elevated)] cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5 min-w-0">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#e4f6ec] text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[var(--kj-card)] text-[var(--kj-green)]">
                         <Icon className="h-4 w-4" />
                       </span>
                       <span className="truncate">{pickLoc(locale, meta.names)}</span>
                     </span>
-                    <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--kj-muted)] group-hover:text-[#087f5b] dark:group-hover:text-[#7ce3b3]" />
+                    <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--kj-muted)] group-hover:text-[var(--kj-green)]" />
                   </button>
                 );
               })}

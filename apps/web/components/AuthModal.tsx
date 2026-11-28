@@ -265,21 +265,21 @@ export const AuthModal: React.FC = () => {
       }}
     >
       <div className="relative grid w-full max-w-[980px] overflow-hidden rounded-[12px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] shadow-[0_32px_100px_-24px_rgba(2,6,23,0.8)] lg:grid-cols-[0.9fr_1.1fr]">
-        <section className="relative hidden min-h-[660px] overflow-hidden bg-[#17272c] p-10 text-white lg:flex lg:flex-col lg:justify-between">
-          <div className="absolute -start-24 -top-24 h-72 w-72 rounded-full bg-[#059669]/25 blur-3xl" />
-          <div className="absolute -bottom-32 -end-20 h-80 w-80 rounded-full bg-[#36CFC9]/20 blur-3xl" />
+        <section className="relative hidden min-h-[660px] overflow-hidden bg-[var(--kj-band-bg)] p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute -start-24 -top-24 h-72 w-72 rounded-full opacity-25 blur-3xl" style={{ background: 'var(--kj-green)' }} />
+          <div className="absolute -bottom-32 -end-20 h-80 w-80 rounded-full opacity-20 blur-3xl" style={{ background: 'var(--kj-band-accent)' }} />
           <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,.16)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.16)_1px,transparent_1px)] [background-size:32px_32px]" />
 
           <div className="relative z-10">
             <div className="mb-10 flex items-center gap-3">
               <div className="kj-codenest-mark h-11 w-11 text-sm">&lt;/&gt;</div>
               <div>
-                <p className="text-xl font-extrabold tracking-tight">kare<strong className="text-[#9cebc3]">jan</strong></p>
-                <p className="text-[11px] font-medium text-[#9cebc3]">CODING ACADEMY</p>
+                <p className="text-xl font-extrabold tracking-tight">kare<strong className="text-[var(--kj-band-accent)]">jan</strong></p>
+                <p className="text-[11px] font-medium text-[var(--kj-band-accent)]">CODING ACADEMY</p>
               </div>
             </div>
 
-            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#36d399]/30 bg-[#203b37] px-3 py-1.5 text-xs font-semibold text-[#9af0c7]">
+            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[var(--kj-band-border)] bg-[var(--kj-band-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--kj-band-accent)]">
               <Sparkles className="h-3.5 w-3.5" />
               {copy.eyebrow}
             </div>
@@ -291,14 +291,14 @@ export const AuthModal: React.FC = () => {
           <div className="relative z-10 space-y-4">
             {[copy.benefitOne, copy.benefitTwo, copy.benefitThree].map((benefit) => (
               <div key={benefit} className="flex items-center gap-3 text-sm font-medium text-slate-100">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#203b37] text-[#9af0c7]">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--kj-band-soft)] text-[var(--kj-band-accent)]">
                   <CheckCircle2 className="h-4 w-4" />
                 </span>
                 <span>{benefit}</span>
               </div>
             ))}
-            <div className="mt-7 flex items-center gap-2 border-t border-white/10 pt-6 text-xs text-[#bdc8d6]">
-              <ShieldCheck className="h-4 w-4 text-[#72e2b5]" />
+            <div className="mt-7 flex items-center gap-2 border-t border-white/10 pt-6 text-xs text-[var(--kj-band-muted)]">
+              <ShieldCheck className="h-4 w-4 text-[var(--kj-band-accent)]" />
               {copy.trustNote}
             </div>
           </div>

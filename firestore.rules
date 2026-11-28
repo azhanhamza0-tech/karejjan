@@ -71,7 +71,7 @@ service cloud.firestore {
     }
 
     function isValidTheme(theme) {
-      return theme is string && theme in ['dark', 'light'];
+      return theme is string && theme in ['light', 'dark', 'forest', 'ocean', 'sunset', 'lavender'];
     }
 
     function isValidPlan(plan) {

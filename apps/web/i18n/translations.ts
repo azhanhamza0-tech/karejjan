@@ -41,6 +41,7 @@ export interface UiCopy {
     ai: string;
     practice: string;
     discover: string;
+    appearance?: string;
     pro: string;
     dashboard: string;
     admin: string;
@@ -215,6 +216,7 @@ export const TRANSLATIONS: Record<Locale, UiCopy> = {
       ai: 'karejan AI',
       practice: 'Exercises & Quizzes',
       discover: 'Discover',
+      appearance: 'Appearance',
       pro: 'Pro Plan',
       dashboard: 'Dashboard',
       admin: 'Admin',
@@ -391,6 +393,7 @@ export const TRANSLATIONS: Record<Locale, UiCopy> = {
       ai: 'مساعد karejan',
       practice: 'التمارين والاختبارات',
       discover: 'استكشف',
+      appearance: 'المظهر',
       pro: 'خطة Pro',
       dashboard: 'لوحتي',
       admin: 'الإدارة',
@@ -567,6 +570,7 @@ export const TRANSLATIONS: Record<Locale, UiCopy> = {
       ai: 'karejan AI',
       practice: 'ڕاهێنان و تاقیکردنەوە',
       discover: 'گەڕان',
+      appearance: 'ڕووکار و ڕەنگ',
       pro: 'پلانی Pro',
       dashboard: 'داشبۆرد',
       admin: 'بەڕێوەبردن',
@@ -743,6 +747,7 @@ export const TRANSLATIONS: Record<Locale, UiCopy> = {
       ai: 'karejan AI',
       practice: 'ڕاهێنان و ئەزموون',
       discover: 'ڤەدیتن',
+      appearance: 'ڕووکار و ڕەنگ',
       pro: 'پلانا Pro',
       dashboard: 'داشبۆرد',
       admin: 'ڕێڤەبەری',

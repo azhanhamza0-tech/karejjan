@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Menu,
   X,
-  Sun,
-  Moon,
   Globe,
   Bell,
   LogOut,
@@ -15,9 +13,12 @@ import {
   Compass,
   Shield,
   Crown,
+  Palette,
+  ArrowUpRight,
 } from 'lucide-react';
 import { sendEmailVerification } from 'firebase/auth';
 import { useApp } from '../context/AppContext';
+import { APPEARANCE_THEMES, getThemeDefinition } from '../data/themesCatalog';
 import { LOCALE_META, pickLoc } from '../i18n/translations';
 import type { ActiveView, Locale } from '../types/domain';
 import { Button } from './ui/Primitives';
@@ -53,16 +54,19 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [exploreMenuOpen, setExploreMenuOpen] = useState(false);
   const [verifySent, setVerifySent] = useState(false);
 
   const headerRef = useRef<HTMLDivElement>(null);
+  const activeThemeDef = getThemeDefinition(theme);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setAccountMenuOpen(false);
         setLangMenuOpen(false);
+        setThemeMenuOpen(false);
         setExploreMenuOpen(false);
       }
     };
@@ -80,12 +84,19 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
     { id: 'ai', label: pickLoc(locale, { ckb: 'مامۆستای AI', kmr: 'مامۆستایێ AI', ar: 'المساعد AI', en: 'AI Tutor' }) },
   ];
 
+  const appearanceLabel = pickLoc(locale, {
+    ckb: 'ڕووکار و ڕەنگ',
+    kmr: 'ڕووکار و ڕەنگ',
+    ar: 'المظهر والألوان',
+    en: 'Appearance',
+  });
+
   const exploreItems: { id: ActiveView; label: string; sub: string; icon: React.ReactNode }[] = [
     {
       id: 'aitools',
       label: pickLoc(locale, { ckb: 'ئامرازەکانی AI', kmr: 'ئامرازێن AI', ar: 'أدوات AI', en: 'AI Tools' }),
       sub: 'TOP 50',
-      icon: <Bot className="h-4 w-4 text-[#087f5b] dark:text-[#7ce3b3]" />,
+      icon: <Bot className="h-4 w-4 text-[var(--kj-green)]" />,
     },
     {
       id: 'prompts',
@@ -100,6 +111,12 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
       icon: <Compass className="h-4 w-4 text-sky-500" />,
     },
     {
+      id: 'appearance',
+      label: appearanceLabel,
+      sub: '6',
+      icon: <Palette className="h-4 w-4 text-[var(--kj-green)]" />,
+    },
+    {
       id: 'pro',
       label: t.nav.pro,
       sub: 'PRO',
@@ -108,19 +125,24 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
   ];
 
   const isExploreActive =
-    activeView === 'aitools' || activeView === 'prompts' || activeView === 'discover' || activeView === 'pro';
+    activeView === 'aitools' ||
+    activeView === 'prompts' ||
+    activeView === 'discover' ||
+    activeView === 'appearance' ||
+    activeView === 'pro';
 
   const handleNav = (id: ActiveView) => {
     setActiveView(id);
     setMobileMenuOpen(false);
     setAccountMenuOpen(false);
+    setThemeMenuOpen(false);
     setExploreMenuOpen(false);
   };
 
   return (
-    <div ref={headerRef} className="sticky top-0 z-40 border-b border-[var(--kj-border)] bg-[var(--kj-card)]/95 backdrop-blur">
+    <div ref={headerRef} className="sticky top-0 z-40 border-b border-[var(--kj-border)] bg-[var(--kj-card)]/95 backdrop-blur transition-colors duration-250">
       <header className="mx-auto flex min-h-[72px] max-w-[1280px] items-center justify-between gap-3 px-4 sm:px-6">
-        {/* Zone 1: CodeNest Brand Mark + karejan */}
+        {/* Zone 1: Brand Mark + karejan */}
         <button
           type="button"
           onClick={() => handleNav('home')}
@@ -134,7 +156,7 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
             dir="ltr"
             className="text-[22px] font-extrabold tracking-[-0.04em] text-[var(--kj-ink)]"
           >
-            kare<strong className="font-extrabold text-[#087f5b] dark:text-[#7ce3b3]">jan</strong>
+            kare<strong className="font-extrabold text-[var(--kj-green)]">jan</strong>
           </span>
         </button>
 
@@ -152,8 +174,8 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                 onClick={() => handleNav(item.id)}
                 className={`inline-flex items-center gap-1.5 border-b-2 py-2 text-[14px] font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                   active
-                    ? 'border-[#087f5b] text-[#087f5b] dark:border-[#7ce3b3] dark:text-[#7ce3b3]'
-                    : 'border-transparent text-[var(--kj-ink)]/85 hover:text-[#087f5b] dark:hover:text-[#7ce3b3]'
+                    ? 'border-[var(--kj-green)] text-[var(--kj-green)]'
+                    : 'border-transparent text-[var(--kj-ink)]/85 hover:text-[var(--kj-green)]'
                 }`}
               >
                 <span>{item.label}</span>
@@ -172,19 +194,20 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
             );
           })}
 
-          {/* Explore Dropdown for Secondary Tools */}
+          {/* Explore Dropdown for Secondary Tools & Appearance */}
           <div className="relative">
             <button
               type="button"
               onClick={() => {
                 setExploreMenuOpen((o) => !o);
                 setLangMenuOpen(false);
+                setThemeMenuOpen(false);
                 setAccountMenuOpen(false);
               }}
               className={`inline-flex items-center gap-1 border-b-2 py-2 text-[14px] font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                 isExploreActive
-                  ? 'border-[#087f5b] text-[#087f5b] dark:border-[#7ce3b3] dark:text-[#7ce3b3]'
-                  : 'border-transparent text-[var(--kj-ink)]/85 hover:text-[#087f5b] dark:hover:text-[#7ce3b3]'
+                  ? 'border-[var(--kj-green)] text-[var(--kj-green)]'
+                  : 'border-transparent text-[var(--kj-ink)]/85 hover:text-[var(--kj-green)]'
               }`}
             >
               <span>
@@ -207,7 +230,7 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                     onClick={() => handleNav(sub.id)}
                     className={`flex w-full items-center justify-between gap-2.5 rounded-[10px] px-3 py-2.5 text-start text-xs font-semibold transition-colors cursor-pointer ${
                       activeView === sub.id
-                        ? 'bg-[#e4f2e9] text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]'
+                        ? 'bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
                         : 'text-[var(--kj-ink)] hover:bg-[var(--kj-soft)]'
                     }`}
                   >
@@ -225,14 +248,14 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
           </div>
         </nav>
 
-        {/* Zone 3: Inline Search Pill + Language + Theme + Actions */}
+        {/* Zone 3: Search Pill + Language + 6-Theme Appearance Popover + Actions */}
         <div className="flex items-center gap-2 shrink-0">
           {onOpenSearch && (
             <>
               <button
                 type="button"
                 onClick={onOpenSearch}
-                className="hidden xl:inline-flex h-10 w-[180px] items-center gap-2 rounded-full border border-[var(--kj-border)] bg-[#f5f8f6] px-3.5 text-xs text-[var(--kj-muted)] transition-colors hover:border-[#087f5b] hover:text-[var(--kj-ink)] dark:bg-[#152c24] cursor-pointer"
+                className="hidden xl:inline-flex h-10 w-[180px] items-center gap-2 rounded-full border border-[var(--kj-border)] bg-[var(--kj-paper)] px-3.5 text-xs text-[var(--kj-muted)] transition-colors hover:border-[var(--kj-green)] hover:text-[var(--kj-ink)] cursor-pointer"
                 aria-label={t.common.search}
               >
                 <Search className="h-3.5 w-3.5 shrink-0" />
@@ -250,7 +273,7 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                 onClick={onOpenSearch}
                 title={t.common.search}
                 aria-label={t.common.search}
-                className="flex xl:hidden h-9 w-9 items-center justify-center rounded-full border border-[var(--kj-border)] bg-[var(--kj-soft)] text-[var(--kj-ink)] hover:border-[#087f5b] hover:text-[#087f5b] transition-colors cursor-pointer"
+                className="flex xl:hidden h-9 w-9 items-center justify-center rounded-full border border-[var(--kj-border)] bg-[var(--kj-soft)] text-[var(--kj-ink)] hover:border-[var(--kj-green)] hover:text-[var(--kj-green)] transition-colors cursor-pointer"
               >
                 <Search className="h-4 w-4" />
               </button>
@@ -263,13 +286,14 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
               type="button"
               onClick={() => {
                 setLangMenuOpen((o) => !o);
+                setThemeMenuOpen(false);
                 setExploreMenuOpen(false);
                 setAccountMenuOpen(false);
               }}
               aria-label={t.common.language}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--kj-border)] bg-[var(--kj-soft)] px-2.5 text-xs font-semibold text-[var(--kj-ink)] hover:border-[#087f5b] transition-colors cursor-pointer"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--kj-border)] bg-[var(--kj-soft)] px-2.5 text-xs font-semibold text-[var(--kj-ink)] hover:border-[var(--kj-green)] transition-colors cursor-pointer"
             >
-              <Globe className="h-3.5 w-3.5 text-[#087f5b] dark:text-[#7ce3b3]" />
+              <Globe className="h-3.5 w-3.5 text-[var(--kj-green)]" />
               <span className="hidden sm:inline">{COMPACT_LOCALE_LABEL[locale]}</span>
               <ChevronDown className="h-3 w-3 opacity-70" />
             </button>
@@ -286,7 +310,7 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                     }}
                     className={`flex w-full items-center justify-between rounded-[10px] px-3 py-2 text-start text-xs font-semibold transition-colors cursor-pointer ${
                       locale === code
-                        ? 'bg-[#e4f2e9] text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]'
+                        ? 'bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
                         : 'text-[var(--kj-ink)] hover:bg-[var(--kj-soft)]'
                     }`}
                   >
@@ -298,15 +322,93 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            title={theme === 'dark' ? t.common.lightTheme : t.common.darkTheme}
-            aria-label="Toggle color mode"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--kj-border)] bg-[var(--kj-soft)] text-[var(--kj-ink)] hover:border-[#087f5b] hover:text-[#087f5b] transition-colors cursor-pointer"
-          >
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
+          {/* 6-Theme Appearance Selector Popover */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setThemeMenuOpen((o) => !o);
+                setLangMenuOpen(false);
+                setExploreMenuOpen(false);
+                setAccountMenuOpen(false);
+              }}
+              title={appearanceLabel}
+              aria-label={appearanceLabel}
+              aria-expanded={themeMenuOpen}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--kj-border)] bg-[var(--kj-soft)] px-2.5 text-xs font-semibold text-[var(--kj-ink)] hover:border-[var(--kj-green)] transition-colors cursor-pointer"
+            >
+              <span
+                className="h-3.5 w-3.5 rounded-full border border-white/80 shadow-xs shrink-0"
+                style={{ backgroundColor: activeThemeDef.accent }}
+              />
+              <span className="hidden md:inline max-w-[78px] truncate">
+                {pickLoc(locale, activeThemeDef.names).split(' (')[0]}
+              </span>
+              <ChevronDown className={`h-3 w-3 opacity-70 transition-transform ${themeMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {themeMenuOpen && (
+              <div
+                role="radiogroup"
+                aria-label={appearanceLabel}
+                className="absolute end-0 mt-2 w-60 rounded-[14px] border border-[var(--kj-border-strong)] bg-[var(--kj-card)] p-1.5 shadow-xl"
+              >
+                <div className="flex items-center justify-between px-2.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[var(--kj-muted)]">
+                  <span>{appearanceLabel}</span>
+                  <span>6</span>
+                </div>
+                <div className="space-y-0.5">
+                  {APPEARANCE_THEMES.map((item) => {
+                    const active = theme === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => {
+                          setTheme(item.id);
+                          setThemeMenuOpen(false);
+                        }}
+                        className={`flex w-full items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-start text-xs transition-colors cursor-pointer ${
+                          active
+                            ? 'bg-[var(--kj-badge-bg)] font-bold text-[var(--kj-badge-ink)]'
+                            : 'text-[var(--kj-ink)] hover:bg-[var(--kj-soft)]'
+                        }`}
+                      >
+                        <span
+                          className="h-4 w-4 shrink-0 rounded-full border border-white/80 shadow-xs"
+                          style={{ backgroundColor: item.accent }}
+                        />
+                        <span className="truncate">{pickLoc(locale, item.names)}</span>
+                        {active && <span className="ms-auto text-[11px] font-extrabold">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-1.5 border-t border-[var(--kj-border)] pt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleNav('appearance')}
+                    className="flex w-full items-center justify-between rounded-[10px] px-2.5 py-2 text-start text-xs font-bold text-[var(--kj-green)] hover:bg-[var(--kj-soft)] cursor-pointer"
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <Palette className="h-3.5 w-3.5" />
+                      <span>
+                        {pickLoc(locale, {
+                          ckb: 'کردنەوەی پەڕەی ڕووکارەکان',
+                          kmr: 'لاپەڕێ ڕووکاران ڤەکە',
+                          ar: 'فتح صفحة المظهر كاملة',
+                          en: 'Open Full Appearance Page',
+                        })}
+                      </span>
+                    </span>
+                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {isStaff && (
             <button
@@ -315,11 +417,11 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
               title={t.nav.admin}
               className={`hidden sm:inline-flex h-9 items-center gap-1 rounded-[10px] border px-2.5 text-xs font-bold transition-colors cursor-pointer ${
                 activeView === 'admin'
-                  ? 'border-[#087f5b] bg-[#e4f2e9] text-[#087f5b] dark:bg-[#173a2d] dark:text-[#9cebc3]'
-                  : 'border-[var(--kj-border)] text-[var(--kj-ink)] hover:border-[#087f5b]'
+                  ? 'border-[var(--kj-green)] bg-[var(--kj-badge-bg)] text-[var(--kj-badge-ink)]'
+                  : 'border-[var(--kj-border)] text-[var(--kj-ink)] hover:border-[var(--kj-green)]'
               }`}
             >
-              <Shield className="h-3.5 w-3.5 text-[#087f5b] dark:text-[#7ce3b3]" />
+              <Shield className="h-3.5 w-3.5 text-[var(--kj-green)]" />
               <span>{t.nav.admin}</span>
             </button>
           )}
@@ -332,17 +434,18 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                 onClick={() => {
                   setAccountMenuOpen((o) => !o);
                   setLangMenuOpen(false);
+                  setThemeMenuOpen(false);
                   setExploreMenuOpen(false);
                 }}
                 aria-expanded={accountMenuOpen}
                 className="rounded-[10px]"
               >
-                <UserIcon className="h-4 w-4 text-[#087f5b] dark:text-[#7ce3b3]" />
+                <UserIcon className="h-4 w-4 text-[var(--kj-green)]" />
                 <span className="max-w-[96px] truncate">
                   {profile?.displayName || firebaseUser.displayName || firebaseUser.email?.split('@')[0]}
                 </span>
                 {unreadNotifs > 0 && (
-                  <span className="font-mono text-[11px] font-bold text-[#087f5b] dark:text-[#7ce3b3] tabular-nums">
+                  <span className="font-mono text-[11px] font-bold text-[var(--kj-green)] tabular-nums">
                     ({unreadNotifs})
                   </span>
                 )}
@@ -371,10 +474,21 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                     >
                       <span>{t.nav.dashboard}</span>
                       {unreadNotifs > 0 && (
-                        <span className="flex items-center gap-1 text-xs font-semibold text-[#087f5b] dark:text-[#7ce3b3] tabular-nums">
+                        <span className="flex items-center gap-1 text-xs font-semibold text-[var(--kj-green)] tabular-nums">
                           <Bell className="h-3.5 w-3.5" /> {unreadNotifs}
                         </span>
                       )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleNav('appearance')}
+                      className="flex w-full items-center justify-between rounded-[8px] px-2.5 py-2 text-start text-sm text-[var(--kj-ink)] hover:bg-[var(--kj-soft)] cursor-pointer"
+                    >
+                      <span>{appearanceLabel}</span>
+                      <span
+                        className="h-3.5 w-3.5 rounded-full border border-white/70"
+                        style={{ backgroundColor: activeThemeDef.accent }}
+                      />
                     </button>
                     <button
                       type="button"
@@ -412,14 +526,14 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="hidden sm:inline-flex px-2.5 py-2 text-[13.5px] font-semibold text-[var(--kj-ink)] hover:text-[#087f5b] dark:hover:text-[#7ce3b3] transition-colors whitespace-nowrap cursor-pointer"
+                className="hidden sm:inline-flex px-2.5 py-2 text-[13.5px] font-semibold text-[var(--kj-ink)] hover:text-[var(--kj-green)] transition-colors whitespace-nowrap cursor-pointer"
               >
                 {t.nav.signIn}
               </button>
               <button
                 type="button"
                 onClick={() => handleNav('academy')}
-                className="inline-flex items-center justify-center rounded-[10px] bg-[#087f5b] px-4 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-[#056949] whitespace-nowrap cursor-pointer"
+                className="inline-flex items-center justify-center rounded-[10px] bg-[var(--kj-green)] px-4 py-2.5 text-[13px] font-bold text-[var(--kj-btn-primary-ink)] transition-colors hover:bg-[var(--kj-accent-hover)] whitespace-nowrap cursor-pointer"
               >
                 {pickLoc(locale, {
                   ckb: 'دەستپێبکە',
@@ -460,7 +574,7 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                 onClick={() => handleNav(item.id)}
                 className={`rounded-[10px] px-3 py-2.5 text-start text-xs font-semibold cursor-pointer ${
                   activeView === item.id
-                    ? 'bg-[#087f5b] text-white'
+                    ? 'bg-[var(--kj-green)] text-[var(--kj-btn-primary-ink)]'
                     : 'bg-[var(--kj-card)] text-[var(--kj-ink)] border border-[var(--kj-border)]'
                 }`}
               >
@@ -473,7 +587,7 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                 onClick={() => handleNav('admin')}
                 className={`rounded-[10px] px-3 py-2.5 text-start text-xs font-semibold cursor-pointer ${
                   activeView === 'admin'
-                    ? 'bg-[#087f5b] text-white'
+                    ? 'bg-[var(--kj-green)] text-[var(--kj-btn-primary-ink)]'
                     : 'bg-[var(--kj-card)] text-[var(--kj-ink)] border border-[var(--kj-border)]'
                 }`}
               >
@@ -495,7 +609,7 @@ export const TopBar: React.FC<{ onOpenSearch?: () => void }> = ({ onOpenSearch }
                   setMobileMenuOpen(false);
                   setAuthModalOpen(true);
                 }}
-                className="rounded-[10px] border border-[#087f5b] bg-[var(--kj-card)] px-3 py-2.5 text-start text-xs font-bold text-[#087f5b] dark:text-[#7ce3b3] cursor-pointer"
+                className="rounded-[10px] border border-[var(--kj-green)] bg-[var(--kj-card)] px-3 py-2.5 text-start text-xs font-bold text-[var(--kj-green)] cursor-pointer"
               >
                 {t.nav.signIn}
               </button>

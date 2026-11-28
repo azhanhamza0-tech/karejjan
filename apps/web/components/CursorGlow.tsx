@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+import { getThemeDefinition } from '../data/themesCatalog';
 
 /**
- * Ambient emerald-mint cursor spotlight that smoothly follows mouse movement
- * across the entire karejan workspace without interrupting clicks or text selection.
+ * Ambient cursor spotlight that adapts dynamically to the active appearance theme
+ * and smoothly follows mouse movement across the entire karejan workspace.
  */
 export const CursorGlow: React.FC = () => {
   const { theme } = useApp();
+  const activeThemeDef = getThemeDefinition(theme);
   const containerRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
 
@@ -82,7 +84,8 @@ export const CursorGlow: React.FC = () => {
     };
   }, []);
 
-  const isDark = theme === 'dark';
+  const primaryOpacity = activeThemeDef.isDark ? 0.17 : 0.15;
+  const secondaryOpacity = activeThemeDef.isDark ? 0.09 : 0.08;
 
   return (
     <div
@@ -94,17 +97,13 @@ export const CursorGlow: React.FC = () => {
         ref={glowRef}
         className="will-change-transform absolute left-0 top-0 h-[520px] w-[520px] rounded-full"
         style={{
-          background: isDark
-            ? 'radial-gradient(circle, rgba(156, 235, 195, 0.17) 0%, rgba(24, 169, 116, 0.09) 28%, rgba(8, 127, 91, 0.03) 54%, transparent 72%)'
-            : 'radial-gradient(circle, rgba(24, 169, 116, 0.16) 0%, rgba(8, 127, 91, 0.08) 28%, rgba(16, 167, 117, 0.03) 54%, transparent 72%)',
+          background: `radial-gradient(circle, rgba(${activeThemeDef.glowRgb}, ${primaryOpacity}) 0%, rgba(${activeThemeDef.glowSecondaryRgb}, ${secondaryOpacity}) 28%, rgba(${activeThemeDef.glowSecondaryRgb}, 0.03) 54%, transparent 72%)`,
         }}
       >
         <div
           className="absolute left-1/2 top-1/2 h-[170px] w-[170px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-md"
           style={{
-            background: isDark
-              ? 'radial-gradient(circle, rgba(156, 235, 195, 0.18) 0%, transparent 70%)'
-              : 'radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, transparent 70%)',
+            background: `radial-gradient(circle, rgba(${activeThemeDef.glowRgb}, 0.18) 0%, transparent 70%)`,
           }}
         />
       </div>

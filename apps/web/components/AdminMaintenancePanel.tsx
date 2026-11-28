@@ -20,6 +20,7 @@ import {
   Zap,
   Home,
   Flame,
+  Palette,
 } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -193,6 +194,22 @@ const CORE_TAB_METADATA: Record<ActiveView, TabMetadata> = {
     },
     icon: Compass,
   },
+  appearance: {
+    id: 'appearance',
+    names: {
+      ckb: 'ڕووکار و ڕەنگەکان (Appearance)',
+      kmr: 'ڕووکار و ڕەنگ (Appearance)',
+      ar: 'المظهر والألوان (Appearance)',
+      en: 'Appearance & Visual Themes',
+    },
+    descs: {
+      ckb: 'گۆڕینی ٦ ڕووکار و ڕەنگی سەرانسەری وێبسایت (Light, Dark, Forest, Ocean, Sunset, Lavender)',
+      kmr: 'گوهۆڕینا ٦ ڕووکار و ڕەنگێن هەمی مالپەڕی',
+      ar: 'تخصيص ٦ ثيمات وألوان لكامل المنصة',
+      en: 'Site-wide 6-theme appearance gallery and color customization',
+    },
+    icon: Palette,
+  },
   pro: {
     id: 'pro',
     names: {
@@ -252,6 +269,7 @@ function getDynamicManageableTabs(currentLockedTabs: ActiveView[] = []): TabMeta
     'academy',
     'ai',
     'discover',
+    'appearance',
     'home',
     'pro',
     'dashboard',
@@ -365,7 +383,7 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
             JSON.stringify({ ...systemSettings, maintenance: updatedConfig })
           );
         }
-      } catch {}
+      } catch { }
 
       const before = { ...systemSettings.maintenance };
 
@@ -420,7 +438,7 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
         `Maintenance set to: global=${nextEnabled}, lockedTabs=[${nextLockedTabs.join(', ')}]`,
         before as unknown as Record<string, unknown>,
         updatedConfig as unknown as Record<string, unknown>
-      ).catch(() => {});
+      ).catch(() => { });
 
       if (!firestoreSynced) {
         onBanner(
@@ -439,19 +457,19 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
         'ok',
         nextEnabled
           ? pickLoc(locale, {
-              ckb: 'دۆخی چاکسازی گشتی لەسەر هەموو پلاتفۆرمەکە و هەموو ئامێرەکان چالاک کرا!',
-              kmr: 'دۆخێ چاکسازییا گشتی ل سەر هەمی پلاتفۆرمێ و ئامێران هاتە چالاککرن!',
-              ar: 'تم تفعيل وضع الصيانة العام على جميع الأجهزة والمستخدمين!',
-              en: 'Global maintenance mode enabled across all devices & users!',
-            })
+            ckb: 'دۆخی چاکسازی گشتی لەسەر هەموو پلاتفۆرمەکە و هەموو ئامێرەکان چالاک کرا!',
+            kmr: 'دۆخێ چاکسازییا گشتی ل سەر هەمی پلاتفۆرمێ و ئامێران هاتە چالاککرن!',
+            ar: 'تم تفعيل وضع الصيانة العام على جميع الأجهزة والمستخدمين!',
+            en: 'Global maintenance mode enabled across all devices & users!',
+          })
           : nextLockedTabs.length > 0
-          ? pickLoc(locale, {
+            ? pickLoc(locale, {
               ckb: `دۆخی چاکسازی بۆ ${nextLockedTabs.length} بەش لەسەر هەموو ئامێرەکان جێگیر کرا.`,
               kmr: `دۆخێ چاکسازیێ بۆ ${nextLockedTabs.length} بەشان ل سەر هەمی ئامێران هاتە جێگیرکرن.`,
               ar: `تم تفعيل وضع الصيانة لـ ${nextLockedTabs.length} قسم على جميع الأجهزة.`,
               en: `Maintenance mode enabled for ${nextLockedTabs.length} section(s) across all devices.`,
             })
-          : pickLoc(locale, {
+            : pickLoc(locale, {
               ckb: 'هەموو بەشەکان کرانەوە و ماڵپەڕ بۆ هەمووان لە دۆخی ئاساییدایە.',
               kmr: 'هەمی بەش هاتنە ڤەکرن و مالپەڕ بۆ هەمییان د دۆخێ ئاسایی دایە.',
               ar: 'تم فتح جميع الأقسام والموقع متاح للجميع.',
@@ -464,11 +482,11 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
         err instanceof Error
           ? err.message
           : pickLoc(locale, {
-              ckb: 'پاشەکەوتکردنی دۆخی چاکسازی سەرکەوتوو نەبوو.',
-              kmr: 'پاشکەفتکرنا دۆخێ چاکسازیێ سەرکەفتی نەبوو.',
-              ar: 'فشل حفظ إعدادات وضع الصيانة.',
-              en: 'Failed to save maintenance settings.',
-            })
+            ckb: 'پاشەکەوتکردنی دۆخی چاکسازی سەرکەوتوو نەبوو.',
+            kmr: 'پاشکەفتکرنا دۆخێ چاکسازیێ سەرکەفتی نەبوو.',
+            ar: 'فشل حفظ إعدادات وضع الصيانة.',
+            en: 'Failed to save maintenance settings.',
+          })
       );
     } finally {
       setSaving(false);
@@ -558,31 +576,30 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
           {/* Master Status Pill */}
           <div className="flex items-center gap-3">
             <div
-              className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold ${
-                isGlobalActive
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold ${isGlobalActive
                   ? 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400'
                   : isAnyTabLocked
-                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                  : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-              }`}
+                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                    : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                }`}
             >
               <Radio className="h-4 w-4 animate-pulse" />
               <span>
                 {isGlobalActive
                   ? pickLoc(locale, {
-                      ckb: 'دۆخی چاکسازی گشتی (قفڵە) 🚨',
-                      kmr: 'دۆخێ چاکسازییا گشتی (قفلە) 🚨',
-                      ar: 'وضع الصيانة العام (مغلق) 🚨',
-                      en: 'Global Maintenance (Locked) 🚨',
-                    })
+                    ckb: 'دۆخی چاکسازی گشتی (قفڵە) 🚨',
+                    kmr: 'دۆخێ چاکسازییا گشتی (قفلە) 🚨',
+                    ar: 'وضع الصيانة العام (مغلق) 🚨',
+                    en: 'Global Maintenance (Locked) 🚨',
+                  })
                   : isAnyTabLocked
-                  ? pickLoc(locale, {
+                    ? pickLoc(locale, {
                       ckb: `چاکسازی لەسەر (${lockedTabs.length}) بەش چالاکە 🛠️`,
                       kmr: `چاکسازی ل سەر (${lockedTabs.length}) بەشان چالاکە 🛠️`,
                       ar: `الصيانة نشطة على (${lockedTabs.length}) قسم 🛠️`,
                       en: `Maintenance on (${lockedTabs.length}) tab(s) 🛠️`,
                     })
-                  : pickLoc(locale, {
+                    : pickLoc(locale, {
                       ckb: 'سیستم ئاساییە و کراوەیە ✅',
                       kmr: 'سیستەم ئاساییە و ڤەکریە ✅',
                       ar: 'النظام طبيعي ومفتوح ✅',
@@ -785,21 +802,19 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
                 <div
                   key={tabItem.id}
                   onClick={() => toggleTabLock(tabItem.id)}
-                  className={`group relative flex flex-col justify-between rounded-xl border p-4 transition-all cursor-pointer ${
-                    isLocked
+                  className={`group relative flex flex-col justify-between rounded-xl border p-4 transition-all cursor-pointer ${isLocked
                       ? 'border-amber-500 bg-amber-500/10 shadow-sm dark:border-amber-500/60 dark:bg-amber-500/15'
                       : 'border-slate-200 bg-white hover:border-slate-300 dark:border-[#2b3442] dark:bg-[#151b26] dark:hover:border-[#344154]'
-                  }`}
+                    }`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div
-                          className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                            isLocked
+                          className={`flex h-8 w-8 items-center justify-center rounded-lg ${isLocked
                               ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
                               : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                          }`}
+                            }`}
                         >
                           <Icon className="h-4 w-4" />
                         </div>
@@ -815,11 +830,10 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
 
                       {/* Status indicator */}
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          isLocked
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${isLocked
                             ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
                             : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                        }`}
+                          }`}
                       >
                         {isLocked ? (
                           <>
@@ -849,7 +863,7 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
                     <input
                       type="checkbox"
                       checked={lockedTabs.includes(tabItem.id)}
-                      onChange={() => {}}
+                      onChange={() => { }}
                       className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-700 pointer-events-none"
                     />
                   </div>
@@ -983,17 +997,17 @@ export const AdminMaintenancePanel: React.FC<AdminMaintenancePanelProps> = ({ on
             <span>
               {saving
                 ? pickLoc(locale, {
-                    ckb: 'پاشەکەوت دەکرێت...',
-                    kmr: 'دهێتە پاشکەفتکرن...',
-                    ar: 'جارٍ الحفظ...',
-                    en: 'Saving...',
-                  })
+                  ckb: 'پاشەکەوت دەکرێت...',
+                  kmr: 'دهێتە پاشکەفتکرن...',
+                  ar: 'جارٍ الحفظ...',
+                  en: 'Saving...',
+                })
                 : pickLoc(locale, {
-                    ckb: 'پاشەکەوتکردن و جێبەجێکردنی دەستبەجێ',
-                    kmr: 'پاشکەفتکرن و جێبەجێکرنا بلەز',
-                    ar: 'حفظ وتطبيق الآن',
-                    en: 'Save & Deploy Now',
-                  })}
+                  ckb: 'پاشەکەوتکردن و جێبەجێکردنی دەستبەجێ',
+                  kmr: 'پاشکەفتکرن و جێبەجێکرنا بلەز',
+                  ar: 'حفظ وتطبيق الآن',
+                  en: 'Save & Deploy Now',
+                })}
             </span>
           </Button>
         </div>

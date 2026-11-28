@@ -25,9 +25,9 @@ export const Button: React.FC<
     violet:
       'bg-[image:var(--kj-gradient-secondary)] text-white font-bold hover:brightness-110 disabled:opacity-50',
     secondary:
-      'border border-[var(--kj-border-strong)] bg-white text-[var(--kj-ink)] hover:bg-[var(--kj-soft-alt)] dark:bg-[#202938] dark:border-[#3b4758] dark:text-[#f1f5f9] dark:hover:bg-[#2a3546] disabled:opacity-50',
+      'border border-[var(--kj-border-strong)] bg-[var(--kj-card)] text-[var(--kj-ink)] hover:bg-[var(--kj-soft-alt)] disabled:opacity-50',
     ghost:
-      'text-[var(--kj-muted-2)] hover:bg-[var(--kj-soft-alt)] hover:text-[var(--kj-ink)] dark:text-[#cbd5e1] dark:hover:bg-[#202938] dark:hover:text-white disabled:opacity-50',
+      'text-[var(--kj-muted-2)] hover:bg-[var(--kj-soft-alt)] hover:text-[var(--kj-ink)] disabled:opacity-50',
     danger:
       'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 disabled:opacity-50',
   };

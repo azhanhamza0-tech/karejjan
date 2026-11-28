@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Bell, Calendar, Award, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Bell, Calendar, Award, Check, Palette } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { APPEARANCE_THEMES } from '../data/themesCatalog';
 import { pickLoc } from '../i18n/translations';
 import type { Locale, ThemeMode } from '../types/domain';
 import { Button, Surface } from './ui/Primitives';
@@ -31,6 +32,10 @@ export const DashboardView: React.FC = () => {
   const [prefLang, setPrefLang] = useState<Locale>(locale);
   const [prefTheme, setPrefTheme] = useState<ThemeMode>(theme);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPrefTheme(theme);
+  }, [theme]);
 
   if (!firebaseUser) {
     return (
@@ -104,19 +109,19 @@ export const DashboardView: React.FC = () => {
         {/* Subscription Lifecycle Card */}
         <Surface className="p-6 lg:col-span-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-slate-950 dark:text-white">
+            <h2 className="text-base font-semibold text-[var(--kj-ink)]">
               {t.dashboard.subscriptionCard}
             </h2>
-            <Calendar className="h-4 w-4 text-slate-400" />
+            <Calendar className="h-4 w-4 text-[var(--kj-muted)]" />
           </div>
-          <p className="text-xl font-bold text-slate-950 dark:text-white">
+          <p className="text-xl font-bold text-[var(--kj-ink)]">
             {effectivePlan === 'pro' ? t.common.proPlan : t.common.freePlan}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-[var(--kj-muted)]">
             Status: <span className="font-semibold capitalize">{subscription?.status || profile?.subscriptionStatus || 'none'}</span>
             {subscription?.expiresAt && ` · ${t.dashboard.expiresOn} ${subscription.expiresAt.slice(0, 10)}`}
           </p>
-          <p className="mt-3 text-xs leading-5 text-slate-600 dark:text-slate-300">
+          <p className="mt-3 text-xs leading-5 text-[var(--kj-muted-2)]">
             {effectivePlan === 'pro' ? t.pro.proFairUseNote : t.pro.freeFairUseNote}
           </p>
           <div className="mt-5">
@@ -128,12 +133,29 @@ export const DashboardView: React.FC = () => {
 
         {/* Profile Preferences Card */}
         <Surface className="p-6 lg:col-span-7">
-          <h2 className="mb-4 text-base font-semibold text-slate-950 dark:text-white">
-            {t.dashboard.profileSettings}
-          </h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-[var(--kj-ink)]">
+              {t.dashboard.profileSettings}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setActiveView('appearance')}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--kj-soft)] px-3 py-1.5 text-xs font-bold text-[var(--kj-green)] hover:bg-[var(--kj-elevated)] cursor-pointer"
+            >
+              <Palette className="h-3.5 w-3.5" />
+              <span>
+                {pickLoc(locale, {
+                  ckb: 'گالەری ٦ ڕووکار »',
+                  kmr: 'Galeriya ٦ Rûkaran »',
+                  ar: 'معرض المظاهر (٦) »',
+                  en: 'Visual Theme Gallery »',
+                })}
+              </span>
+            </button>
+          </div>
           <form onSubmit={saveProfile} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label className="mb-1 block text-xs font-medium text-[var(--kj-muted-2)]">
                 {t.auth.displayName}
               </label>
               <input
@@ -141,17 +163,17 @@ export const DashboardView: React.FC = () => {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 maxLength={100}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-[#344154] dark:bg-[#10141c] dark:text-white"
+                className="w-full rounded-lg border border-[var(--kj-border-strong)] bg-[var(--kj-paper)] px-3 py-2 text-sm text-[var(--kj-ink)] focus:border-[var(--kj-green)] focus:outline-none"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label className="mb-1 block text-xs font-medium text-[var(--kj-muted-2)]">
                 {t.common.language}
               </label>
               <select
                 value={prefLang}
                 onChange={(e) => setPrefLang(e.target.value as Locale)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-[#344154] dark:bg-[#10141c] dark:text-white"
+                className="w-full rounded-lg border border-[var(--kj-border-strong)] bg-[var(--kj-paper)] px-3 py-2 text-sm text-[var(--kj-ink)] focus:border-[var(--kj-green)] focus:outline-none"
               >
                 <option value="ckb">کوردی (سۆرانی)</option>
                 <option value="kmr">کوردی (بادینی)</option>
@@ -160,16 +182,19 @@ export const DashboardView: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label className="mb-1 block text-xs font-medium text-[var(--kj-muted-2)]">
                 {t.common.theme}
               </label>
               <select
                 value={prefTheme}
                 onChange={(e) => setPrefTheme(e.target.value as ThemeMode)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-[#344154] dark:bg-[#10141c] dark:text-white"
+                className="w-full rounded-lg border border-[var(--kj-border-strong)] bg-[var(--kj-paper)] px-3 py-2 text-sm text-[var(--kj-ink)] focus:border-[var(--kj-green)] focus:outline-none"
               >
-                <option value="dark">{t.common.darkTheme}</option>
-                <option value="light">{t.common.lightTheme}</option>
+                {APPEARANCE_THEMES.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {pickLoc(locale, item.names)}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="flex items-center gap-3 sm:col-span-3">
@@ -177,7 +202,7 @@ export const DashboardView: React.FC = () => {
                 {t.common.save}
               </Button>
               {savedNotice && (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400">{savedNotice}</span>
+                <span className="text-xs font-semibold text-[var(--kj-green)]">{savedNotice}</span>
               )}
             </div>
           </form>

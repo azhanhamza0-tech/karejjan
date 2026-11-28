@@ -29,6 +29,7 @@ import {
 } from '../lib/firebase';
 import { apiFetch } from '../lib/api';
 import { isRtlLocale, TRANSLATIONS, cleanTitle, type UiCopy } from '../i18n/translations';
+import { isValidThemeMode } from '../data/themesCatalog';
 import { ALL_COURSES } from '../data/courses/coursesList';
 import {
   DEFAULT_SYSTEM_SETTINGS,
@@ -166,8 +167,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [theme, setThemeState] = useState<ThemeMode>(() => {
-    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('karejan_theme') : null;
-    return saved === 'light' ? 'light' : 'dark';
+    if (typeof window === 'undefined') return 'dark';
+    const saved =
+      window.localStorage.getItem('karejan_theme') ||
+      window.localStorage.getItem('codenest-theme');
+    return isValidThemeMode(saved) ? saved : 'dark';
   });
 
   const [activeView, setActiveViewState] = useState<ActiveView>('home');
@@ -269,10 +273,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [locale]);
 
-  // Sync Tailwind v4 .dark class on theme change
+  // Sync document theme attribute, Tailwind v4 .dark class, and localStorage across entire site
   useEffect(() => {
+    document.documentElement.dataset.theme = theme;
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    window.localStorage.setItem('karejan_theme', theme);
+    try {
+      window.localStorage.setItem('karejan_theme', theme);
+      window.localStorage.setItem('codenest-theme', theme);
+    } catch { }
   }, [theme]);
 
   // Helper to get stable anonymous client key for local practice persistence
@@ -750,7 +758,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               if (!savedLoc && (data.language === 'ckb' || data.language === 'kmr' || data.language === 'ar' || data.language === 'en')) {
                 setLocaleState(data.language);
               }
-              if (data.theme) setThemeState(data.theme);
+              const savedTheme = typeof window !== 'undefined' ? window.localStorage.getItem('karejan_theme') : null;
+              if (!savedTheme && isValidThemeMode(data.theme)) setThemeState(data.theme);
             }
             const expired =
               data.subscriptionExpiresAt && new Date(data.subscriptionExpiresAt).getTime() <= Date.now();
@@ -921,7 +930,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   const setTheme = useCallback((mode: ThemeMode) => {
+    if (!isValidThemeMode(mode)) return;
     setThemeState(mode);
+    if (typeof window !== 'undefined') {
+      document.documentElement.dataset.theme = mode;
+      document.documentElement.classList.toggle('dark', mode === 'dark');
+      try {
+        window.localStorage.setItem('karejan_theme', mode);
+        window.localStorage.setItem('codenest-theme', mode);
+      } catch { }
+    }
     if (auth.currentUser && auth.currentUser.emailVerified) {
       updateDoc(doc(db, 'users', auth.currentUser.uid), {
         theme: mode,
@@ -933,7 +951,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateProfilePreferences = useCallback(
     async (patch: { displayName?: string; language?: Locale; theme?: ThemeMode }) => {
       if (patch.language) setLocaleState(patch.language);
-      if (patch.theme) setThemeState(patch.theme);
+      if (patch.theme && isValidThemeMode(patch.theme)) setThemeState(patch.theme);
       if (!auth.currentUser || !auth.currentUser.emailVerified) return;
       const userRef = doc(db, 'users', auth.currentUser.uid);
       try {
@@ -942,7 +960,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           updatedAt: serverTimestamp(),
         });
       } catch (err) {
-        handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
+        console.warn('Profile Firestore update notice:', err);
       }
     },
     []
